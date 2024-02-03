@@ -1,0 +1,61 @@
+.formContainer {
+  width: 300px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formContainer img {
+  border-radius: 100%;
+  height: 100px;
+  width: 100px;
+}
+
+.formContainer h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.Signup {
+  text-align: center;
+  height: 90vh;
+  overflow-y: auto;
+}
+
+.Signup .formContainer {
+  max-width: 100vw;
+}
+
+.Signup button {
+  width: 100%;
+  padding: 10px;
+  background-color: #27ae60;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.Signup button:hover {
+  background-color: #219f56;
+}

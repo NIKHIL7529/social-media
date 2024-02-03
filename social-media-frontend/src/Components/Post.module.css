@@ -1,0 +1,44 @@
+.Post {
+  margin: 5vh 3vw;
+  padding: 5px 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  top: 10vh;
+  box-shadow: 3px 3px 10px gray;
+  border-radius: 5px;
+}
+
+.Post h3 {
+  margin: 0;
+  font-size: x-large;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.Post span {
+  margin: 2vh 0;
+}
+
+.Post div {
+  height: 50vh;
+  width: 60vw;
+  align-self: center;
+  display: flex;
+  justify-content: center;
+}
+
+.Post p {
+  display: flex-end;
+  /* align-items: end; */
+  margin-bottom: 0;
+}
+
+.Post svg {
+  margin-right: 2vw;
+}
+
+.Post svg:hover {
+  cursor: pointer;
+}

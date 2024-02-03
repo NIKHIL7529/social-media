@@ -1,0 +1,18 @@
+.ListPage {
+  width: 20vw;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  border-right: 2px solid black;
+  background-color: black;
+  color: white;
+}
+
+.ListPage p {
+  background-color: blue;
+}
+
+.ListPage p:hover {
+  cursor: pointer;
+}
+

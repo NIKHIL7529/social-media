@@ -1,0 +1,9 @@
+.Search {
+  position: absolute;
+  right: 0;
+  width: 80vw;
+}
+
+.Search li:hover {
+  cursor: pointer;
+}

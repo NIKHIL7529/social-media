@@ -1,0 +1,7 @@
+.Home {
+  position: fixed;
+  right: 0;
+  width: 80vw;
+  height: 90vh;
+  overflow-y: auto;
+}

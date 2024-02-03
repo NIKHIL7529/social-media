@@ -1,0 +1,26 @@
+.NavBar {
+  height: 10vh;
+  border-bottom: 2px solid black;
+  display: flex;
+  align-items: center;
+  padding: 0 50px;
+  justify-content: space-between;
+}
+
+.NavBar p {
+  font-size: xx-large;
+  font-weight: bolder;
+}
+
+.NavBar div {
+  height: 5vh;
+  width: 6vw;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.NavBar svg:hover {
+  font-size: 5vh;
+  cursor: pointer;
+}

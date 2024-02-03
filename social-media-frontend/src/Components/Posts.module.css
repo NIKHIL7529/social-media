@@ -1,0 +1,26 @@
+.Posts {
+  position: fixed;
+  right: 0;
+  width: 80vw;
+  height: 90vh;
+  overflow-y: auto;
+}
+
+.Posts h1 {
+  margin: 0;
+  position: fixed;
+  width: 80vw;
+  padding: 2.5vh 3vw;
+  background-color: cornflowerblue;
+  border-left: 2px solid black;
+  color: white;
+  z-index: 1;
+}
+
+.btn {
+  position: relative;
+  left: 3vw;
+  margin: 5px;
+  top: 12vh;
+  z-index: -1;
+}
