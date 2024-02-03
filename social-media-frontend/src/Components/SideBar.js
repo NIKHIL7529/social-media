@@ -28,12 +28,12 @@ export default function SideBar() {
           Search
         </p>
       </Link>
-      <Link to="/chat">
+      {/* <Link to="/chat">
         <p>
           <ChatOutlinedIcon />
           Messages
         </p>
-      </Link>
+      </Link> */}
       <Link to="/profile">
         <p>
           <PersonOutlinedIcon />
