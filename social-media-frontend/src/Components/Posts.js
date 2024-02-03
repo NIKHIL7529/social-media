@@ -7,7 +7,7 @@ export default function Posts() {
   const [use, setUse] = useState({});
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/user/profile", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/profile", {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -25,7 +25,7 @@ export default function Posts() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("http://localhost:8000/api/post", {
+    fetch("https://social-media-backend-d246.onrender.com/api/post", {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },

@@ -14,7 +14,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://main--majestic-choux-1d8140.netlify.app/",
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -25,7 +25,7 @@ const DB = process.env.DATABASE;
 const PORT = process.env.PORT;
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: "https://main--majestic-choux-1d8140.netlify.app/",
   credentials: true,
 };
 
@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
     if (message.receiver.length === 1) {
       message.receiver = [message.sender, ...message.receiver];
     }
-    
+
     message.receiver.map((receiver) => {
       let socketId = null;
       onlineUsers.map((o_user, index) => {

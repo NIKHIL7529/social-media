@@ -20,7 +20,7 @@ const Login = () => {
   const handleLogin = (e) => {
     console.log("Handling Login...");
     e.preventDefault();
-    fetch("http://localhost:8000/api/user/login", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/login", {
       method: "POST",
       body: JSON.stringify(formData),
       headers: {

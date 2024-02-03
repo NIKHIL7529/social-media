@@ -45,7 +45,7 @@ export default function Signup() {
     console.log("hi");
     console.log("Handling Signup...");
 
-    fetch("http://localhost:8000/api/user/signup", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/signup", {
       method: "POST",
       body: JSON.stringify(formData),
       headers: {

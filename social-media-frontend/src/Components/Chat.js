@@ -23,7 +23,7 @@ export default function Chat() {
   const socket = useRef(null);
 
   const generateSocket = () => {
-    let socket = io("http://localhost:8000", {
+    let socket = io("https://social-media-backend-d246.onrender.com", {
       withCredentials: true,
     });
 
@@ -55,14 +55,17 @@ export default function Chat() {
 
   useEffect(() => {
     const getChats = async () => {
-      await fetch("http://localhost:8000/api/message/allChats", {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      })
+      await fetch(
+        "https://social-media-backend-d246.onrender.com/api/message/allChats",
+        {
+          method: "GET",
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          withCredentials: true,
+          credentials: "include",
+        }
+      )
         .then((response) => response.json())
         .then((data) => {
           console.log("Fetch response received: ", data);
@@ -87,15 +90,18 @@ export default function Chat() {
       setChatId(_id);
       setMessage("");
 
-      fetch("http://localhost:8000/api/message/messages", {
-        method: "POST",
-        body: JSON.stringify({ _id }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      })
+      fetch(
+        "https://social-media-backend-d246.onrender.com/api/message/messages",
+        {
+          method: "POST",
+          body: JSON.stringify({ _id }),
+          headers: {
+            "Content-type": "application/json; charset=UTF-8",
+          },
+          withCredentials: true,
+          credentials: "include",
+        }
+      )
         .then((response) => response.json())
         .then((data) => {
           console.log("Fetch response received: ", data);
@@ -145,15 +151,18 @@ export default function Chat() {
     console.log(msg);
     let messageId;
 
-    await fetch("http://localhost:8000/api/message/sendMessage", {
-      method: "POST",
-      body: JSON.stringify({ receiver, msg, _id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    await fetch(
+      "https://social-media-backend-d246.onrender.com/api/message/sendMessage",
+      {
+        method: "POST",
+        body: JSON.stringify({ receiver, msg, _id }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -180,14 +189,17 @@ export default function Chat() {
 
   const handleCreateGroup = () => {
     setClickedCreateGroup((prevClickedCreateGroup) => !prevClickedCreateGroup);
-    fetch("http://localhost:8000/api/message/followings", {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    fetch(
+      "https://social-media-backend-d246.onrender.com/api/message/followings",
+      {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -212,15 +224,18 @@ export default function Chat() {
     console.log("Selected Group Users:", group.users);
     let _id = "";
 
-    await fetch("http://localhost:8000/api/group/createGroup", {
-      method: "POST",
-      body: JSON.stringify(group),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    await fetch(
+      "https://social-media-backend-d246.onrender.com/api/group/createGroup",
+      {
+        method: "POST",
+        body: JSON.stringify(group),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);

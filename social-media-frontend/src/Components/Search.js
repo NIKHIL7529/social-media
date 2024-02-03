@@ -15,7 +15,7 @@ export default function Search() {
     e.preventDefault();
     console.log("hi");
     console.log("Handling Search...");
-    fetch("http://localhost:8000/api/user/search", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/search", {
       method: "POST",
       body: JSON.stringify(input),
       headers: {
@@ -48,11 +48,12 @@ export default function Search() {
       />
       <button onClick={handleSearch}>Submit</button>
       <p>
-        {users && users.map((user) => (
-          <li key={user._id} onClick={() => navigate(`/user/${user._id}`)}>
-            {user.name}
-          </li>
-        ))}
+        {users &&
+          users.map((user) => (
+            <li key={user._id} onClick={() => navigate(`/user/${user._id}`)}>
+              {user.name}
+            </li>
+          ))}
       </p>
     </div>
   );

@@ -4,7 +4,7 @@ import styles from "./Settings.module.css";
 export default function Settings() {
   const navigate = useNavigate();
   const handleLogout = () => {
-    fetch("http://localhost:8000/api/user/logout", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/logout", {
       method: "GET",
       headers: {
         "Content-type": "application/json; charset=UTF-8",

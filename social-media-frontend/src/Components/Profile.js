@@ -32,7 +32,7 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/user/profile", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/profile", {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -50,13 +50,16 @@ export default function Profile() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("http://localhost:8000/api/post/signedUserPosts", {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    fetch(
+      "https://social-media-backend-d246.onrender.com/api/post/signedUserPosts",
+      {
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);

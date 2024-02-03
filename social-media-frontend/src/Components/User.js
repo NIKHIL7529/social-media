@@ -34,7 +34,7 @@ export default function User() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/user/profile", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/profile", {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -52,7 +52,7 @@ export default function User() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("http://localhost:8000/api/user/user", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/user", {
       method: "POST",
       body: JSON.stringify({ _id: id }),
       headers: {
@@ -72,7 +72,7 @@ export default function User() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("http://localhost:8000/api/post/userPosts", {
+    fetch("https://social-media-backend-d246.onrender.com/api/post/userPosts", {
       method: "POST",
       body: JSON.stringify({ _id: id }),
       headers: {
@@ -94,7 +94,7 @@ export default function User() {
   }, [id]);
 
   const handleFollow = () => {
-    fetch("http://localhost:8000/api/user/follow", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/follow", {
       method: "POST",
       body: JSON.stringify({ userName: use.name }),
       headers: {

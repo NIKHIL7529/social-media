@@ -72,7 +72,7 @@ export default function AddPost({ onClose }) {
 
     console.log("addPost");
 
-    fetch("http://localhost:8000/api/post/addPost", {
+    fetch("https://social-media-backend-d246.onrender.com/api/post/addPost", {
       method: "POST",
       body: JSON.stringify(postData),
       headers: {

@@ -48,15 +48,18 @@ export default function Post({ post, user }) {
   }, [user, post.user.name]);
 
   const handleDelete = () => {
-    fetch("http://localhost:8000/api/post/deletePost", {
-      method: "POST",
-      body: JSON.stringify({ _id: post._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    fetch(
+      "https://social-media-backend-d246.onrender.com/api/post/deletePost",
+      {
+        method: "POST",
+        body: JSON.stringify({ _id: post._id }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -69,7 +72,7 @@ export default function Post({ post, user }) {
   };
 
   const handleFollow = () => {
-    fetch("http://localhost:8000/api/user/follow", {
+    fetch("https://social-media-backend-d246.onrender.com/api/user/follow", {
       method: "POST",
       body: JSON.stringify({ userName: post.user.name }),
       headers: {
@@ -95,7 +98,7 @@ export default function Post({ post, user }) {
   };
 
   const handleSaved = () => {
-    fetch("http://localhost:8000/api/post/saved", {
+    fetch("https://social-media-backend-d246.onrender.com/api/post/saved", {
       method: "POST",
       body: JSON.stringify({ _id: post._id }),
       headers: {
@@ -119,15 +122,18 @@ export default function Post({ post, user }) {
   };
 
   const handleLiked = async () => {
-    await fetch("http://localhost:8000/api/post/liked", {
-      method: "POST",
-      body: JSON.stringify({ _id: post._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
+    await fetch(
+      "https://social-media-backend-d246.onrender.com/api/post/liked",
+      {
+        method: "POST",
+        body: JSON.stringify({ _id: post._id }),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
