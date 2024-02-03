@@ -21,7 +21,7 @@ const io = new Server(httpServer, {
 });
 
 dotenv.config({ path: "./config.env" });
-const DB = "mongodb://127.0.0.1:27017/SocialMediaDB";
+const DB = process.env.DATABASE;
 const PORT = process.env.PORT;
 
 const corsOptions = {
