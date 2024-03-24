@@ -88,4 +88,7 @@
     width: 100%;
     height: calc(100% - 56px);
   }
+  .searchbar {
+    width: 55%;
+  }
 }
