@@ -61,6 +61,7 @@ export default function Chat() {
   useEffect(() => {
     auth_user.current = user;
     console.log("Connection Created", socket);
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -122,6 +123,7 @@ export default function Chat() {
       navigate("/chat");
       window.location.reload();
     };
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -136,6 +138,7 @@ export default function Chat() {
         }
       });
     }
+    // eslint-disable-next-line
   }, [chats, id]);
 
   useEffect(() => {
@@ -193,7 +196,7 @@ export default function Chat() {
         setMessage("");
         socket.current.emit("chat", [location.state]);
       }
-    }
+    } // eslint-disable-next-line
   }, [chats]);
 
   const handleReceiver = (_id, chat) => {

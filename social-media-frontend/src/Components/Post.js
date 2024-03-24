@@ -41,7 +41,7 @@ export default function Post(props) {
       }
     } else {
       setButton("none");
-    }
+    }// eslint-disable-next-line 
   }, [post.user.name, user.name]);
 
   useEffect(() => {

@@ -28,7 +28,7 @@ export default function Posts() {
         followings: userFollowings,
       }));
       setFollow("");
-    }
+    }// eslint-disable-next-line 
   }, [follow]);
 
   useEffect(() => {

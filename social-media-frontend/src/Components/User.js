@@ -103,7 +103,7 @@ export default function User() {
       console.log("user followers", use.followers);
       setFollowFlag(isFollowed);
       // setFollow(use.name);
-    }
+    }// eslint-disable-next-line 
   }, [use.followers]);
 
   const handleFollow = () => {

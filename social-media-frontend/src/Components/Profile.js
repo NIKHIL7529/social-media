@@ -80,7 +80,7 @@ export default function Profile() {
       post = post.filter((post) => post._id !== index);
       setPosts(post);
       setIndex("");
-    }
+    }// eslint-disable-next-line 
   }, [index]);
 
   console.log(index);

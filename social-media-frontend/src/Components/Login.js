@@ -15,7 +15,7 @@ const Login = ({ setUser }) => {
       if (cookies) {
         navigate("/posts");
       }
-    }
+    }// eslint-disable-next-line 
   }, []);
 
   // const [submit, setSubmit] = useState(false);
