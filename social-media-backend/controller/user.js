@@ -113,54 +113,53 @@ const editProfile = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  // console.log(req.cookie.token);
   try {
     const { name, password } = req.body;
 
     if (!name || !password) {
       return res
         .status(400)
-        .json({ status: 400, error: "Please fill the data." });
+        .json({ status: 400, error: "Please fill all the fields." });
     }
 
-    const existing_user = await User.findOne({ name: name });
-    console.log(existing_user);
+    const existingUser = await User.findOne({ name: name });
 
-    if (existing_user) {
-      const isPasswordCorrect = await bcrypt.compareSync(
-        password,
-        existing_user.password
-      );
-
-      if (!isPasswordCorrect) {
-        return res
-          .status(400)
-          .json({ status: 400, message: "Incorrect Credentials" });
-      } else {
-        console.log("Login");
-        const name = existing_user.name;
-        const id = existing_user._id;
-        const token = jwt.sign({ id, name }, process.env.SECRET_KEY);
-        return res
-          .cookie("token", token, {
-            maxAge: 60 * 60 * 60 * 1000,
-            // httpOnly: true,
-            // secure: true,
-            // sameSite: "none",
-          })
-          .status(200)
-          .json({ status: 200, message: "Login successful", existing_user });
-      }
-    } else {
+    if (!existingUser) {
       return res
         .status(400)
         .json({ status: 400, message: "Incorrect Credentials" });
     }
+
+    const isPasswordCorrect = await bcrypt.compareSync(
+      password,
+      existingUser.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Incorrect Credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: existingUser._id, name: existingUser.name },
+      process.env.SECRET_KEY
+    );
+
+    return res
+      .cookie("token", token, {
+        maxAge: 60 * 60 * 60 * 1000,
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      })
+      .status(200)
+      .json({ status: 200, message: "Login successful", user: existingUser });
   } catch (err) {
-    console.log(err);
+    console.error("Login error:", err);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal Server Error", err });
+      .json({ status: 500, message: "Internal Server Error" });
   }
 };
 

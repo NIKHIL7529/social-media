@@ -3,26 +3,23 @@ require("dotenv").config();
 
 const token_User_Verify = (req, res, next) => {
   const token = req.cookies.token;
-  console.log(token);
+  console.log("Token:", token);
+
   try {
-    console.log("token_User_Verify");
+    console.log("Verifying token...");
     if (!token) {
-      console.log("null");
-      console.log(token);
-      // next();
-      // return res.json({login:false});
-    } else {
-      console.log("HI");
-      const user = jwt.verify(token, process.env.SECRET_KEY);
-      req.user = user;
-      console.log(req.user + " USER " + user);
-      // return res.redirect("http://localhost:3000");
-      next();
+      console.log("Token is missing.");
+      return res.redirect("/login"); // Redirect to login if token is missing
     }
+
+    const user = jwt.verify(token, process.env.SECRET_KEY);
+    console.log("Token verified successfully.");
+    req.user = user;
+    next(); // Proceed to the next middleware
   } catch (err) {
-    console.log("error");
-    // res.clearCookie("token");
-    return res.redirect("/signup");
+    console.error("Token verification failed:", err.message);
+    res.clearCookie("token"); // Clear invalid token from cookies
+    return res.redirect("/login"); // Redirect to login if token verification fails
   }
 };
 
