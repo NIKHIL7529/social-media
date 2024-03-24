@@ -1,9 +1,91 @@
 .Search {
   position: absolute;
-  right: 0;
-  width: 80vw;
+  left: 230px;
+  width: calc(100% - 500px);
+  height: calc(100% - 56px);
 }
 
-.Search li:hover {
+.searchbar {
+  width: 47%;
+  height: 40px;
+  display: flex;
+  margin: 10px auto;
+  /* justify-content: center; */
+  /* align-items: center; */
+  /* border: 1px solid; */
+  /* border-radius: 20px; */
+}
+
+.searchinput {
+  height: 100%;
+  width: 90%;
+  display: flex;
+  align-items: center;
+  border: 1px solid;
+  border-radius: 20px 0 0 20px;
+  box-sizing: border-box;
+}
+
+.searchinput input {
+  height: 100%;
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  padding: 0 16px;
+  font-size: 1em;
+  outline: none;
+  border-radius: 20px 0 0 20px;
+}
+
+.searchIcon {
+  height: 100%;
+  width: 60px;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid;
+  border-radius: 0 20px 20px 0;
   cursor: pointer;
+  box-sizing: border-box;
+}
+
+.searchIcon svg {
+  fill: #fff;
+  font-size: 30px;
+}
+
+.searchnames {
+  padding: 12px;
+  height: calc(100% - 84px);
+  overflow: scroll;
+  scrollbar-width: none;
+}
+
+.searchname {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 12px;
+  width: fit-content;
+}
+
+.searchname p {
+  cursor: pointer;
+}
+
+.searchname img {
+  border-radius: 50%;
+  height: 30px;
+  width: 30px;
+  margin-right: 24px;
+}
+
+@media only screen and (max-width: 1024px) {
+  .Search {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 56px);
+  }
 }

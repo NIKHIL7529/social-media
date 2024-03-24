@@ -2,24 +2,45 @@ import styles from "./Post.module.css";
 import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
-import { useEffect, useState } from "react";
-import { BookmarkOutlined, ThumbUpSharp } from "@mui/icons-material";
-// import postih from "../images/post.jpg";
+import { useEffect, useRef, useState } from "react";
+import { BookmarkOutlined, ChatSharp, ThumbUpSharp } from "@mui/icons-material";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import postih from "../images/post.jpg";
+import { backendUrl } from "../Utils/backendUrl";
+import SendIcon from "@mui/icons-material/Send";
+import Swal from "sweetalert2";
+import EmojiPicker from "emoji-picker-react";
 
-export default function Post({ post, user }) {
+export default function Post(props) {
   const [likes, setLikes] = useState(null);
   const [likeflag, setLikeFlag] = useState(false);
   const [saveflag, setSaveFlag] = useState(false);
   const [followflag, setFollowFlag] = useState(false);
   const [button, setButton] = useState("");
+  const [commentClick, setCommentClick] = useState(false);
+  const [comment, setComment] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentable, setCommentable] = useState(true);
+  const [fullText, setFullText] = useState(false);
+  const [buttonShow, setButtonShow] = useState(false);
+  const [picker, setPicker] = useState(false);
 
+  const auth_user = useRef();
+  const textRef = useRef(null);
+  const post = props.post;
+  const user = props.user;
   console.log("initial data is ", post, user);
 
   useEffect(() => {
-    if (user.name === post.user.name) {
-      setButton("Delete");
+    console.log(user.name, post.user.name);
+    if (props.admin !== "false") {
+      if (user.name === post.user.name) {
+        setButton("Delete");
+      } else {
+        setButton("Follow");
+      }
     } else {
-      setButton("Follow");
+      setButton("none");
     }
   }, [post.user.name, user.name]);
 
@@ -48,31 +69,30 @@ export default function Post({ post, user }) {
   }, [user, post.user.name]);
 
   const handleDelete = () => {
-    fetch(
-      "https://social-media-backend-d246.onrender.com/api/post/deletePost",
-      {
-        method: "POST",
-        body: JSON.stringify({ _id: post._id }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    fetch(`${backendUrl}/api/post/deletePost`, {
+      method: "POST",
+      body: JSON.stringify({ _id: post._id }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.message);
           console.log("Search Successful");
+          console.log(post._id);
+          props.setIndex(post._id);
           // document.window.reload();
         }
       });
   };
 
   const handleFollow = () => {
-    fetch("https://social-media-backend-d246.onrender.com/api/user/follow", {
+    fetch(`${backendUrl}/api/user/follow`, {
       method: "POST",
       body: JSON.stringify({ userName: post.user.name }),
       headers: {
@@ -85,10 +105,11 @@ export default function Post({ post, user }) {
       .then((data) => {
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
-          console.log(data.user);
+          console.log(data.user1);
           // setUse(data.user);
           console.log("Search Successful");
           setFollowFlag((prevFollowFlag) => !prevFollowFlag);
+          props.setFollow(post.user.name);
           // document.window.reload();
         } else {
           return;
@@ -98,7 +119,7 @@ export default function Post({ post, user }) {
   };
 
   const handleSaved = () => {
-    fetch("https://social-media-backend-d246.onrender.com/api/post/saved", {
+    fetch(`${backendUrl}/api/post/saved`, {
       method: "POST",
       body: JSON.stringify({ _id: post._id }),
       headers: {
@@ -122,18 +143,15 @@ export default function Post({ post, user }) {
   };
 
   const handleLiked = async () => {
-    await fetch(
-      "https://social-media-backend-d246.onrender.com/api/post/liked",
-      {
-        method: "POST",
-        body: JSON.stringify({ _id: post._id }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    await fetch(`${backendUrl}/api/post/liked`, {
+      method: "POST",
+      body: JSON.stringify({ _id: post._id }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -149,10 +167,87 @@ export default function Post({ post, user }) {
       .catch((err) => console.log("Error during fetch: ", err));
   };
 
+  const handleComment = () => {
+    if (!commentable) {
+      console.log("Comments are restricted");
+      return;
+    }
+    setCommentClick((prevCommentClick) => !prevCommentClick);
+  };
+
+  const handleCommentChange = (e) => {
+    setComment(e.target.value);
+  };
+
+  const handleCommentSend = () => {
+    if (comment.length > 0) {
+      setComments((prevComments) => [
+        ...prevComments,
+        { sender: auth_user.current, comment: comment },
+      ]);
+    }
+    setComment("");
+  };
+
+  const handleShowDesc = () => {
+    setFullText((prevFullText) => !prevFullText);
+  };
+
+  const handleText = () => {
+    console.log("Enter");
+    const width = textRef.current.clientWidth;
+    const text = textRef.current.textContent;
+    const span = document.createElement("span");
+    span.textContent = text;
+    document.body.appendChild(span);
+    const textWidth = span.offsetWidth;
+    document.body.removeChild(span);
+    console.log(width, text, textWidth);
+
+    if (textWidth > width) {
+      setFullText(false);
+      setButtonShow(true);
+    } else {
+      setFullText(true);
+      setButtonShow(false);
+    }
+  };
+
+  useEffect(() => {
+    handleText();
+    window.addEventListener("resize", handleText);
+    return () => {
+      window.removeEventListener("resize", handleText);
+    };
+  }, []);
+
+  const handleImage = () => {
+    Swal.fire({
+      html: `<img src=${user.photo} alt=${user}  style="max-width: 100%; height: auto;" />`,
+      showConfirmButton: false,
+    });
+  };
+
+  const handleEmojiPicker = () => {
+    if (picker === true) {
+      setPicker(false);
+    }
+  };
+
+  const onEmojiClick = (emojiData, event) => {
+    console.log(emojiData.emoji);
+    // setEmoji(emojiData.unified);
+    // {emoji && <Emoji unified={emoji} />}
+    setComment((prevMessage) => prevMessage + emojiData.emoji);
+  };
+
   return (
     <div className={styles.Post}>
-      <h3>
-        {post.user.name}
+      <div className={styles.postheader}>
+        <div>
+          <img src={user.photo} alt={user} onClick={handleImage} />
+          <p>{post.user.name}</p>
+        </div>
 
         {button === "Follow" && (
           <button onClick={handleFollow}>
@@ -160,20 +255,103 @@ export default function Post({ post, user }) {
           </button>
         )}
         {button === "Delete" && <button onClick={handleDelete}>Delete</button>}
-      </h3>
-      <h4>{post.topic}</h4>
-      <span>{post.text}</span>
-      <div>
+      </div>
+      <div className={styles.image}>
         <img src={post.photo} alt="post" />
       </div>
-      {likes !== null ? likes : post.likes}
-      <button onClick={handleLiked}>
-        {likeflag ? <ThumbUpSharp /> : <ThumbUpOutlinedIcon />}
-      </button>
-      <button onClick={handleSaved}>
-        {saveflag ? <BookmarkOutlined /> : <BookmarkBorderOutlinedIcon />}
-      </button>
-      <ShareOutlinedIcon />
+      <div className={styles.info}>
+        <div className={styles.topic}>{post.topic}</div>
+        <div
+          className={styles.description}
+          style={{
+            height: fullText ? "auto" : "20px",
+            display: fullText ? "" : "flex",
+          }}
+          ref={textRef}
+          onResize={handleText}
+        >
+          {post.text}
+          {buttonShow ? (
+            <button onClick={handleShowDesc}>
+              {fullText ? "Read Less" : "Read More"}
+            </button>
+          ) : (
+            ""
+          )}
+        </div>
+      </div>
+      <div
+        className={styles.postfooter}
+        style={{ borderRadius: commentClick ? "0" : "" }}
+      >
+        <button onClick={handleLiked}>
+          {likeflag ? (
+            <ThumbUpSharp style={{ fill: "blue" }} />
+          ) : (
+            <ThumbUpOutlinedIcon />
+          )}
+        </button>
+        <button onClick={handleSaved}>
+          {saveflag ? (
+            <BookmarkOutlined style={{ fill: "blue" }} />
+          ) : (
+            <BookmarkBorderOutlinedIcon />
+          )}
+        </button>
+        <button>
+          <ShareOutlinedIcon />
+        </button>
+        <button onClick={handleComment}>
+          <ChatSharp />
+        </button>
+        <p>{likes !== null ? likes : post.likes} likes</p>
+      </div>
+      {picker && (
+        <div className={styles.Picker}>
+          <EmojiPicker
+            height={400}
+            width={400}
+            onEmojiClick={onEmojiClick}
+          />
+        </div>
+      )}
+      {commentClick && (
+        <div className={styles.comments}>
+          <div className={styles.input} onClick={handleEmojiPicker}>
+            <button>
+              <EmojiEmotionsIcon
+                onClick={() => {
+                  setPicker((prevPicker) => !prevPicker);
+                }}
+              />
+            </button>
+            <input
+              type="text"
+              placeholder="Comment here"
+              value={comment}
+              onChange={handleCommentChange}
+            />
+            <button onClick={handleCommentSend}>
+              <SendIcon />
+            </button>
+          </div>
+          {comments.length !== 0 ? (
+            comments.map((comment) => (
+              <div className={styles.comment} key={comment._id}>
+                <img src={postih} alt="" />
+                <p>
+                  {comment.sender === auth_user.current
+                    ? auth_user.current
+                    : comment.sender}{" "}
+                  {comment.comment}
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className={styles.comment}>No comments yet</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

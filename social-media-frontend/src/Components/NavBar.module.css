@@ -1,26 +1,101 @@
 .NavBar {
-  height: 10vh;
+  /* height: 8vh; */
+  height: 56px;
+  width: 100vw;
   border-bottom: 2px solid black;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  padding: 0 50px;
   justify-content: space-between;
+  box-sizing: border-box;
 }
 
-.NavBar p {
-  font-size: xx-large;
-  font-weight: bolder;
+.appName {
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.NavBar div {
-  height: 5vh;
-  width: 6vw;
+.menu {
+  display: none;
+}
+
+.appP {
+  /* height: 100%; */
+  font-size: 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.appName .link {
+  margin-left: 20px;
+}
+
+.endNav {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.svgNav {
+  height: 100%;
+  width: 90px;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
+  cursor: pointer;
 }
 
-.NavBar svg:hover {
+.svgNavIcon svg {
+  fill: none;
+  stroke: #000;
+  padding: 0;
+}
+
+.svgNavIcon svg:hover {
   font-size: 5vh;
+  /* fill: #000; */
+}
+
+.logout {
+  height: 100%;
+  width: 120px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  justify-content: center;
+}
+
+.logoutP {
+  width: 90px;
+  height: 50%;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  justify-content: space-evenly;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+.logoutP:hover {
+  background: #000;
+  color: white;
+  /* border: none; */
+}
+
+.link {
+  display: flex;
+  height: 100%;
+  text-decoration: none;
+  color: currentColor;
+}
+
+@media only screen and (max-width: 1024px) {
+  .menu {
+    display: flex;
+    margin-left: 20px;
+    cursor: pointer;
+  }
 }

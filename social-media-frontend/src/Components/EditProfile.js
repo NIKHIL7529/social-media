@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import styles from "./Signup.module.css";
 import { backendUrl } from "../Utils/backendUrl";
+import styles from "./EditProfile.module.css";
+import { useNavigate } from "react-router-dom";
 import image from "../images/user.jpg";
 import Swal from "sweetalert2";
 
-export default function Signup() {
+export default function EditProfile() {
   const navigate = useNavigate();
 
   // const [submit, setSubmit] = useState("");
@@ -13,7 +13,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     name: "",
     dob: "",
-    gender: "",
+    gender: "male",
     password: "",
     city: "",
     country: "",
@@ -45,6 +45,7 @@ export default function Signup() {
 
   const handleSignup = (e) => {
     e.preventDefault();
+    console.log(formData);
     if (
       formData.city !== "" &&
       formData.country !== "" &&
@@ -60,9 +61,9 @@ export default function Signup() {
     ) {
       console.log(formData);
       console.log("hi");
-      console.log("Handling Signup...");
+      console.log("Handling Edit Profile...");
 
-      fetch(`${backendUrl}/api/user/signup`, {
+      fetch(`${backendUrl}/api/user/editProfile`, {
         method: "POST",
         body: JSON.stringify(formData),
         headers: {
@@ -76,7 +77,7 @@ export default function Signup() {
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Registered Successfully");
-            navigate("/login");
+            navigate("/profile");
           }
           if (data.status === 400) {
             // setSubmit("exists");
@@ -107,18 +108,18 @@ export default function Signup() {
   };
 
   return (
-    <div className={styles.Login}>
+    <div className={styles.EditProfile}>
       <div className={styles.box}>
-        <h2>Signup</h2>
+        <h2>Edit Profile</h2>
         <form>
           <div className={styles.inputBox}>
-            <label for="image">
+            <label htmlFor="image">
               <img src={formData.photo ? formData.photo : image} alt="" />
               <div className={styles.imageOverlay}>
                 <div>
-                  <i class="fa fa-camera fa-2x"></i>
+                  <i className="fa fa-camera fa-2x"></i>
                 </div>
-                <div class="text-uppercase">
+                <div>
                   Add <br /> Profile Photo
                 </div>
               </div>
@@ -129,6 +130,7 @@ export default function Signup() {
               name="photo"
               onChange={handleInputImage}
               accept="image/*"
+              required
               hidden
             />
           </div>
@@ -142,11 +144,11 @@ export default function Signup() {
               onChange={handleInputChange}
               required
             />
-            <label for="username">Username</label>
+            <label htmlFor="username">Username</label>
           </div>
           <div className={`${styles.inputGrp} ${styles.inputGrp1}`}>
             <div className={`${styles.inputBox}`}>
-              <label for="gender">Gender</label>
+              <label htmlFor="gender">Gender</label>
               <select id="gender" name="gender" onChange={handleInputChange}>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
@@ -154,7 +156,7 @@ export default function Signup() {
               </select>
             </div>
             <div className={styles.inputBox}>
-              <label for="dob">DOB</label>
+              <label htmlFor="dob">DOB</label>
               <input
                 type="date"
                 id="dob"
@@ -176,7 +178,7 @@ export default function Signup() {
                 onChange={handleInputChange}
                 required
               />
-              <label for="city">City</label>
+              <label htmlFor="city">City</label>
             </div>
             <div className={styles.inputBox}>
               <input
@@ -188,7 +190,7 @@ export default function Signup() {
                 onChange={handleInputChange}
                 required
               />
-              <label for="country">Country</label>
+              <label htmlFor="country">Country</label>
             </div>
           </div>
           <div className={styles.inputBox}>
@@ -201,7 +203,7 @@ export default function Signup() {
               onChange={handleInputChange}
               required
             />
-            <label for="description">Interests</label>
+            <label htmlFor="description">Interests</label>
           </div>
           <div className={styles.inputBox}>
             <input
@@ -213,20 +215,15 @@ export default function Signup() {
               onChange={handleInputChange}
               required
             />
-            <label for="password">Password</label>
+            <label htmlFor="password">Password</label>
           </div>
           <input
             type="submit"
-            value="Register Now"
+            value="Submit"
             className={styles.submit_btn}
             onClick={handleSignup}
           />
         </form>
-        <div className={styles.signup}>
-          <p>
-            Already a user? <Link to="/login">Click here to Login</Link>
-          </p>
-        </div>
       </div>
     </div>
   );

@@ -38,6 +38,9 @@ const addMessage = async (req, res, next) => {
       .json({ status: 200, message: "Message Added", message });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error" , err});
   }
 };
 
@@ -46,13 +49,16 @@ const messages = async (req, res, next) => {
   try {
     const { _id } = req.body;
     console.log({ _id });
-    const messages = await Message.findOne({ _id }, "messages").sort({
-      updatedAt: 1,
+    const messages = await Message.findOne({ _id }).sort({
+      createdAt: 1,
     });
     console.log(messages);
     return res.status(200).json({ status: 200, message: "Messages", messages });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error" , err});
   }
 };
 
@@ -89,6 +95,9 @@ const allChats = async (req, res, next) => {
     return res.status(200).json({ status: 200, message: "Chats", chats, user });
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error" , err});
   }
 };
 
@@ -103,6 +112,9 @@ const followings = async (req, res, next) => {
       .json({ status: 200, message: "Followings", followings });
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error" , err});
   }
 };
 

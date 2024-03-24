@@ -4,12 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Post from "./Post";
 import ListPage from "./ListPage";
+import { backendUrl } from "../Utils/backendUrl";
+import Swal from "sweetalert2";
 
 export default function Profile() {
   const [use, setUse] = useState({});
   const [posts, setPosts] = useState([]);
   const [clicked, setClicked] = useState(false);
   const [clickedtype, setClickeddType] = useState(null);
+  const [index, setIndex] = useState("");
   const navigate = useNavigate();
 
   const postsRef = useRef(null);
@@ -32,7 +35,7 @@ export default function Profile() {
   };
 
   useEffect(() => {
-    fetch("https://social-media-backend-d246.onrender.com/api/user/profile", {
+    fetch(`${backendUrl}/api/user/profile`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -50,16 +53,13 @@ export default function Profile() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch(
-      "https://social-media-backend-d246.onrender.com/api/post/signedUserPosts",
-      {
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    fetch(`${backendUrl}/api/post/signedUserPosts`, {
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -72,7 +72,28 @@ export default function Profile() {
       .catch((err) => console.log("Error during fetch: ", err));
   }, []);
 
+  useEffect(() => {
+    console.log("Update array after deletion", index);
+    if (index.length > 0) {
+      console.log("Enter-------------------");
+      let post = [...posts];
+      post = post.filter((post) => post._id !== index);
+      setPosts(post);
+      setIndex("");
+    }
+  }, [index]);
+
+  console.log(index);
   console.log(posts);
+
+  const handleImage = () => {
+    Swal.fire({
+      imageUrl: `${use.photo}`,
+      imageSize: "600x600",
+      padding: "0",
+      showConfirmButton: false,
+    });
+  };
 
   return (
     <>
@@ -84,24 +105,31 @@ export default function Profile() {
         />
       )}
       <div className={styles.Profile}>
-        {/* <div> */}
-        <img src={use.photo} alt={user} />
-        <h3>{use.name}</h3>
-        <span>{use.description}</span>
-        <ul>
-          <li onClick={() => handleClick(use.followers)}>
-            {use.followers && use.followers.length} Followers
-          </li>
-          <li onClick={() => handleClick(use.followings)}>
-            {use.followings && use.followings.length} Following
-          </li>
-          <li onClick={handlePostsClick}>{posts && posts.length} Posts</li>
-        </ul>
-        <button onClick={() => navigate("/addPost")}>New Post</button>
-        {/* </div> */}
-        <p ref={postsRef}>Posts</p>
-        {posts &&
-          posts.map((post) => <Post key={post._id} post={post} user={use} />)}
+        <div className={styles.profile}>
+          <img src={use.photo} alt={use.name} onClick={handleImage} />
+          <div className={styles.name}>{use.name}</div>
+          <div className={styles.desc}>{use.description}</div>
+          <div className={styles.list}>
+            <div onClick={() => handleClick(use.followers)}>
+              {use.followers && use.followers.length} Followers
+            </div>
+            <div onClick={() => handleClick(use.followings)}>
+              {use.followings && use.followings.length} Following
+            </div>
+            <div onClick={handlePostsClick}>{posts && posts.length} Posts</div>
+          </div>
+          <button onClick={() => navigate("/addPost")}>Create Post</button>
+          <button onClick={() => navigate("/editProfile")}>Edit Profile</button>
+        </div>
+        <div className={styles.p} ref={postsRef}>
+          Posts
+        </div>
+        <div className={styles.posts}>
+          {posts &&
+            posts.map((post) => (
+              <Post key={post._id} post={post} user={use} setIndex={setIndex} />
+            ))}
+        </div>
       </div>
     </>
   );

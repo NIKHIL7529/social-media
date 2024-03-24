@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      minlength: 8,
+      maxlength: 20,
     },
     dob: {
       type: String,
@@ -18,7 +20,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
     },
     city: {
       type: String,

@@ -1,7 +1,15 @@
 .Home {
-  position: fixed;
-  right: 0;
-  width: 80vw;
-  height: 90vh;
-  overflow-y: auto;
+  position: absolute;
+  left: 230px;
+  width: calc(100% - 500px);
+  height: calc(100% - 56px);
+}
+
+@media only screen and (max-width: 1024px) {
+  .Home {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 56px);
+  }
 }

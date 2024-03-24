@@ -17,12 +17,16 @@ export default function ListPage({ list, clicked, setClicked }) {
 
   return (
     <div className={styles.ListPage}>
-      <p onClick={check}>close</p>
-      {list && Array.isArray(list) ? (
-        list.map((user, index) => <li key={index}>{user}</li>)
-      ) : (
-        <p>No followers available</p>
-      )}
+      <div className={styles.close} onClick={check}>
+        Close
+      </div>
+      <div className={styles.list}>
+        {list && Array.isArray(list) ? (
+          list.map((user, index) => <div key={index}>{user}</div>)
+        ) : (
+          <div>Not available</div>
+        )}
+      </div>
     </div>
   );
 }

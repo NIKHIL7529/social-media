@@ -1,12 +1,15 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const bcrypt = require("bcryptjs");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: "../config.env" });
 
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
-  cloud_name: "dumbjuwbh",
-  api_key: "425151695591314",
-  api_secret: "moLRNDLrNM9zbW0uDn-54ZIoqJE",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const all_users = async (req, res, next) => {
@@ -17,7 +20,10 @@ const all_users = async (req, res, next) => {
     }
     return res.status(200).json({ user });
   } catch (err) {
-    return console.log(err);
+    console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -29,7 +35,7 @@ const signup = async (req, res, next) => {
     if (existing_user) {
       return res
         .status(400)
-        .json({ message: "User Already Exist!! Login Instead" });
+        .json({ status: 400, message: "User Already Exist!! Login Instead" });
     }
 
     const hashedPassword = bcrypt.hashSync(password);
@@ -51,7 +57,58 @@ const signup = async (req, res, next) => {
     await user.save();
     return res.status(200).json({ status: 200, user });
   } catch (err) {
-    return console.log(err);
+    console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal Server Error", err });
+  }
+};
+
+const editProfile = async (req, res, next) => {
+  console.log("Edit Profile");
+
+  try {
+    console.log("Edit Profile1");
+    console.log(req.user);
+    const { name, dob, gender, password, city, country, description, photo } =
+      req.body;
+    const existing_username = await User.find({ name }).select("_id");
+
+    if (existing_username && name !== req.user.name) {
+      return res.status(400).json({
+        status: 400,
+        message: "User with this username already exist. Try again !!!",
+      });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password);
+    const result = await cloudinary.uploader.upload(photo, {
+      folder: "images",
+    });
+
+    const user = await User.findOneAndUpdate(
+      { _id: req.user.id },
+      {
+        name,
+        dob,
+        gender,
+        password: hashedPassword,
+        city,
+        country,
+        description,
+        photo: result.secure_url,
+      },
+      { new: true }
+    );
+    await user.save();
+
+    return res
+      .status(200)
+      .json({ status: 200, message: "User info changed", user });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ status: 500, message: "INternal Server Error", err });
   }
 };
 
@@ -61,7 +118,9 @@ const login = async (req, res, next) => {
     const { name, password } = req.body;
 
     if (!name || !password) {
-      return res.status(400).json({ error: "Please fill the data." });
+      return res
+        .status(400)
+        .json({ status: 400, error: "Please fill the data." });
     }
 
     const existing_user = await User.findOne({ name: name });
@@ -74,7 +133,9 @@ const login = async (req, res, next) => {
       );
 
       if (!isPasswordCorrect) {
-        return res.status(400).json({ message: "Incorrect Credentials" });
+        return res
+          .status(400)
+          .json({ status: 400, message: "Incorrect Credentials" });
       } else {
         console.log("Login");
         const name = existing_user.name;
@@ -82,7 +143,7 @@ const login = async (req, res, next) => {
         const token = jwt.sign({ id, name }, process.env.SECRET_KEY);
         return res
           .cookie("token", token, {
-            // maxAge: 60 * 60 * 1000,
+            maxAge: 60 * 60 * 60 * 1000,
             // httpOnly: true,
             // secure: true,
             // sameSite: "none",
@@ -90,10 +151,16 @@ const login = async (req, res, next) => {
           .status(200)
           .json({ status: 200, message: "Login successful", existing_user });
       }
+    } else {
+      return res
+        .status(400)
+        .json({ status: 400, message: "Incorrect Credentials" });
     }
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal Server Error", err });
   }
 };
 
@@ -108,6 +175,9 @@ const logout = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -119,7 +189,7 @@ const search = async (req, res, next) => {
   try {
     search_users = await User.find(
       { name: { $regex: new RegExp(name, "i"), $ne: req.user.name } },
-      "name"
+      "name photo"
     );
     if (!search_users) {
       return res
@@ -131,17 +201,23 @@ const search = async (req, res, next) => {
       .json({ status: 200, message: "User found", search_users });
   } catch (err) {
     console.log("Error ", err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
 const profile = async (req, res, next) => {
   console.log(req.user);
   try {
-    const user = await User.findOne({ name: req.user.name });
+    const user = await User.findOne({ _id: req.user.id });
     console.log(user);
     return res.status(200).json({ status: 200, message: "Profile data", user });
   } catch (err) {
     console.log("Error: ", err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -154,6 +230,9 @@ const use = async (req, res, next) => {
     return res.status(200).json({ status: 200, message: "User data", user });
   } catch (err) {
     console.log("Error: ", err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -217,12 +296,16 @@ const follow = async (req, res, next) => {
     }
   } catch (err) {
     console.log("Error: ", err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
 module.exports = {
   all_users,
   signup,
+  editProfile,
   login,
   logout,
   search,

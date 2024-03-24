@@ -4,16 +4,18 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import Post from "./Post";
 import ListPage from "./ListPage";
+import { backendUrl } from "../Utils/backendUrl";
+import Swal from "sweetalert2";
 
 export default function User() {
   const [use, setUse] = useState({});
   const [user, setUser] = useState({});
   const [posts, setPosts] = useState([]);
+  const [followflag, setFollowFlag] = useState(false);
   const [clicked, setClicked] = useState(false);
   const [clickedtype, setClickeddType] = useState(null);
   const navigate = useNavigate();
   const { id } = useParams();
-
   const postsRef = useRef(null);
 
   const handleClick = (type) => {
@@ -34,7 +36,7 @@ export default function User() {
   };
 
   useEffect(() => {
-    fetch("https://social-media-backend-d246.onrender.com/api/user/profile", {
+    fetch(`${backendUrl}/api/user/profile`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
       },
@@ -52,7 +54,7 @@ export default function User() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("https://social-media-backend-d246.onrender.com/api/user/user", {
+    fetch(`${backendUrl}/api/user/user`, {
       method: "POST",
       body: JSON.stringify({ _id: id }),
       headers: {
@@ -72,7 +74,7 @@ export default function User() {
       })
       .catch((err) => console.log("Error during fetch: ", err));
 
-    fetch("https://social-media-backend-d246.onrender.com/api/post/userPosts", {
+    fetch(`${backendUrl}/api/post/userPosts`, {
       method: "POST",
       body: JSON.stringify({ _id: id }),
       headers: {
@@ -93,8 +95,19 @@ export default function User() {
       .catch((err) => console.log("Error during fetch: ", err));
   }, [id]);
 
+  useEffect(() => {
+    if (user && use.followers && use) {
+      const isFollowed = use.followers.includes(user.name);
+      console.log("User ", user.name);
+      console.log("is followed -----------------------------", isFollowed);
+      console.log("user followers", use.followers);
+      setFollowFlag(isFollowed);
+      // setFollow(use.name);
+    }
+  }, [use.followers]);
+
   const handleFollow = () => {
-    fetch("https://social-media-backend-d246.onrender.com/api/user/follow", {
+    fetch(`${backendUrl}/api/user/follow`, {
       method: "POST",
       body: JSON.stringify({ userName: use.name }),
       headers: {
@@ -109,12 +122,22 @@ export default function User() {
         if (data.status === 200) {
           console.log(data.user);
           setUse(data.user);
+          // setFollowFlag((prevFollowFlag) => !prevFollowFlag);
           console.log("Search Successful");
         } else {
           return;
         }
       })
       .catch((err) => console.log("Error during fetch: ", err));
+  };
+
+  const handleImage = () => {
+    Swal.fire({
+      imageUrl: `${use.photo}`,
+      imageSize: "600x600",
+      padding: "0",
+      showConfirmButton: false,
+    });
   };
 
   return (
@@ -126,29 +149,44 @@ export default function User() {
           setClicked={setClicked}
         />
       )}
-      <div className={styles.User}>
-        <div>
-          <img src={use.photo && use.photo} alt={pic} />
-
-          <h3>{use.name}</h3>
-          <span>{use.description}</span>
-          <ul>
-            <li onClick={() => handleClick(use.followers)}>
+      <div className={styles.Profile}>
+        <div className={styles.profile}>
+          <img
+            src={use.photo && use.photo}
+            alt={use.name}
+            onClick={handleImage}
+          />
+          <div className={styles.name}>{use.name}</div>
+          <div className={styles.desc}>{use.description}</div>
+          <div className={styles.list}>
+            <div onClick={() => handleClick(use.followers)}>
               {use.followers && use.followers.length} Followers
-            </li>
-            <li onClick={() => handleClick(use.followings)}>
+            </div>
+            <div onClick={() => handleClick(use.followings)}>
               {use.followings && use.followings.length} Following
-            </li>
-            <li onClick={handlePostsClick}>{posts && posts.length} Posts</li>
-          </ul>
-          <button onClick={handleFollow}>Follow</button>
+            </div>
+            <div onClick={handlePostsClick}>{posts && posts.length} Posts</div>
+          </div>
+          <button onClick={handleFollow}>
+            {followflag ? "Following" : "Follow"}
+          </button>
           <button onClick={() => navigate("/chat", { state: use.name })}>
             Message
           </button>
         </div>
-        <p ref={postsRef}>Posts</p>
-        {posts &&
-          posts.map((post) => <Post key={post._id} post={post} user={user} />)}
+        {posts.length > 0 && (
+          <>
+            <div className={styles.p} ref={postsRef}>
+              Posts
+            </div>
+            <div className={styles.posts}>
+              {posts &&
+                posts.map((post) => (
+                  <Post key={post._id} post={post} user={user} admin="false" />
+                ))}
+            </div>
+          </>
+        )}
       </div>
     </>
   );

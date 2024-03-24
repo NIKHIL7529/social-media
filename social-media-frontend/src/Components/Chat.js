@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import styles from "./Chat.module.css";
 import io from "socket.io-client";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { backendUrl } from "../Utils/backendUrl";
+import image from "../images/user.jpg";
+import EmojiPicker, { Emoji } from "emoji-picker-react/dist";
+import { EmojiStyle } from "emoji-picker-react";
+import SendIcon from "@mui/icons-material/Send";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import UserContext from "../UserContext";
+import { format } from "timeago.js";
 
 export default function Chat() {
   const [chats, setChats] = useState([]);
@@ -12,18 +20,29 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [clickedCreateGroup, setClickedCreateGroup] = useState(false);
   const [groupUsers, setGroupUsers] = useState([]);
+  const [emoji, setEmoji] = useState(null);
+  const [picker, setPicker] = useState(false);
+  const [status, setStatus] = useState("Online");
   const [group, setGroup] = useState({
     name: "",
     users: [],
   });
 
+  const { id } = useParams();
+  console.log(
+    "-------------------------------------------------------------------------------------",
+    id
+  );
   const location = useLocation();
+  const navigate = useNavigate();
 
+  const scrollMessageRef = useRef(null);
+  const user = useContext(UserContext).name;
   const auth_user = useRef(null);
   const socket = useRef(null);
 
   const generateSocket = () => {
-    let socket = io("https://social-media-backend-d246.onrender.com", {
+    let socket = io(`${backendUrl}`, {
       withCredentials: true,
     });
 
@@ -31,6 +50,16 @@ export default function Chat() {
   };
 
   useEffect(() => {
+    console.log("Scroll1");
+    if (messages.length && scrollMessageRef.current) {
+      console.log("Scroll2");
+      scrollMessageRef.current.scrollTop =
+        scrollMessageRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    auth_user.current = user;
     console.log("Connection Created", socket);
   }, []);
 
@@ -39,9 +68,21 @@ export default function Chat() {
 
     socket.current.on("message", (msg) => {
       console.log("start");
-      setMessages((prevMessages) => [...prevMessages, msg]);
+      if (chatId === msg.chatId) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            _id: msg._id,
+            sender: msg.sender,
+            receiver: msg.receiver,
+            message: msg.message,
+            updatedAt: msg.updatedAt,
+          },
+        ]);
+      }
       console.log(msg);
     });
+
     socket.current.on("group", (group) => {
       console.log("start");
       const chat = [...chats, group];
@@ -51,21 +92,63 @@ export default function Chat() {
       setChats(orderedChats);
       console.log(group);
     });
-  }, [chats]);
+
+    socket.current.on("chat", (onlineUsers, users) => {
+      console.log(users);
+      console.log("Chat Socket");
+      console.log(onlineUsers);
+      if (users.length === 1) {
+        let flag = false;
+        onlineUsers.map((o_user, index) => {
+          if (flag === false && o_user.user.name === users[0]) {
+            // setStatus("Online");
+            console.log(o_user.user.name, " ///// ", users[0]);
+            flag = true;
+            setStatus("Online");
+          }
+        });
+        if (!flag) {
+          setStatus("Offline");
+        }
+      } else {
+        setStatus("");
+      }
+    });
+  }, [chats, chatId]);
 
   useEffect(() => {
-    const getChats = async () => {
-      await fetch(
-        "https://social-media-backend-d246.onrender.com/api/message/allChats",
-        {
-          method: "GET",
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-          withCredentials: true,
-          credentials: "include",
+    window.onpopstate = () => {
+      console.log("Navigating back to chat");
+      navigate("/chat");
+      window.location.reload();
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("id: ", id);
+    if (id) {
+      console.log(chats);
+
+      chats.map((chat, index) => {
+        console.log(index, "chat.chatId:", chat.chatId, "id: ", id);
+        if (chat.chatId === id) {
+          handleReceiver(id, chat);
         }
-      )
+      });
+    }
+  }, [chats, id]);
+
+  useEffect(() => {
+    console.log("Chats");
+    const getChats = async () => {
+      await fetch(`${backendUrl}/api/message/allChats`, {
+        method: "GET",
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
+      })
         .then((response) => response.json())
         .then((data) => {
           console.log("Fetch response received: ", data);
@@ -83,58 +166,73 @@ export default function Chat() {
     getChats();
   }, []);
 
-  const handleReceiver = useCallback(
-    (_id, chat) => {
-      setReceiver(chat.users);
-      setChatName(chat.name ? chat.name : chat.users.length && chat.users[0]);
-      setChatId(_id);
-      setMessage("");
-
-      fetch(
-        "https://social-media-backend-d246.onrender.com/api/message/messages",
-        {
-          method: "POST",
-          body: JSON.stringify({ _id }),
-          headers: {
-            "Content-type": "application/json; charset=UTF-8",
-          },
-          withCredentials: true,
-          credentials: "include",
-        }
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Fetch response received: ", data);
-          if (data.status === 200) {
-            console.log(data.messages.messages);
-            console.log(data.messages.messages.length);
-            if (data.messages.messages.length === 0) {
-              setMessages("");
-            } else {
-              setMessages(data.messages.messages);
-              console.log(messages);
-            }
-          }
-        })
-        .catch((err) => console.log("Error during fetch: ", err));
-    },
-    [messages]
-  );
-
-  useEffect(() => {
+  const userMesage = () => {
     console.log(location.state);
+    console.log(chats);
     if (location.state) {
       const name = chats.filter(
         (chat) => chat.users.length === 1 && chat.users[0] === location.state
       )[0];
       console.log("NAME: ", name);
+      return name;
+    }
+    return;
+  };
+
+  useEffect(() => {
+    const name = userMesage();
+    if (location.state) {
       if (name) {
+        console.log("True");
         handleReceiver(name.chatId, name);
       } else {
+        console.log("False");
         setChatName(location.state);
+        setReceiver([location.state]);
+        setChatId(null);
+        setMessage("");
+        socket.current.emit("chat", [location.state]);
       }
     }
-  }, [location.state, chats, handleReceiver]);
+  }, [chats]);
+
+  const handleReceiver = (_id, chat) => {
+    setReceiver(chat.users);
+    setChatName(chat.name ? chat.name : chat.users.length && chat.users[0]);
+    setChatId(_id);
+    setPicker(false);
+    setMessage("");
+    navigate(`/chat/${chat.chatId}`);
+
+    console.log("handle Receiver");
+    console.log(_id, chat);
+    socket.current.emit("chat", chat.users);
+
+    fetch(`${backendUrl}/api/message/messages`, {
+      method: "POST",
+      body: JSON.stringify({ _id }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Fetch response received: ", data);
+        if (data.status === 200) {
+          console.log(data.messages.messages);
+          console.log(data.messages.messages.length);
+          if (data.messages.messages.length === 0) {
+            setMessages("");
+          } else {
+            setMessages(data.messages.messages);
+            console.log(messages);
+          }
+        }
+      })
+      .catch((err) => console.log("Error during fetch: ", err));
+  };
 
   const handleMsgChange = (e) => {
     if (e.key === "Enter") {
@@ -151,18 +249,15 @@ export default function Chat() {
     console.log(msg);
     let messageId;
 
-    await fetch(
-      "https://social-media-backend-d246.onrender.com/api/message/sendMessage",
-      {
-        method: "POST",
-        body: JSON.stringify({ receiver, msg, _id }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    await fetch(`${backendUrl}/api/message/sendMessage`, {
+      method: "POST",
+      body: JSON.stringify({ receiver, msg, _id }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -171,6 +266,9 @@ export default function Chat() {
           messageId =
             data.message.messages[data.message.messages.length - 1]._id;
           console.log(messageId);
+          if (chatId === null) {
+            setChatId(data.message._id);
+          }
         }
       })
       .catch((err) => console.log("Error during fetch: ", err));
@@ -180,7 +278,8 @@ export default function Chat() {
       sender: auth_user.current,
       receiver: receiver,
       message: msg,
-      updatedAt: new Date().getTime(),
+      updatedAt: new Date().toISOString(),
+      chatId: _id,
     };
 
     socket.current.emit("message", currentMessage);
@@ -189,17 +288,14 @@ export default function Chat() {
 
   const handleCreateGroup = () => {
     setClickedCreateGroup((prevClickedCreateGroup) => !prevClickedCreateGroup);
-    fetch(
-      "https://social-media-backend-d246.onrender.com/api/message/followings",
-      {
-        method: "GET",
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    fetch(`${backendUrl}/api/message/followings`, {
+      method: "GET",
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -224,18 +320,15 @@ export default function Chat() {
     console.log("Selected Group Users:", group.users);
     let _id = "";
 
-    await fetch(
-      "https://social-media-backend-d246.onrender.com/api/group/createGroup",
-      {
-        method: "POST",
-        body: JSON.stringify(group),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      }
-    )
+    await fetch(`${backendUrl}/api/group/createGroup`, {
+      method: "POST",
+      body: JSON.stringify(group),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+      withCredentials: true,
+      credentials: "include",
+    })
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
@@ -252,7 +345,7 @@ export default function Chat() {
       name: group.name,
       group: true,
       users: [...group.users],
-      updatedAt: new Date().getTime(),
+      updatedAt: new Date().toISOString(),
     };
 
     console.log(currentChat);
@@ -267,76 +360,194 @@ export default function Chat() {
     setClickedCreateGroup(false);
   };
 
+  const handleEmojiPicker = () => {
+    if (picker === true) {
+      setPicker(false);
+    }
+  };
+
+  const onEmojiClick = (emojiData, event) => {
+    console.log(emojiData.emoji);
+    // setEmoji(emojiData.unified);
+    // {emoji && <Emoji unified={emoji} />}
+    setMessage((prevMessage) => prevMessage + emojiData.emoji);
+  };
+
   return (
     <div className={styles.Chat}>
-      <div>
-        <button onClick={handleCreateGroup}>Create Group</button>
-        {clickedCreateGroup && (
-          <>
+      {clickedCreateGroup && (
+        <div className={`${styles.chatmenu} ${id ? styles.hide : ""}`}>
+          <div className={styles.groupname}>
             <label>Group name</label>
             <input
               type="text"
               name="group"
               value={group.name}
+              placeholder="Enter name"
               onChange={(e) => setGroup({ ...group, name: e.target.value })}
             />
-            {groupUsers &&
+          </div>
+          <div className={styles.groupusers}>
+            <p style={{ color: "blue" }}>Select Friends</p>
+            {groupUsers.length > 0 ? (
               groupUsers.map((user, index) => (
-                <div>
-                  <input
-                    key={index}
-                    type="checkbox"
-                    id={user}
-                    name={user}
-                    value={user}
-                    onChange={() => handleToggleGroupUser(user)}
-                  />
-                  <label htmlFor={user}>{user}</label>
-                </div>
-              ))}
-            <button onClick={handleCreateGroupSubmit}>
-              Create Group with Selected Users
+                <>
+                  <div className={styles.groupuser}>
+                    <input
+                      key={index}
+                      type="checkbox"
+                      id={user}
+                      name={user}
+                      value={user}
+                      onChange={() => handleToggleGroupUser(user)}
+                    />
+                    <label htmlFor={user}>{user}</label>
+                  </div>
+                </>
+              ))
+            ) : (
+              <>
+                <p>No Friends</p>
+              </>
+            )}
+          </div>
+          <div className={styles.chatmenubuttons}>
+            <button
+              className={styles.chatmenubutton}
+              onClick={handleCreateGroupSubmit}
+              disabled={groupUsers.length === 0}
+            >
+              Create Group
             </button>
-          </>
-        )}
-      </div>
-      <div className={styles.names}>
-        {chats.length &&
-          chats.map((chat) => (
-            <p
-              key={chat.chatId}
+            <button
+              className={styles.chatmenubutton}
+              onClick={handleCreateGroup}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {!clickedCreateGroup && (
+        <div className={`${styles.chatmenu} ${id ? styles.hide : ""}`}>
+          <div className={styles.chatmenubuttons}>
+            <button
+              className={styles.chatmenubutton}
               onClick={() => {
-                handleReceiver(chat.chatId, chat);
+                navigate("/search", { state: "chat" });
               }}
             >
-              {chat.name ? chat.name : chat.users && chat.users[0]}
-            </p>
-          ))}
-      </div>
-      <div>
-        <h1>{chatName ? chatName : "Start Conversation"}</h1>
-        {chatName && (
-          <>
-            {messages
-              ? messages.map((message) => (
-                  <p key={message._id}>
-                    {message.sender === auth_user.current
-                      ? "YOU: "
-                      : "FRIEND: "}{" "}
-                    {message.message}
-                  </p>
-                ))
-              : "No Messages Yet"}
+              Search for new chat
+            </button>
+            <button
+              className={styles.chatmenubutton}
+              onClick={handleCreateGroup}
+            >
+              Create Group
+            </button>
+          </div>
+          <hr />
+          <div className={styles.names}>
+            {chats.length ? (
+              chats.map((chat) => (
+                <>
+                  <div
+                    className={styles.name}
+                    key={chat.chatId}
+                    onClick={() => {
+                      handleReceiver(chat.chatId, chat);
+                    }}
+                  >
+                    <img src={image} alt="" />
+                    <div>
+                      {chat.name ? chat.name : chat.users && chat.users[0]}
+                    </div>
+                  </div>
+                  <hr />
+                </>
+              ))
+            ) : (
+              <>
+                <p>No Chats</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {chatName ? (
+        <div className={`${styles.chat} ${id ? "" : styles.hide}`}>
+          <div className={styles.nameheader}>
+            {receiver.length === 1 ? (
+              <img src={image} alt="" />
+            ) : (
+              <img src={image} alt="" />
+            )}
+            <div className={styles.namestatus}>
+              <div>{chatName}</div>
+              <div>{status}</div>
+            </div>
+          </div>
+          <div ref={scrollMessageRef} className={styles.messages}>
+            {messages.length ? (
+              messages.map((message) => (
+                <div
+                  className={`${styles.message} ${
+                    message.sender === auth_user.current
+                      ? styles.messageRight
+                      : styles.messageLeft
+                  }`}
+                  key={message._id}
+                >
+                  {receiver.length > 1 && <img src={image} alt="" />}
+                  <div className={styles.msg}>
+                    {receiver.length > 1 && <span>{message.sender}</span>}
+                    <p>
+                      {message.message}
+                      <sub>{format(message.updatedAt)}</sub>
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className={styles.chatP}>No message yet</div>
+            )}
+          </div>
+
+          {picker && (
+            <div className={styles.Picker}>
+              <EmojiPicker
+                height={400}
+                width={400}
+                onEmojiClick={onEmojiClick}
+              />
+            </div>
+          )}
+
+          <div className={styles.input} onClick={handleEmojiPicker}>
+            <button>
+              <EmojiEmotionsIcon
+                onClick={() => {
+                  setPicker((prevPicker) => !prevPicker);
+                }}
+              />
+            </button>
             <input
               type="text"
-              placeholder="type here"
+              placeholder="Type a message"
               value={message}
               onChange={handleMsgChange}
             />
-            <button onClick={handleSendMsg}>Send</button>
-          </>
-        )}
-      </div>
+            <button onClick={handleSendMsg}>
+              <SendIcon />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className={`${styles.chatPP} ${id ? "" : styles.hide}`}>
+          Start Conversation
+        </div>
+      )}
     </div>
   );
 }

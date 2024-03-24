@@ -12,28 +12,32 @@ const { Server } = require("socket.io");
 
 const app = express();
 const httpServer = createServer(app);
+
+dotenv.config({ path: "./config.env" });
+const frontend_url = process.env.FRONTEND_URL ;
+// const frontend_url = "http://localhost:3000";
 const io = new Server(httpServer, {
   cors: {
-    origin: "https://main--majestic-choux-1d8140.netlify.app",
+    origin: frontend_url,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-dotenv.config({ path: "./config.env" });
 const DB = process.env.DATABASE;
+// const DB = "mongodb://127.0.0.1:27017/SocialMediaDB";
 const PORT = process.env.PORT;
 
 const corsOptions = {
-  origin: "https://main--majestic-choux-1d8140.netlify.app",
+  origin: frontend_url,
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 // app.use(bodyParser.json({ limit: "10mb" }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use("/api/user", require("./routes/user.js"));
 app.use("/api/post", require("./routes/post.js"));
@@ -63,7 +67,10 @@ io.on("connection", (socket) => {
     socket.id
   );
   const cookies = socket.request.headers.cookie;
-  const token = cookies.split("=")[1];
+  let token = "";
+  if (cookies) {
+    token = cookies.split("=")[1];
+  }
   const socketId = socket.id;
   const user = jwt.verify(token, process.env.SECRET_KEY);
 
@@ -85,6 +92,13 @@ io.on("connection", (socket) => {
   }
 
   console.log(onlineUsers);
+
+  socket.on("chat", (users) => {
+    console.log(
+      "Chat-----------------------------------------////////////////////"
+    );
+    io.to(socketId).emit("chat", onlineUsers, users);
+  });
 
   socket.on("message", (message) => {
     console.log("Message from Client: ", message);
@@ -122,5 +136,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("User Disconnected");
+    console.log(socket.id);
+    onlineUsers.map((o_user, index) => {
+      if (o_user.socketId === socket.id) {
+        onlineUsers.pop({ o_user });
+      }
+    });
+    console.log(onlineUsers);
   });
 });

@@ -1,14 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap");
+@import url("https://fonts.googleapis.com/css?family=Open+Sans");
 
 body {
   margin: 0;
   padding: 0;
-  font-family: "Roboto", sans-serif;
-  overflow-y: hidden;
-  background-color: #ffffff;
-  color: #333333;
+  font-family: "Open Sans", sans-serif;
 }
 
+/* 
 button {
   padding: 4px 10px;
   border: 2px solid black;
@@ -23,4 +21,4 @@ button:hover {
 
 button:active {
   background-color: cadetblue;
-}
+} */

@@ -1,32 +1,40 @@
 const Post = require("../model/Post");
 const User = require("../model/User");
+const dotenv = require("dotenv");
+
+dotenv.config({ path: "../config.env" });
 
 const cloudinary = require("cloudinary").v2;
 cloudinary.config({
-  cloud_name: "dumbjuwbh",
-  api_key: "425151695591314",
-  api_secret: "moLRNDLrNM9zbW0uDn-54ZIoqJE",
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const all_posts = async (req, res, next) => {
+  const { skip } = req.body;
   try {
     console.log("All Posts");
-    const post = await Post.find({ user: { $ne: req.user.id } }).populate(
-      "user"
-    );
+    const post = await Post.find({ user: { $ne: req.user.id } })
+      .limit(5)
+      .skip(skip)
+      .populate("user");
     if (!post) {
-      return res.status(504).json({ message: "No post uploaded" });
+      return res.status(504).json({ status: 504, message: "No post uploaded" });
     }
     return res.status(200).json({ status: 200, message: "All Posts", post });
   } catch (err) {
-    return console.log(err);
+    console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
 const addPost = async (req, res, next) => {
   console.log("Add Post");
   console.log(req.user);
-  const { topic, text, photo } = req.body;
+  const { topic, text, photo, commentable } = req.body;
   try {
     const result = await cloudinary.uploader.upload(photo, {
       folder: "postImages",
@@ -35,6 +43,7 @@ const addPost = async (req, res, next) => {
       topic,
       text,
       photo: result.secure_url,
+      commentable,
       likes: 0,
       saved: 0,
       share: 0,
@@ -45,7 +54,10 @@ const addPost = async (req, res, next) => {
     console.log(post.user);
     return res.status(200).json({ status: 200, message: "Post added", post });
   } catch (err) {
-    console.log(err);
+    console.log("OIUWD", err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -65,6 +77,9 @@ const deletePost = async (req, res, next) => {
     return res.status(200).json({ status: 200, message: "Post Deleted" });
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -78,6 +93,9 @@ const signedUserPosts = async (req, res, next) => {
       .json({ status: 200, message: "Signed User Posts", post });
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -91,6 +109,9 @@ const userPosts = async (req, res, next) => {
     return res.status(200).json({ status: 200, message: "User Posts", post });
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -132,6 +153,9 @@ const saved = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -181,6 +205,9 @@ const liked = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 

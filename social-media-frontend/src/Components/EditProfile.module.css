@@ -1,8 +1,11 @@
-.Login {
-  width: 100vw;
-  height: 100vh;
-  transition: 0.4s linear;
+.EditProfile {
+  position: absolute;
+  left: 230px;
+  width: calc(100% - 500px);
+  height: calc(100% - 56px);
+  box-sizing: border-box;
   text-align: center;
+  transition: 0.4s linear;
 }
 
 .box {
@@ -73,17 +76,13 @@
   border-radius: 50%;
 }
 
-.box .inputBox:has(input[type="file"]) label:not(:hover) .imageOverlay {
-  display: none;
-}
-
 .box .inputBox:has(input[type="file"]) label img {
   filter: blur(1.5px);
 }
 
 .box .inputBox:has(input[type="file"]) label .imageOverlay {
-  height: 90%;
-  width: 90%;
+  height: 100%;
+  width: 100%;
   border-radius: 50%;
   position: absolute;
   /* background: #000; */
@@ -177,16 +176,6 @@
   border-radius: 5px;
 }
 
-.signup {
-  color: #bbb;
-  font-size: 12px;
-}
-
-.signup a {
-  color: #4285f4;
-  text-decoration: none;
-}
-
 @media only screen and (max-width: 600px) {
   .box {
     width: 100%;
@@ -195,5 +184,14 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+}
+
+@media only screen and (max-width: 1024px) {
+  .EditProfile {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 56px);
   }
 }

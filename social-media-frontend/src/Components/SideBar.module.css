@@ -1,43 +1,80 @@
 .SideBar {
-  width: 20vw;
-  height: 100%;
-  position: absolute;
+  width: 230px;
+  height: calc(100% - 56px);
+  position: fixed;
+  top: 56px;
   left: 0;
-  border-right: 2px solid black;
+  border-right: 1px solid;
+  box-sizing: border-box;
+  /* box-shadow: 0 1px #000; */
+  z-index: 100;
+  /* backdrop-filter: blur(10px); */
+  background-color: #fff;
 }
 
-.SideBar a {
+.links {
+  padding: 12px;
+}
+
+.link {
   text-decoration: none;
   color: inherit;
 }
 
-.SideBar p {
-  margin: 0;
-  height: 10vh;
+.sidelink {
+  cursor: pointer;
   display: flex;
   align-items: center;
-  font-weight: bolder;
-  font-size: xx-large;
-  padding-left: 30px;
+  padding: 5px 12px;
+  border-radius: 10px;
 }
 
-.SideBar p:hover {
+.sidelink:hover,
+.sidelink:visited {
+  background: #000;
+  color: #fff;
+  border: none;
+
+  svg {
+    fill: #fff;
+    stroke: #000;
+  }
+}
+
+.sidelink svg {
+  margin-right: 24px;
+}
+
+.linkP {
+  font-size: 1em;
+  line-height: 0.5rem;
+  font-weight: 500;
+}
+
+/* .p {
+  margin: auto;
+  height: 6vh;
+  display: flex;
+  align-items: center;
+  font-size: large;
+  padding-left: 10px;
+  align-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.p:hover {
   cursor: pointer;
   background-color: cornflowerblue;
   color: white;
-  font-size: 5vh;
 }
 
-.SideBar p:active {
+.p:active {
   background-color: cadetblue;
-}
+} */
 
-.SideBar p:hover svg {
-  font-size: 6vh;
-  fill: 1;
-}
-
-.SideBar p svg {
-  font-size: 5vh;
-  padding-right: 5px;
+@media only screen and (max-width: 1024px) {
+  .SideBar {
+    display: none;
+  }
 }

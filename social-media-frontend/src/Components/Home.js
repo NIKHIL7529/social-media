@@ -1,12 +1,12 @@
+import { useContext, useEffect } from "react";
 import styles from "./Home.module.css";
-// import Image from "./Image";
-// import Loading from "./Loading";
+import UserContext from "../UserContext";
 
 export default function Home() {
-  return (
-    <div className={styles.Home}>
-      {/* <Image />
-      <Loading /> */}
-    </div>
-  );
+  const user = useContext(UserContext);
+  useEffect(() => {
+    console.log(user);
+  }, []);
+  
+  return <div className={styles.Home}>{user.name}</div>;
 }

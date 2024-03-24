@@ -12,7 +12,7 @@ const { token_User_Verify } = require("../utils/tokenVerification");
 
 const router = express.Router();
 
-router.get("/", token_User_Verify, all_posts);
+router.post("/", token_User_Verify, all_posts);
 router.post("/addPost", token_User_Verify, addPost);
 router.post("/deletePost", token_User_Verify, deletePost);
 router.get("/signedUserPosts", token_User_Verify, signedUserPosts);

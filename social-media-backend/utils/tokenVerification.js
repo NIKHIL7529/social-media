@@ -16,6 +16,7 @@ const token_User_Verify = (req, res, next) => {
       const user = jwt.verify(token, process.env.SECRET_KEY);
       req.user = user;
       console.log(req.user + " USER " + user);
+      // return res.redirect("http://localhost:3000");
       next();
     }
   } catch (err) {

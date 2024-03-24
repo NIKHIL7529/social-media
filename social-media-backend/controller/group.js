@@ -29,6 +29,9 @@ const createGroup = async (req, res, next) => {
     res.json({ status: 200, message: "Group created", addGroup });
   } catch (err) {
     console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error" , err});
   }
 };
 

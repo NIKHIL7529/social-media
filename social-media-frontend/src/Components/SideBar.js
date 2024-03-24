@@ -1,57 +1,67 @@
 import styles from "./SideBar.module.css";
 import { Link } from "react-router-dom";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import Diversity2OutlinedIcon from "@mui/icons-material/Diversity2Outlined";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import Home from "@mui/icons-material/Home";
+import Diversity2 from "@mui/icons-material/Diversity2";
+import Search from "@mui/icons-material/Search";
+import Chat from "@mui/icons-material/Message";
+import Person from "@mui/icons-material/AccountCircle";
+import Settings from "@mui/icons-material/Settings";
+import FeedIcon from "@mui/icons-material/Feed";
 
-export default function SideBar() {
+export default function SideBar({ menu }) {
   return (
-    <div className={styles.SideBar}>
-      <Link to="/home">
-        <p>
-          <HomeOutlinedIcon />
-          Home
-        </p>
-      </Link>
-      <Link to="/posts">
-        <p>
-          <Diversity2OutlinedIcon />
-          Posts
-        </p>
-      </Link>
-      <Link to="/search">
-        <p>
-          <SearchOutlinedIcon />
-          Search
-        </p>
-      </Link>
-      {/* <Link to="/chat">
-        <p>
-          <ChatOutlinedIcon />
-          Messages
-        </p>
-      </Link> */}
-      <Link to="/profile">
-        <p>
-          <PersonOutlinedIcon />
-          Profile
-        </p>
-      </Link>
-      <Link to="/settings">
-        <p>
-          <SettingsOutlinedIcon />
-          Settings
-        </p>
-      </Link>
-      <Link to="/login">
-        <p>
-          <SettingsOutlinedIcon />
-          Login
-        </p>
-      </Link>
+    <div
+      className={styles.SideBar}
+      style={
+        menu
+          ? { display: "block" }
+          : { maxWidth: "1024px" && { display: "none" } }
+      }
+    >
+      <div className={styles.links}>
+        {/* <Link className={styles.link} to="/home">
+          <div className={styles.sidelink}>
+            <Home />
+            <p className={styles.linkP}>Home</p>
+          </div>
+        </Link> */}
+        <Link className={styles.link} to="/posts">
+          <div className={styles.sidelink}>
+            <FeedIcon />
+            <p className={styles.linkP}>Posts</p>
+          </div>
+        </Link>
+        <Link className={styles.link} to="/search">
+          <div className={styles.sidelink}>
+            <Search />
+            <p className={styles.linkP}>Search</p>
+          </div>
+        </Link>
+        <Link className={styles.link} to="/chat">
+          <div className={styles.sidelink}>
+            <Chat sx={{ stroke: "#fff" }} />
+            <p className={styles.linkP}>Messages</p>
+          </div>
+        </Link>
+        <Link className={styles.link} to="/profile">
+          <div className={styles.sidelink}>
+            <Person />
+            <p className={styles.linkP}>Profile</p>
+          </div>
+        </Link>
+        <Link className={styles.link} to="/settings">
+          <div className={styles.sidelink}>
+            <Settings />
+            <p className={styles.linkP}>Settings</p>
+          </div>
+        </Link>
+        {/* <Link className={styles.link} to="/login">
+          <div className={styles.sidelink}>
+            <Settings />
+            <p className={styles.linkP}>Login</p>
+          </div>
+        </Link> */}
+      </div>
     </div>
   );
 }

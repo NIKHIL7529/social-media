@@ -2,6 +2,7 @@ const express = require("express");
 const {
   all_users,
   signup,
+  editProfile,
   login,
   logout,
   search,
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.get("/", all_users);
 router.post("/signup", signup);
+router.post("/editProfile", token_User_Verify, editProfile);
 router.post("/login", login);
 router.get("/logout", token_User_Verify, logout);
 router.post("/search", token_User_Verify, search);

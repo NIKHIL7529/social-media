@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AddPost.module.css";
+import { backendUrl } from "../Utils/backendUrl";
+import image from "../images/user.jpg";
+import Swal from "sweetalert2";
 
 export default function AddPost({ onClose }) {
   const navigate = useNavigate();
@@ -9,6 +12,7 @@ export default function AddPost({ onClose }) {
     topic: "",
     text: "",
     photo: "",
+    commentable: false,
   });
 
   // const [inputs, setInputs] = useState([
@@ -47,7 +51,16 @@ export default function AddPost({ onClose }) {
 
   const handleInputImage = (e) => {
     const file = e.target.files[0];
-    if (file) {
+    console.log(e.target.files[0].size);
+    if (e.target.files[0].size > 10485760) {
+      console.log("Too large -------- - -");
+      Swal.fire({
+        icon: "warning",
+        title: "Image size too large (max size 10mb)",
+        showConfirmButton: false,
+      });
+      e.target.value = null;
+    } else if (file) {
       const reader = new FileReader();
       reader.onload = () => {
         setPostData((prevData) => ({
@@ -67,55 +80,111 @@ export default function AddPost({ onClose }) {
     }));
   };
 
+  const handleComment = (e) => {
+    setPostData((prevPostData) => ({
+      ...prevPostData,
+      commentable: e.target.checked ? true : false,
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(postData);
 
-    console.log("addPost");
+    if (
+      postData.photo !== "" &&
+      postData.text !== "" &&
+      postData.topic !== ""
+    ) {
+      console.log("addPost");
 
-    fetch("https://social-media-backend-d246.onrender.com/api/post/addPost", {
-      method: "POST",
-      body: JSON.stringify(postData),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log("Post added Successfully");
-          navigate("/profile");
-        }
+      fetch(`${backendUrl}/api/post/addPost`, {
+        method: "POST",
+        body: JSON.stringify(postData),
+        headers: {
+          "Content-type": "application/json; charset=UTF-8",
+        },
+        withCredentials: true,
+        credentials: "include",
       })
-      .catch((err) => console.log("Error during fetch: ", err));
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Fetch response received: ", data);
+          if (data.status === 200) {
+            console.log("Post added Successfully");
+            navigate("/profile");
+          }
+          if (data.status === 500) {
+            Swal.fire({
+              icon: "warning",
+              title: "Internal server error",
+              showConfirmButton: false,
+            });
+          }
+        })
+        .catch((err) => console.log("Error during fetch: ", err));
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "All fields are required",
+        showConfirmButton: false,
+      });
+    }
   };
 
   return (
     <div className={styles.AddPost}>
-      <input
-        type="text"
-        name="topic"
-        placeholder="Enter topic"
-        value={postData.topic}
-        onChange={handleInput}
-      />
-      <textarea
-        type="text"
-        name="text"
-        placeholder="Enter text"
-        value={postData.text}
-        onChange={handleInput}
-      />
-      <img src={postData.photo} alt="" />
-      <input
-        type="file"
-        name="photo"
-        placeholder="Photo"
-        accept="image/*"
-        onChange={handleInputImage}
-      />
+      <div className={styles.header}>Create Post</div>
+      <div className={styles.box}>
+        <div className={styles.inputBox}>
+          <label htmlFor="image">
+            <img src={postData.photo ? postData.photo : image} alt="" />
+            <div className={styles.imageOverlay}>
+              <div>
+                <i className="fa fa-camera fa-2x"></i>
+              </div>
+              <div>Select Photo from the device</div>
+            </div>
+          </label>
+          <input
+            type="file"
+            id="image"
+            name="photo"
+            onChange={handleInputImage}
+            accept="image/*"
+            required
+            hidden
+          />
+        </div>
+        <div className={styles.inputBox}>
+          <input
+            type="text"
+            name="topic"
+            placeholder="Enter topic"
+            value={postData.topic}
+            onChange={handleInput}
+          />
+          <textarea
+            type="text"
+            name="text"
+            placeholder="Enter caption here"
+            value={postData.text}
+            onChange={handleInput}
+          />
+
+          <label htmlFor="comment">
+            <input
+              type="checkbox"
+              id="comment"
+              name="comment"
+              value="Comment"
+              onChange={handleComment}
+              required
+            />{" "}
+            Can others comment on this post?
+          </label>
+        </div>
+      </div>
       {/* {inputs.map((input) => (
         <div key={input.id}>
           <label htmlFor={`image${input.id}`}>{input.label}:</label>
@@ -130,7 +199,14 @@ export default function AddPost({ onClose }) {
       ))}
 
       <button onClick={addInput}>Add Image</button> */}
-      <button onClick={handleSubmit}>Post</button>
+      <div className={styles.footer}>
+        <input
+          type="submit"
+          value="Post"
+          className={styles.submit_btn}
+          onClick={handleSubmit}
+        />
+      </div>
     </div>
   );
 }
