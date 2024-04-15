@@ -1,8 +1,8 @@
 .NavBar {
-  /* height: 8vh; */
   height: 56px;
   width: 100vw;
-  border-bottom: 2px solid black;
+  box-shadow: 0 1px 5px 0 black;
+  /* border: 1px solid black; */
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -16,20 +16,16 @@
   align-items: center;
 }
 
-.menu {
-  display: none;
-}
-
 .appP {
-  /* height: 100%; */
-  font-size: 1.5rem;
+  height: 100%;
+  font-size: 1.5em;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
 }
 
-.appName .link {
+.appName a {
   margin-left: 20px;
 }
 
@@ -55,7 +51,7 @@
 }
 
 .svgNavIcon svg:hover {
-  font-size: 5vh;
+  font-size: 2em;
   /* fill: #000; */
 }
 
@@ -85,17 +81,11 @@
   /* border: none; */
 }
 
-.link {
-  display: flex;
-  height: 100%;
-  text-decoration: none;
-  color: currentColor;
-}
-
-@media only screen and (max-width: 1024px) {
-  .menu {
-    display: flex;
-    margin-left: 20px;
-    cursor: pointer;
+@media only screen and (max-width: 600px) {
+  .svgNav {
+    width: 60px;
+  }
+  .appName .link {
+    margin-left: 10px;
   }
 }

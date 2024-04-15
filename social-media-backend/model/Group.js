@@ -6,6 +6,9 @@ const groupSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    photo:{
+      type: String,
+    },
     users: Array,
     name: {
       type: String,

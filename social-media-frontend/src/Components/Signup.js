@@ -13,7 +13,7 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     name: "",
     dob: "",
-    gender: "",
+    gender: "male",
     password: "",
     city: "",
     country: "",
@@ -46,22 +46,25 @@ export default function Signup() {
   const handleSignup = (e) => {
     e.preventDefault();
     if (
-      formData.city !== "" &&
-      formData.country !== "" &&
-      formData.description !== "" &&
       formData.dob !== "" &&
       formData.gender !== "" &&
       formData.name !== "" &&
-      formData.name.length >= 8 &&
       formData.name.length <= 20 &&
       formData.password !== "" &&
-      formData.password.length >= 8 &&
-      formData.photo !== ""
+      formData.password.length >= 8
     ) {
       console.log(formData);
       console.log("hi");
       console.log("Handling Signup...");
-
+      Swal.fire({
+        width: "120",
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        timer: 2000,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       fetch(`${backendUrl}/api/user/signup`, {
         method: "POST",
         body: JSON.stringify(formData),
@@ -73,6 +76,7 @@ export default function Signup() {
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close();
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Registered Successfully");
@@ -129,6 +133,7 @@ export default function Signup() {
               name="photo"
               onChange={handleInputImage}
               accept="image/*"
+              required
               hidden
             />
           </div>
@@ -150,7 +155,7 @@ export default function Signup() {
               <select id="gender" name="gender" onChange={handleInputChange}>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
-                <option value="others">Others</option>
+                <option value="others">Prefer not to say</option>
               </select>
             </div>
             <div className={styles.inputBox}>

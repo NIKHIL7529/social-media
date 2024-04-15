@@ -9,7 +9,7 @@ const token_User_Verify = (req, res, next) => {
     console.log("Verifying token...");
     if (!token) {
       console.log("Token is missing.");
-      return res.redirect("/login"); // Redirect to login if token is missing
+      return res.status(401).json({ status: 401 }); // Redirect to login if token is missing
     }
 
     const user = jwt.verify(token, process.env.SECRET_KEY);
@@ -19,7 +19,7 @@ const token_User_Verify = (req, res, next) => {
   } catch (err) {
     console.error("Token verification failed:", err.message);
     res.clearCookie("token"); // Clear invalid token from cookies
-    return res.redirect("/login"); // Redirect to login if token verification fails
+    return res.status(401).json({ status: 401 }); // Redirect to login if token verification fails
   }
 };
 

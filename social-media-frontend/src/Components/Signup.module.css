@@ -73,10 +73,6 @@
   border-radius: 50%;
 }
 
-.box .inputBox:has(input[type="file"]) label:not(:hover) .imageOverlay {
-  display: none;
-}
-
 .box .inputBox:has(input[type="file"]) label img {
   filter: blur(1.5px);
 }

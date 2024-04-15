@@ -3,6 +3,8 @@ import styles from "./Login.module.css";
 import { useEffect, useState } from "react";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const Login = ({ setUser }) => {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ const Login = ({ setUser }) => {
       if (cookies) {
         navigate("/posts");
       }
-    }// eslint-disable-next-line 
+    } // eslint-disable-next-line
   }, []);
 
   // const [submit, setSubmit] = useState(false);
@@ -36,6 +38,15 @@ const Login = ({ setUser }) => {
     e.preventDefault();
     console.log("Handling Login...");
     if (formData.name !== "" && formData.password.length !== 0) {
+      Swal.fire({
+        width: "120",
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        timer: 2000,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       fetch(`${backendUrl}/api/user/login`, {
         method: "POST",
         body: JSON.stringify(formData),
@@ -47,10 +58,11 @@ const Login = ({ setUser }) => {
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close();
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Login Successful");
-            setUser(data.existing_user);
+            setUser(data.user);
             navigate("/posts");
           }
           if (data.status === 400) {

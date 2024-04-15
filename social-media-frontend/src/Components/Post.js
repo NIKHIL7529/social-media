@@ -3,9 +3,13 @@ import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { useEffect, useRef, useState } from "react";
-import { BookmarkOutlined, ChatSharp, ThumbUpSharp } from "@mui/icons-material";
+import {
+  AccountCircle,
+  BookmarkOutlined,
+  ChatRounded,
+  ThumbUpSharp,
+} from "@mui/icons-material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import postih from "../images/post.jpg";
 import { backendUrl } from "../Utils/backendUrl";
 import SendIcon from "@mui/icons-material/Send";
 import Swal from "sweetalert2";
@@ -20,13 +24,12 @@ export default function Post(props) {
   const [commentClick, setCommentClick] = useState(false);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [commentable, setCommentable] = useState(true);
   const [fullText, setFullText] = useState(false);
   const [buttonShow, setButtonShow] = useState(false);
   const [picker, setPicker] = useState(false);
 
   const auth_user = useRef();
-  const textRef = useRef(null);
+  const textRef = useRef("");
   const post = props.post;
   const user = props.user;
   console.log("initial data is ", post, user);
@@ -41,7 +44,7 @@ export default function Post(props) {
       }
     } else {
       setButton("none");
-    }// eslint-disable-next-line 
+    } // eslint-disable-next-line
   }, [post.user.name, user.name]);
 
   useEffect(() => {
@@ -69,6 +72,15 @@ export default function Post(props) {
   }, [user, post.user.name]);
 
   const handleDelete = () => {
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     fetch(`${backendUrl}/api/post/deletePost`, {
       method: "POST",
       body: JSON.stringify({ _id: post._id }),
@@ -80,6 +92,7 @@ export default function Post(props) {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.message);
@@ -168,8 +181,13 @@ export default function Post(props) {
   };
 
   const handleComment = () => {
-    if (!commentable) {
+    if (!post.commentable) {
       console.log("Comments are restricted");
+      Swal.fire({
+        icon: "warning",
+        title: "Comments are turned off",
+        showConfirmButton: false,
+      });
       return;
     }
     setCommentClick((prevCommentClick) => !prevCommentClick);
@@ -214,7 +232,9 @@ export default function Post(props) {
   };
 
   useEffect(() => {
-    handleText();
+    if (textRef.current) {
+      handleText();
+    }
     window.addEventListener("resize", handleText);
     return () => {
       window.removeEventListener("resize", handleText);
@@ -223,7 +243,7 @@ export default function Post(props) {
 
   const handleImage = () => {
     Swal.fire({
-      html: `<img src=${user.photo} alt=${user}  style="max-width: 100%; height: auto;" />`,
+      html: `<img src=${post.user.photo} alt=${post.user.name}  style="max-width: 100%; height: auto;" />`,
       showConfirmButton: false,
     });
   };
@@ -245,7 +265,15 @@ export default function Post(props) {
     <div className={styles.Post}>
       <div className={styles.postheader}>
         <div>
-          <img src={user.photo} alt={user} onClick={handleImage} />
+          {post.user.photo ? (
+            <img
+              src={post.user.photo}
+              alt={post.user.name}
+              onClick={handleImage}
+            />
+          ) : (
+            <AccountCircle />
+          )}
           <p>{post.user.name}</p>
         </div>
 
@@ -259,27 +287,31 @@ export default function Post(props) {
       <div className={styles.image}>
         <img src={post.photo} alt="post" />
       </div>
-      <div className={styles.info}>
-        <div className={styles.topic}>{post.topic}</div>
-        <div
-          className={styles.description}
-          style={{
-            height: fullText ? "auto" : "20px",
-            display: fullText ? "" : "flex",
-          }}
-          ref={textRef}
-          onResize={handleText}
-        >
-          {post.text}
-          {buttonShow ? (
-            <button onClick={handleShowDesc}>
-              {fullText ? "Read Less" : "Read More"}
-            </button>
-          ) : (
-            ""
-          )}
+      {!post.topic && !post.description ? (
+        ""
+      ) : (
+        <div className={styles.info}>
+          <div className={styles.topic}>{post.topic}</div>
+          <div
+            className={styles.description}
+            style={{
+              height: fullText ? "auto" : "20px",
+              display: fullText ? "" : "flex",
+            }}
+            ref={textRef}
+            onResize={handleText}
+          >
+            {post.text}
+            {buttonShow ? (
+              <button onClick={handleShowDesc}>
+                {fullText ? "Read Less" : "Read More"}
+              </button>
+            ) : (
+              ""
+            )}
+          </div>
         </div>
-      </div>
+      )}
       <div
         className={styles.postfooter}
         style={{ borderRadius: commentClick ? "0" : "" }}
@@ -291,6 +323,9 @@ export default function Post(props) {
             <ThumbUpOutlinedIcon />
           )}
         </button>
+        <button onClick={handleComment}>
+          <ChatRounded />
+        </button>
         <button onClick={handleSaved}>
           {saveflag ? (
             <BookmarkOutlined style={{ fill: "blue" }} />
@@ -301,21 +336,15 @@ export default function Post(props) {
         <button>
           <ShareOutlinedIcon />
         </button>
-        <button onClick={handleComment}>
-          <ChatSharp />
-        </button>
         <p>{likes !== null ? likes : post.likes} likes</p>
+        {picker && (
+          <div className={styles.Picker}>
+            <EmojiPicker height={400} width={400} onEmojiClick={onEmojiClick} />
+          </div>
+        )}
       </div>
-      {picker && (
-        <div className={styles.Picker}>
-          <EmojiPicker
-            height={400}
-            width={400}
-            onEmojiClick={onEmojiClick}
-          />
-        </div>
-      )}
-      {commentClick && (
+
+      {commentClick && post.commentable === true ? (
         <div className={styles.comments}>
           <div className={styles.input} onClick={handleEmojiPicker}>
             <button>
@@ -338,7 +367,7 @@ export default function Post(props) {
           {comments.length !== 0 ? (
             comments.map((comment) => (
               <div className={styles.comment} key={comment._id}>
-                <img src={postih} alt="" />
+                <img src={user.photo} alt="" />
                 <p>
                   {comment.sender === auth_user.current
                     ? auth_user.current
@@ -351,6 +380,8 @@ export default function Post(props) {
             <div className={styles.comment}>No comments yet</div>
           )}
         </div>
+      ) : (
+        <></>
       )}
     </div>
   );

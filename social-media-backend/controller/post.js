@@ -15,10 +15,7 @@ const all_posts = async (req, res, next) => {
   const { skip } = req.body;
   try {
     console.log("All Posts");
-    const post = await Post.find({ user: { $ne: req.user.id } })
-      .limit(5)
-      .skip(skip)
-      .populate("user");
+    const post = await Post.find().limit(5).skip(skip).populate("user");
     if (!post) {
       return res.status(504).json({ status: 504, message: "No post uploaded" });
     }
@@ -91,6 +88,38 @@ const signedUserPosts = async (req, res, next) => {
     return res
       .status(200)
       .json({ status: 200, message: "Signed User Posts", post });
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({ status: 500, message: "Internal server error", err });
+  }
+};
+
+const savedPosts = async (req, res, next) => {
+  try {
+    console.log("Saved Posts");
+    const user = await User.find({ _id: req.user.id })
+      .select("saved")
+      .populate("saved");
+    const saved = user[0].saved;
+    console.log("Saved: ", saved);
+
+    const populatedSaved = await Promise.all(
+      saved.map(async (post) => {
+        const pt = await Post.findById(post._id).populate("user");
+        return pt;
+      })
+    );
+    console.log("POst: ", populatedSaved);
+
+    if (!populatedSaved.length) {
+      return res.status(504).json({ status: 504, message: "No post uploaded" });
+    }
+
+    return res
+      .status(200)
+      .json({ status: 200, message: "Saved Posts", post: populatedSaved });
   } catch (err) {
     console.log(err);
     return res
@@ -216,6 +245,7 @@ module.exports = {
   addPost,
   deletePost,
   signedUserPosts,
+  savedPosts,
   userPosts,
   saved,
   liked,

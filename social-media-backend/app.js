@@ -73,7 +73,7 @@ io.on("connection", (socket) => {
   }
   const socketId = socket.id;
   const user = jwt.verify(token, process.env.SECRET_KEY);
-
+    
   let result = -1;
 
   onlineUsers.map((o_user, index) => {
@@ -89,15 +89,20 @@ io.on("connection", (socket) => {
     onlineUsers[result].socketId = socketId;
   } else {
     onlineUsers.push({ user, socketId });
+    onlineUsers.map((o_user, index) =>
+      io.to(o_user.socketId).emit("chat", onlineUsers)
+    );
   }
 
   console.log(onlineUsers);
 
-  socket.on("chat", (users) => {
+  socket.on("chat", () => {
     console.log(
       "Chat-----------------------------------------////////////////////"
     );
-    io.to(socketId).emit("chat", onlineUsers, users);
+    onlineUsers.map((onlineUser) =>
+      io.to(onlineUser.socketId).emit("chat", onlineUsers)
+    );
   });
 
   socket.on("message", (message) => {
@@ -143,5 +148,8 @@ io.on("connection", (socket) => {
       }
     });
     console.log(onlineUsers);
+    onlineUsers.map((o_user, index) =>
+      io.to(o_user.socketId).emit("chat", onlineUsers)
+    );
   });
 });

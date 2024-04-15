@@ -20,10 +20,10 @@ import Chat from "./Components/Chat";
 import EditProfile from "./Components/EditProfile";
 import UserContext from "./UserContext";
 import { useState } from "react";
+import SavedPosts from "./Components/SavedPosts";
 
 function App() {
   const [user, setUser] = useState({});
-  const [menu, setMenu] = useState(false);
 
   return (
     <Router>
@@ -34,8 +34,8 @@ function App() {
           path="*"
           element={
             <UserContext.Provider value={user}>
-              <NavBar setUser={setUser} menu={menu} setMenu={setMenu} />
-              <SideBar menu={menu} />
+              <NavBar setUser={setUser} />
+              <SideBar />
               <Routes>
                 {/* <Route path="/home" element={<Home />} /> */}
                 <Route path="/profile" element={<Profile />} />
@@ -45,6 +45,7 @@ function App() {
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/chat/:id" element={<Chat />} />
                 <Route path="/posts" element={<Posts />} />
+                <Route path="/savedPosts" element={<SavedPosts />} />
                 <Route
                   path="/settings"
                   element={<Settings setUser={setUser} />}

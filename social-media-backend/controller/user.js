@@ -39,10 +39,13 @@ const signup = async (req, res, next) => {
     }
 
     const hashedPassword = bcrypt.hashSync(password);
-    const result = await cloudinary.uploader.upload(photo, {
-      folder: "images",
-    });
-
+    let image = "";
+    if (photo.length !== 0) {
+      const result = await cloudinary.uploader.upload(photo, {
+        folder: "images",
+      });
+      image = result.secure_url;
+    } 
     const user = new User({
       name,
       dob,
@@ -51,7 +54,7 @@ const signup = async (req, res, next) => {
       city,
       country,
       description,
-      photo: result.secure_url,
+      photo: image,
       // photo,
     });
     await user.save();
@@ -82,9 +85,13 @@ const editProfile = async (req, res, next) => {
     }
 
     const hashedPassword = bcrypt.hashSync(password);
-    const result = await cloudinary.uploader.upload(photo, {
-      folder: "images",
-    });
+    let image = "";
+    if (photo.length !== 0) {
+      const result = await cloudinary.uploader.upload(photo, {
+        folder: "images",
+      });
+      image = result.secure_url;
+    }
 
     const user = await User.findOneAndUpdate(
       { _id: req.user.id },
@@ -96,7 +103,7 @@ const editProfile = async (req, res, next) => {
         city,
         country,
         description,
-        photo: result.secure_url,
+        photo: image,
       },
       { new: true }
     );
@@ -170,6 +177,8 @@ const logout = async (req, res, next) => {
     const cookie = req.cookies.token;
     if (cookie !== null) {
       res.clearCookie("token");
+      res.json({ status: 200 });
+    } else {
       res.json({ status: 200 });
     }
   } catch (error) {

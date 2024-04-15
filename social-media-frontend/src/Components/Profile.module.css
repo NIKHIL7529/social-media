@@ -22,6 +22,12 @@
   margin-bottom: 10px;
 }
 
+.profile svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
 .profile .name {
   font-weight: 500;
 }
@@ -71,17 +77,15 @@
 }
 
 .posts {
-  width: 100%;
-  padding: 20px 20% 0 20%;
-  /* display: flex;
-  flex-direction: column;
-  align-items: center; */
+  width: 60%;
+  padding-top: 10px;
+  margin: auto;
   box-sizing: border-box;
 }
 
 @media only screen and (max-width: 1200px) {
   .posts {
-    padding: 20px 15% 0 15%;
+    width: 80%;
   }
   .p {
     padding-left: 5%;
@@ -93,16 +97,17 @@
     position: absolute;
     left: 0;
     width: 100%;
-    height: calc(100% - 56px);
+    height: calc(100% - 106px);
   }
+
   .posts {
-    padding: 20px 20% 0 20%;
+    width: 60%;
   }
 }
 
 @media only screen and (max-width: 600px) {
   .posts {
-    padding: 20px 0 0 0;
+    width: 100%;
   }
   .p {
     padding-left: 0;

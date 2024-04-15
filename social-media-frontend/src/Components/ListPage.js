@@ -18,7 +18,7 @@ export default function ListPage({ list, clicked, setClicked }) {
   return (
     <div className={styles.ListPage}>
       <div className={styles.close} onClick={check}>
-        Close
+        X
       </div>
       <div className={styles.list}>
         {list && Array.isArray(list) ? (

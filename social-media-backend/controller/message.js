@@ -40,7 +40,7 @@ const addMessage = async (req, res, next) => {
     console.log(error);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error" , err});
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -58,7 +58,7 @@ const messages = async (req, res, next) => {
     console.log(error);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error" , err});
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -97,7 +97,7 @@ const allChats = async (req, res, next) => {
     console.log(err);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error" , err});
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 
@@ -114,7 +114,7 @@ const followings = async (req, res, next) => {
     console.log(err);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error" , err});
+      .json({ status: 500, message: "Internal server error", err });
   }
 };
 

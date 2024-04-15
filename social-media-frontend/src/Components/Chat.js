@@ -4,12 +4,13 @@ import io from "socket.io-client";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { backendUrl } from "../Utils/backendUrl";
 import image from "../images/user.jpg";
-import EmojiPicker, { Emoji } from "emoji-picker-react/dist";
-import { EmojiStyle } from "emoji-picker-react";
+import EmojiPicker from "emoji-picker-react/dist";
 import SendIcon from "@mui/icons-material/Send";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import UserContext from "../UserContext";
 import { format } from "timeago.js";
+import Swal from "sweetalert2";
+import { AccountCircle, Groups } from "@mui/icons-material";
 
 export default function Chat() {
   const [chats, setChats] = useState([]);
@@ -20,7 +21,6 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [clickedCreateGroup, setClickedCreateGroup] = useState(false);
   const [groupUsers, setGroupUsers] = useState([]);
-  const [emoji, setEmoji] = useState(null);
   const [picker, setPicker] = useState(false);
   const [status, setStatus] = useState("Online");
   const [group, setGroup] = useState({
@@ -37,7 +37,7 @@ export default function Chat() {
   const navigate = useNavigate();
 
   const scrollMessageRef = useRef(null);
-  const user = useContext(UserContext).name;
+  const user = useContext(UserContext);
   const auth_user = useRef(null);
   const socket = useRef(null);
 
@@ -59,7 +59,9 @@ export default function Chat() {
   }, [messages]);
 
   useEffect(() => {
-    auth_user.current = user;
+    console.log(user);
+    auth_user.current = user.name;
+    console.log(auth_user.current);
     console.log("Connection Created", socket);
     // eslint-disable-next-line
   }, []);
@@ -94,16 +96,16 @@ export default function Chat() {
       console.log(group);
     });
 
-    socket.current.on("chat", (onlineUsers, users) => {
-      console.log(users);
+    socket.current.on("chat", (onlineUsers) => {
+      console.log(receiver);
       console.log("Chat Socket");
       console.log(onlineUsers);
-      if (users.length === 1) {
+      if (receiver.length === 1) {
         let flag = false;
         onlineUsers.map((o_user, index) => {
-          if (flag === false && o_user.user.name === users[0]) {
+          if (flag === false && o_user.user.name === receiver[0]) {
             // setStatus("Online");
-            console.log(o_user.user.name, " ///// ", users[0]);
+            console.log(o_user.user.name, " ///// ", receiver[0]);
             flag = true;
             setStatus("Online");
           }
@@ -144,6 +146,15 @@ export default function Chat() {
   useEffect(() => {
     console.log("Chats");
     const getChats = async () => {
+      Swal.fire({
+        width: "120",
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        timer: 2000,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await fetch(`${backendUrl}/api/message/allChats`, {
         method: "GET",
         headers: {
@@ -154,6 +165,7 @@ export default function Chat() {
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close();
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log(data.chats);
@@ -206,10 +218,18 @@ export default function Chat() {
     setPicker(false);
     setMessage("");
     navigate(`/chat/${chat.chatId}`);
-
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     console.log("handle Receiver");
     console.log(_id, chat);
-    socket.current.emit("chat", chat.users);
+    socket.current.emit("chat");
 
     fetch(`${backendUrl}/api/message/messages`, {
       method: "POST",
@@ -222,6 +242,7 @@ export default function Chat() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.messages.messages);
@@ -251,7 +272,15 @@ export default function Chat() {
     const _id = chatId;
     console.log(msg);
     let messageId;
-
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     await fetch(`${backendUrl}/api/message/sendMessage`, {
       method: "POST",
       body: JSON.stringify({ receiver, msg, _id }),
@@ -263,6 +292,7 @@ export default function Chat() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log("Message Send");
@@ -291,6 +321,15 @@ export default function Chat() {
 
   const handleCreateGroup = () => {
     setClickedCreateGroup((prevClickedCreateGroup) => !prevClickedCreateGroup);
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     fetch(`${backendUrl}/api/message/followings`, {
       method: "GET",
       headers: {
@@ -302,6 +341,7 @@ export default function Chat() {
       .then((response) => response.json())
       .then((data) => {
         console.log("Fetch response received: ", data);
+        Swal.close();
         if (data.status === 200) {
           console.log(data.followings[0].followings);
           setGroupUsers(data.followings[0].followings);
@@ -322,7 +362,15 @@ export default function Chat() {
   const handleCreateGroupSubmit = async () => {
     console.log("Selected Group Users:", group.users);
     let _id = "";
-
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     await fetch(`${backendUrl}/api/group/createGroup`, {
       method: "POST",
       body: JSON.stringify(group),
@@ -334,6 +382,7 @@ export default function Chat() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log("Group Created");
@@ -461,7 +510,8 @@ export default function Chat() {
                       handleReceiver(chat.chatId, chat);
                     }}
                   >
-                    <img src={image} alt="" />
+                    {chat.users.length === 1 ? <AccountCircle /> : <Groups />}
+                    {/* <img src={image} alt="" /> */}
                     <div>
                       {chat.name ? chat.name : chat.users && chat.users[0]}
                     </div>
@@ -481,11 +531,7 @@ export default function Chat() {
       {chatName ? (
         <div className={`${styles.chat} ${id ? "" : styles.hide}`}>
           <div className={styles.nameheader}>
-            {receiver.length === 1 ? (
-              <img src={image} alt="" />
-            ) : (
-              <img src={image} alt="" />
-            )}
+            {receiver.length === 1 ? <AccountCircle /> : <Groups />}
             <div className={styles.namestatus}>
               <div>{chatName}</div>
               <div>{status}</div>
@@ -502,7 +548,7 @@ export default function Chat() {
                   }`}
                   key={message._id}
                 >
-                  {receiver.length > 1 && <img src={image} alt="" />}
+                  {receiver.length > 1 && <AccountCircle />}
                   <div className={styles.msg}>
                     {receiver.length > 1 && <span>{message.sender}</span>}
                     <p>
@@ -510,22 +556,21 @@ export default function Chat() {
                       <sub>{format(message.updatedAt)}</sub>
                     </p>
                   </div>
+                  {picker && (
+                    <div className={styles.Picker}>
+                      <EmojiPicker
+                        height={400}
+                        width={400}
+                        onEmojiClick={onEmojiClick}
+                      />
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
               <div className={styles.chatP}>No message yet</div>
             )}
           </div>
-
-          {picker && (
-            <div className={styles.Picker}>
-              <EmojiPicker
-                height={400}
-                width={400}
-                onEmojiClick={onEmojiClick}
-              />
-            </div>
-          )}
 
           <div className={styles.input} onClick={handleEmojiPicker}>
             <button>

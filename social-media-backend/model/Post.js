@@ -4,15 +4,12 @@ const postSchema = new mongoose.Schema(
   {
     topic: {
       type: String,
-      required: true,
     },
     text: {
       type: String,
-      required: true,
     },
     photo: {
       type: String,
-      required: true,
       required: true,
     },
     likes: {
@@ -26,7 +23,7 @@ const postSchema = new mongoose.Schema(
     },
     commentable: {
       type: Boolean,
-      required: true,
+      default: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

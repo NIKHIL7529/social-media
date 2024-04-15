@@ -47,22 +47,25 @@ export default function EditProfile() {
     e.preventDefault();
     console.log(formData);
     if (
-      formData.city !== "" &&
-      formData.country !== "" &&
-      formData.description !== "" &&
       formData.dob !== "" &&
       formData.gender !== "" &&
       formData.name !== "" &&
-      formData.name.length >= 8 &&
       formData.name.length <= 20 &&
       formData.password !== "" &&
-      formData.password.length >= 8 &&
-      formData.photo !== ""
+      formData.password.length >= 8
     ) {
       console.log(formData);
       console.log("hi");
       console.log("Handling Edit Profile...");
-
+      Swal.fire({
+        width: "120",
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        timer: 2000,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       fetch(`${backendUrl}/api/user/editProfile`, {
         method: "POST",
         body: JSON.stringify(formData),
@@ -74,6 +77,7 @@ export default function EditProfile() {
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close();
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Registered Successfully");

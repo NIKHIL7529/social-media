@@ -22,6 +22,12 @@
   margin-bottom: 10px;
 }
 
+.profile svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
 .profile .name {
   font-weight: 500;
 }
@@ -93,7 +99,7 @@
     position: absolute;
     left: 0;
     width: 100%;
-    height: calc(100% - 56px);
+    height: calc(100% - 106px);
   }
   .posts {
     padding: 20px 20% 0 20%;

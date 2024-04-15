@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      minlength: 8,
       maxlength: 20,
     },
     dob: {
@@ -24,19 +23,15 @@ const userSchema = new mongoose.Schema(
     },
     city: {
       type: String,
-      required: true,
     },
     country: {
       type: String,
-      required: true,
     },
     description: {
       type: String,
-      required: true,
     },
     photo: {
       type: String,
-      required: true,
     },
     followers: {
       type: Array,
@@ -54,14 +49,6 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Post",
-      },
-    ],
-    tokens: [
-      {
-        token: {
-          type: String,
-          required: true,
-        },
       },
     ],
   },

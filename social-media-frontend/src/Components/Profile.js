@@ -6,6 +6,7 @@ import Post from "./Post";
 import ListPage from "./ListPage";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
+import { AccountCircle } from "@mui/icons-material";
 
 export default function Profile() {
   const [use, setUse] = useState({});
@@ -35,6 +36,15 @@ export default function Profile() {
   };
 
   useEffect(() => {
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     fetch(`${backendUrl}/api/user/profile`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -62,6 +72,7 @@ export default function Profile() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.post);
@@ -80,7 +91,7 @@ export default function Profile() {
       post = post.filter((post) => post._id !== index);
       setPosts(post);
       setIndex("");
-    }// eslint-disable-next-line 
+    } // eslint-disable-next-line
   }, [index]);
 
   console.log(index);
@@ -106,7 +117,11 @@ export default function Profile() {
       )}
       <div className={styles.Profile}>
         <div className={styles.profile}>
-          <img src={use.photo} alt={use.name} onClick={handleImage} />
+          {use.photo ? (
+            <img src={use.photo} alt={use.name} onClick={handleImage} />
+          ) : (
+            <AccountCircle />
+          )}
           <div className={styles.name}>{use.name}</div>
           <div className={styles.desc}>{use.description}</div>
           <div className={styles.list}>
@@ -122,7 +137,7 @@ export default function Profile() {
           <button onClick={() => navigate("/editProfile")}>Edit Profile</button>
         </div>
         <div className={styles.p} ref={postsRef}>
-          Posts
+          {/* Posts */}
         </div>
         <div className={styles.posts}>
           {posts &&

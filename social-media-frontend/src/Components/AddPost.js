@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./AddPost.module.css";
 import { backendUrl } from "../Utils/backendUrl";
-import image from "../images/user.jpg";
+import image from "../images/post.jpg";
 import Swal from "sweetalert2";
 
 export default function AddPost({ onClose }) {
@@ -91,13 +91,17 @@ export default function AddPost({ onClose }) {
     e.preventDefault();
     console.log(postData);
 
-    if (
-      postData.photo !== "" &&
-      postData.text !== "" &&
-      postData.topic !== ""
-    ) {
+    if (postData.photo !== "") {
       console.log("addPost");
-
+      Swal.fire({
+        width: "120",
+        allowEscapeKey: false,
+        allowOutsideClick: false,
+        timer: 2000,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       fetch(`${backendUrl}/api/post/addPost`, {
         method: "POST",
         body: JSON.stringify(postData),
@@ -109,6 +113,7 @@ export default function AddPost({ onClose }) {
       })
         .then((response) => response.json())
         .then((data) => {
+          Swal.close();
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Post added Successfully");

@@ -6,6 +6,7 @@ import Post from "./Post";
 import ListPage from "./ListPage";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
+import { AccountCircle } from "@mui/icons-material";
 
 export default function User() {
   const [use, setUse] = useState({});
@@ -36,6 +37,16 @@ export default function User() {
   };
 
   useEffect(() => {
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     fetch(`${backendUrl}/api/user/profile`, {
       headers: {
         "Content-type": "application/json; charset=UTF-8",
@@ -85,6 +96,7 @@ export default function User() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.post);
@@ -103,10 +115,20 @@ export default function User() {
       console.log("user followers", use.followers);
       setFollowFlag(isFollowed);
       // setFollow(use.name);
-    }// eslint-disable-next-line 
+    } // eslint-disable-next-line
   }, [use.followers]);
 
   const handleFollow = () => {
+    Swal.fire({
+      width: "120",
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      timer: 2000,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
     fetch(`${backendUrl}/api/user/follow`, {
       method: "POST",
       body: JSON.stringify({ userName: use.name }),
@@ -118,6 +140,7 @@ export default function User() {
     })
       .then((response) => response.json())
       .then((data) => {
+        Swal.close();
         console.log("Fetch response received: ", data);
         if (data.status === 200) {
           console.log(data.user);
@@ -151,11 +174,11 @@ export default function User() {
       )}
       <div className={styles.Profile}>
         <div className={styles.profile}>
-          <img
-            src={use.photo && use.photo}
-            alt={use.name}
-            onClick={handleImage}
-          />
+          {use.photo ? (
+            <img src={use.photo} alt={use.name} onClick={handleImage} />
+          ) : (
+            <AccountCircle />
+          )}
           <div className={styles.name}>{use.name}</div>
           <div className={styles.desc}>{use.description}</div>
           <div className={styles.list}>
@@ -177,7 +200,7 @@ export default function User() {
         {posts.length > 0 && (
           <>
             <div className={styles.p} ref={postsRef}>
-              Posts
+              {/* Posts */}
             </div>
             <div className={styles.posts}>
               {posts &&

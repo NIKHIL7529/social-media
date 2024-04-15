@@ -1,7 +1,8 @@
 .Post {
-  border-radius: 10px;
-  border: 2px solid black;
-  margin-bottom: 5px;
+  border-radius: 4px;
+  /* border: 1px solid black; */
+  box-shadow: 0 0 2px ;
+  margin-bottom: 10px;
   width: 100%;
   position: relative;
   box-sizing: border-box;
@@ -9,9 +10,9 @@
 
 .postheader {
   margin: 0;
-  background-color: #000;
-  color: #fff;
-  border-radius: 8px 8px 0 0;
+  /* background-color: #000; */
+  /* color: #fff; */
+  border-radius: 3px 3px 0 0;
   font-size: 1em;
   padding: 0 10px;
   display: flex;
@@ -29,22 +30,29 @@
   height: 40px;
   width: 40px;
   margin-right: 20px;
+  cursor: pointer;
+}
+
+.postheader svg {
+  height: 30px;
+  width: 30px;
+  margin-right: 20px;
 }
 
 .postheader button {
-  border: 2px solid #fff;
+  border: 2px solid black;
   border-radius: 10px;
   background-color: transparent;
   padding: 5px 12px;
-  color: #fff;
+  /* color: #fff; */
   cursor: pointer;
 }
 
 .info {
   display: flex;
   align-items: flex-start;
-  background-color: #000;
-  color: #fff;
+  /* background-color: #000; */
+  /* color: #fff; */
   font-size: 0.8em;
   padding: 4px 12px;
   border-bottom: 1px solid rgb(61, 58, 58);
@@ -84,15 +92,17 @@
 
 .image img {
   width: 100%;
-  object-fit: contain;
+  max-height: 400px;
+  object-fit: cover;
 }
 
 .postfooter {
+  position: relative;
   height: 45px;
   width: 100%;
-  background-color: #000;
-  color: #fff;
-  border-radius: 0 0 8px 8px;
+  /* background-color: #000; */
+  /* color: #fff; */
+  border-radius: 0 0 3px 3px;
   padding: 0 10px;
   display: flex;
   align-items: center;
@@ -102,20 +112,21 @@
 .postfooter button {
   background-color: transparent;
   padding: 5px;
-  border: 1px solid black;
+  /* border: 1px solid black; */
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
 }
 
 .postfooter button:hover {
-  border: 1px solid #fff;
+  border: 1px solid black;
   border-radius: 10px;
 }
 
 .postfooter button svg {
   /* stroke: white; */
-  fill: #fff;
+  fill: black;
   font-size: 1.5em;
 }
 
@@ -197,8 +208,14 @@
 
 .Picker {
   width: 400px;
-  /* position: absolute; */
-  /* top: -67px; */
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+
+  button {
+    border: none;
+  }
 }
 
 @media only screen and (max-width: 1024px) {

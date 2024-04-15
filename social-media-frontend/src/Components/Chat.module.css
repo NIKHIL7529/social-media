@@ -85,6 +85,12 @@ hr {
   margin: 0;
 }
 
+.name svg {
+  height: 30px;
+  width: 30px;
+  margin: 0;
+}
+
 .groupname {
   height: 30px;
   display: flex;
@@ -161,6 +167,12 @@ hr {
   margin-right: 20px;
 }
 
+.nameheader svg {
+  height: 50px;
+  width: 50px;
+  margin-right: 20px;
+}
+
 .namestatus {
   /* height: 50px; */
   display: flex;
@@ -175,6 +187,7 @@ hr {
 }
 
 .messages {
+  position: relative;
   width: 100%;
   height: calc(100% - 120px);
   padding: 0 12px;
@@ -200,11 +213,18 @@ hr {
   width: 30px;
 }
 
-.messageLeft img {
+.message svg {
+  height: 30px;
+  width: 30px;
+}
+
+.messageLeft img,
+.messageLeft svg {
   margin-right: 10px;
 }
 
-.messageRight img {
+.messageRight img,
+.messageRight svg {
   margin-left: 10px;
 }
 
@@ -312,9 +332,9 @@ hr {
 .Picker {
   width: 400px;
   /* height: 400px; */
-  /* position: absolute; */
-  /* left: 0; */
-  /* bottom: 50px; */
+  position: absolute;
+  left: 0;
+  bottom: 0;
 }
 
 @media only screen and (max-width: 1024px) {
@@ -322,7 +342,7 @@ hr {
     position: absolute;
     left: 0;
     width: 100%;
-    height: calc(100% - 56px);
+    height: calc(100% - 106px);
   }
 }
 
@@ -373,11 +393,13 @@ hr {
     padding: 0 2px;
   }
 
-  .messageLeft img {
+  .messageLeft img,
+  .messageLeft svg {
     margin-right: 4px;
   }
 
-  .messageRight img {
+  .messageRight img,
+  .messageRight svg {
     margin-left: 4px;
   }
 }

@@ -4,11 +4,9 @@
   position: fixed;
   top: 56px;
   left: 0;
-  border-right: 1px solid;
   box-sizing: border-box;
-  /* box-shadow: 0 1px #000; */
-  z-index: 100;
-  /* backdrop-filter: blur(10px); */
+  /* border-right: 1px solid black; */
+  z-index: -1;
   background-color: #fff;
 }
 
@@ -16,7 +14,7 @@
   padding: 12px;
 }
 
-.link {
+a {
   text-decoration: none;
   color: inherit;
 }
@@ -27,54 +25,63 @@
   align-items: center;
   padding: 5px 12px;
   border-radius: 10px;
+
+  svg {
+    margin-right: 24px;
+  }
+
+  p {
+    font-size: 1em;
+    line-height: 0.5rem;
+    font-weight: 500;
+  }
 }
 
-.sidelink:hover,
-.sidelink:visited {
-  background: #000;
+.sidelink:hover {
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
   border: none;
 
   svg {
     fill: #fff;
-    stroke: #000;
+    /* stroke: rgba(0, 0, 0, 0.8); */
   }
 }
 
-.sidelink svg {
-  margin-right: 24px;
-}
-
-.linkP {
-  font-size: 1em;
-  line-height: 0.5rem;
-  font-weight: 500;
-}
-
-/* .p {
-  margin: auto;
-  height: 6vh;
-  display: flex;
-  align-items: center;
-  font-size: large;
-  padding-left: 10px;
-  align-content: center;
-  flex-direction: row;
-  flex-wrap: wrap;
-}
-
-.p:hover {
-  cursor: pointer;
-  background-color: cornflowerblue;
-  color: white;
-}
-
-.p:active {
-  background-color: cadetblue;
-} */
-
 @media only screen and (max-width: 1024px) {
   .SideBar {
-    display: none;
+    width: 100vw;
+    height: 50px;
+    top: auto;
+    bottom: 0;
+    border: none;
+    border-top: 1px solid black;
+  }
+
+  .links {
+    height: 100%;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+  }
+
+  a {
+    height: 100%;
+  }
+
+  .sidelink {
+    height: 100%;
+    justify-content: center;
+    padding: 0;
+    border-radius: 0;
+
+    svg {
+      margin: 0;
+    }
+
+    p {
+      display: none;
+    }
   }
 }
