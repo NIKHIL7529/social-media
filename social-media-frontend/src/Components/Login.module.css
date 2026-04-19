@@ -1,114 +1,119 @@
 .Login {
-  width: 100vw;
-  height: 100vh;
-  /* background: url("https://images.pexels.com/photos/176851/pexels-photo-176851.jpeg?w=1260&h=750&auto=compress&cs=tinysrgb"); */
-  transition: 0.4s linear;
-  text-align: center;
+  min-height: 100vh;
+  padding: 110px 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, rgba(244, 110, 82, 0.2), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(17, 24, 39, 0.1), transparent 38%);
+  box-sizing: border-box;
 }
 
 .box {
-  width: 400px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 40px;
+  width: min(100%, 430px);
+  padding: 34px 28px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(214, 219, 229, 0.95);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
   box-sizing: border-box;
-  box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
 }
 
 .box h2 {
-  margin: 0 0 30px;
-  padding: 0;
-  color: #fff;
+  margin: 0 0 26px;
+  color: var(--text-primary);
   text-align: center;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
 }
 
-.box p {
-  margin-bottom: 0;
+.box form {
+  display: flex;
+  flex-direction: column;
 }
 
-.box p:nth-child(even) {
-  margin-top: 0;
-}
-
-.box .inputBox {
+.inputBox {
   position: relative;
 }
 
-.box .inputBox input {
+.inputBox input {
   width: 100%;
-  padding: 10px 0;
-  font-size: 16px;
-  margin-bottom: 30px;
-  color: #fff;
-  border: none;
-  border-bottom-style: solid;
+  min-height: 56px;
+  margin-bottom: 18px;
+  padding: 20px 16px 10px;
+  border: 1px solid rgba(214, 219, 229, 0.95);
+  border-radius: 18px;
   outline: none;
-  letter-spacing: 1px;
-  background: transparent;
+  background: rgba(250, 251, 253, 0.98);
+  color: var(--text-primary);
+  font-size: 0.98rem;
+  box-sizing: border-box;
 }
 
-.box .inputBox input:-webkit-autofill,
-.box .inputBox input:-webkit-autofill:hover,
-.box .inputBox input:-webkit-autofill:focus,
-.box .inputBox input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #ffffff;
-  border-bottom: 3px solid #fff;
-  caret-color: #fff;
+.inputBox input:focus {
+  border-color: rgba(244, 110, 82, 0.42);
+  box-shadow: 0 0 0 4px rgba(244, 110, 82, 0.1);
 }
 
-.box .inputBox label {
+.inputBox label {
   position: absolute;
-  color: #fff;
-  top: 0;
-  left: 0;
-  padding: 10px 0;
-  font-size: 16px;
+  top: 17px;
+  left: 16px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
   pointer-events: none;
-  transition: 0.5s;
+  transition: 0.2s ease;
 }
 
-.box .inputBox input:focus ~ label,
-.box .inputBox input:valid ~ label {
-  top: -18px;
-  left: 0;
-  color: #03a9f4;
-  font-size: 12px;
+.inputBox input:focus ~ label,
+.inputBox input:valid ~ label {
+  top: 8px;
+  left: 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-deep);
 }
 
 .box input[type="submit"] {
   width: 100%;
-  background: transparent;
+  min-height: 52px;
+  margin-top: 8px;
   border: none;
-  outline: none;
-  background: #03a9f4;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), #ff8f6b);
   color: #fff;
-  padding: 10px 20px;
+  font-size: 0.98rem;
+  font-weight: 800;
   cursor: pointer;
-  border-radius: 5px;
+  box-shadow: 0 18px 34px rgba(244, 110, 82, 0.25);
 }
 
 .signup {
-  color: #bbb;
-  font-size: 14px;
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.signup p {
+  margin: 0;
 }
 
 .signup a {
-  color: #4285f4;
+  color: var(--accent-deep);
   text-decoration: none;
+  font-weight: 700;
 }
 
-@media only screen and (max-width: 600px) {
+@media (max-width: 600px) {
+  .Login {
+    padding-top: 90px;
+  }
+
   .box {
-    width: 100%;
-    border-radius: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 28px 18px;
+    border-radius: 24px;
   }
 }

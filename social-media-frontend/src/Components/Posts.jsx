@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import Post from "./Post";
 import styles from "./Posts.module.css";
 import { backendUrl } from "../Utils/backendUrl";
-import Swal from "sweetalert2";
 
-export default function Posts() {
+export default function Posts({ user, isAuthenticated }) {
   const [posts, setPosts] = useState([]);
-  const [use, setUse] = useState({});
+  const [use, setUse] = useState(user || {});
   const [skip, setSkip] = useState(0);
   const [follow, setFollow] = useState("");
 
   useEffect(() => {
-    if (follow.length > 0 && use) {
+    setUse(user || {});
+  }, [user]);
+
+  useEffect(() => {
+    if (follow.length > 0 && use?.followings) {
       let userFollowings = [...use.followings];
       let check = use.followings.findIndex((following) => following === follow);
 
@@ -31,36 +34,6 @@ export default function Posts() {
       setFollow("");
     } // eslint-disable-next-line
   }, [follow]);
-
-  useEffect(() => {
-    Swal.fire({
-      width: "120",
-      allowEscapeKey: false,
-      allowOutsideClick: false,
-      timer: 2000,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-    fetch(`${backendUrl}/api/user/profile`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        Swal.close();
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log(data.user);
-          setUse(data.user);
-          console.log("Search Successful");
-        }
-      })
-      .catch((err) => console.log("Error during fetch: ", err));
-  }, []);
 
   useEffect(() => {
     fetch(`${backendUrl}/api/post`, {
@@ -117,7 +90,13 @@ export default function Posts() {
       <div className={styles.posts}>
         {posts &&
           posts.map((post) => (
-            <Post key={post._id} post={post} user={use} setFollow={setFollow} />
+            <Post
+              key={post._id}
+              post={post}
+              user={use}
+              setFollow={setFollow}
+              isAuthenticated={isAuthenticated}
+            />
           ))}
       </div>
     </div>

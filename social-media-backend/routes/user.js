@@ -19,9 +19,9 @@ router.post("/signup", signup);
 router.post("/editProfile", token_User_Verify, editProfile);
 router.post("/login", login);
 router.get("/logout", token_User_Verify, logout);
-router.post("/search", token_User_Verify, search);
+router.post("/search", search);
 router.get("/profile", token_User_Verify, profile);
-router.post("/user", token_User_Verify, use);
+router.post("/user", use);
 router.post("/follow", token_User_Verify, follow);
 
 module.exports = router;

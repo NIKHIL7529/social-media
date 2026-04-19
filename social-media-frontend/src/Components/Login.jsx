@@ -1,24 +1,19 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import styles from "./Login.module.css";
 import { useEffect, useState } from "react";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 
-const Login = ({ setUser }) => {
+const Login = ({ setUser, isAuthenticated, authChecked }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const redirectTo = location.state?.from || "/posts";
 
   useEffect(() => {
-    if (location.state !== "true") {
-      const cookies = document.cookie.split("=")[1];
-      console.log(cookies);
-      if (cookies) {
-        navigate("/posts");
-      }
-    } // eslint-disable-next-line
-  }, []);
+    if (authChecked && isAuthenticated) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [authChecked, isAuthenticated, navigate, redirectTo]);
 
   // const [submit, setSubmit] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,7 +58,7 @@ const Login = ({ setUser }) => {
           if (data.status === 200) {
             console.log("Login Successful");
             setUser(data.user);
-            navigate("/posts");
+            navigate(redirectTo, { replace: true });
           }
           if (data.status === 400) {
             console.log("incomplete");
@@ -113,7 +108,7 @@ const Login = ({ setUser }) => {
               onChange={handleInputChange}
               required
             />
-            <label>Username</label>
+            <label htmlFor="user-name">Username</label>
           </div>
           <div className={styles.inputBox}>
             <input
@@ -124,7 +119,7 @@ const Login = ({ setUser }) => {
               onChange={handleInputChange}
               required
             />
-            <label>Password</label>
+            <label htmlFor="user-pass">Password</label>
           </div>
           <input
             id="submit"
@@ -144,3 +139,4 @@ const Login = ({ setUser }) => {
 };
 
 export default Login;
+

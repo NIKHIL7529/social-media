@@ -1,51 +1,21 @@
 .Posts {
-  position: absolute;
-  left: 230px;
-  width: calc(100% - 500px);
-  height: calc(100% - 56px);
-  box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  width: 100%;
+  min-height: calc(100vh - var(--nav-height));
+  overflow-y: auto;
   scrollbar-width: none;
 }
 
-.postheader {
-  width: 100%;
-  padding: 15px;
-  background-color: #000;
-  color: white;
-  box-sizing: border-box;
-}
-
 .posts {
-  width: 60%;
-  height: 100%;
-  margin: auto;
-  padding-top: 10px;
+  width: min(100%, var(--feed-max-width));
+  margin: 0 auto;
+  padding: 8px 0 32px;
   box-sizing: border-box;
 }
 
-@media only screen and (max-width: 1200px) {
-  .posts {
-    width: 80%;
-  }
-}
-
-@media only screen and (max-width: 1024px) {
-  .Posts {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 106px);
-  }
-
-  .posts {
-    width: 60%;
-  }
-}
-
-@media only screen and (max-width: 600px) {
+@media (max-width: 768px) {
   .posts {
     width: 100%;
+    padding-top: 2px;
+    padding-bottom: 22px;
   }
 }

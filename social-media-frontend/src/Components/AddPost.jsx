@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import styles from "./AddPost.module.css";
 import { backendUrl } from "../Utils/backendUrl";
 import image from "../images/post.jpg";
 import Swal from "sweetalert2";
+import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 
 export default function AddPost({ onClose }) {
   const navigate = useNavigate();
@@ -146,7 +147,7 @@ export default function AddPost({ onClose }) {
             <img src={postData.photo ? postData.photo : image} alt="" />
             <div className={styles.imageOverlay}>
               <div>
-                <i className="fa fa-camera fa-2x"></i>
+                <CameraAltOutlinedIcon fontSize="large" />
               </div>
               <div>Select Photo from the device</div>
             </div>

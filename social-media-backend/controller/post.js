@@ -1,21 +1,17 @@
 const Post = require("../model/Post");
 const User = require("../model/User");
-const dotenv = require("dotenv");
+const cloudinary = require("../utils/cloudinary");
 
-dotenv.config({ path: "../config.env" });
-
-const cloudinary = require("cloudinary").v2;
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const userPopulate = {
+  path: "user",
+  select: "-password",
+};
 
 const all_posts = async (req, res, next) => {
   const { skip } = req.body;
   try {
     console.log("All Posts");
-    const post = await Post.find().limit(5).skip(skip).populate("user");
+    const post = await Post.find().limit(5).skip(skip).populate(userPopulate);
     if (!post) {
       return res.status(504).json({ status: 504, message: "No post uploaded" });
     }
@@ -69,7 +65,7 @@ const deletePost = async (req, res, next) => {
     );
     await user.save();
     console.log(user);
-    const post = await Post.findOneAndRemove({ user: req.user.id, _id: _id });
+    const post = await Post.findOneAndDelete({ user: req.user.id, _id: _id });
     console.log(post);
     return res.status(200).json({ status: 200, message: "Post Deleted" });
   } catch (error) {
@@ -83,7 +79,7 @@ const deletePost = async (req, res, next) => {
 const signedUserPosts = async (req, res, next) => {
   try {
     console.log("SignedUserPost");
-    const post = await Post.find({ user: req.user.id }).populate("user");
+    const post = await Post.find({ user: req.user.id }).populate(userPopulate);
     console.log(post);
     return res
       .status(200)
@@ -107,7 +103,7 @@ const savedPosts = async (req, res, next) => {
 
     const populatedSaved = await Promise.all(
       saved.map(async (post) => {
-        const pt = await Post.findById(post._id).populate("user");
+        const pt = await Post.findById(post._id).populate(userPopulate);
         return pt;
       })
     );
@@ -133,7 +129,7 @@ const userPosts = async (req, res, next) => {
     console.log("UserPosts");
     const { _id } = req.body;
     console.log(_id);
-    const post = await Post.find({ user: _id }).populate("user");
+    const post = await Post.find({ user: _id }).populate(userPopulate);
     console.log(post);
     return res.status(200).json({ status: 200, message: "User Posts", post });
   } catch (err) {

@@ -1,11 +1,15 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import styles from "./Settings.module.css";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
 
-export default function Settings({ setUser }) {
+export default function Settings({ setUser, isAuthenticated }) {
   const navigate = useNavigate();
   const handleLogout = () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
     Swal.fire({
       width: "120",
       allowEscapeKey: false,
@@ -30,22 +34,32 @@ export default function Settings({ setUser }) {
         if (data.status === 200 || data.status === 401) {
           console.log("Search Successful");
           setUser(null);
-          navigate("/login", { state: "true" });
+          navigate("/login", { replace: true });
         }
       });
   };
 
   const handleSwitchUser = () => {
-    navigate("/login", { state: "true" });
+    navigate("/login");
   };
 
   return (
     <div className={styles.Settings}>
       {/* <p>Manage Account</p> */}
       {/* <p>Theme</p> */}
-      <div onClick={() => navigate("/signup")}>Create New Account</div>
-      <div onClick={handleSwitchUser}>Switch Profile</div>
-      <div onClick={handleLogout}>Logout</div>
+      {!isAuthenticated ? (
+        <>
+          <div onClick={() => navigate("/signup")}>Create New Account</div>
+          <div onClick={() => navigate("/login")}>Login</div>
+        </>
+      ) : (
+        <>
+          <div onClick={() => navigate("/signup")}>Create New Account</div>
+          <div onClick={handleSwitchUser}>Switch Profile</div>
+          <div onClick={handleLogout}>Logout</div>
+        </>
+      )}
     </div>
   );
 }
+

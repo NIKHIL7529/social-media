@@ -1,195 +1,201 @@
 .Login {
-  width: 100vw;
-  height: 100vh;
-  transition: 0.4s linear;
-  text-align: center;
+  min-height: 100vh;
+  padding: 110px 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, rgba(244, 110, 82, 0.2), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(17, 24, 39, 0.1), transparent 38%);
+  box-sizing: border-box;
 }
 
 .box {
-  width: 420px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
-  padding: 30px 50px;
+  width: min(100%, 520px);
+  padding: 30px 28px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(214, 219, 229, 0.95);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
   box-sizing: border-box;
-  box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.5);
-  border-radius: 10px;
 }
 
 .box h2 {
-  margin: 0 0 30px;
-  padding: 0;
-  color: #fff;
+  margin: 0 0 22px;
+  color: var(--text-primary);
   text-align: center;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.05em;
 }
 
-.box p {
-  margin-bottom: 0;
-}
-
-.box p:nth-child(even) {
-  margin-top: 0;
-}
-
-.box .inputGrp1 {
-  margin-bottom: 30px;
-}
-
-.box .inputGrp {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-}
-
-.box .inputBox {
-  position: relative;
-}
-
-.box .inputGrp1 .inputBox {
-  width: 47%;
-  display: flex;
-  align-items: center;
-  position: relative;
-  justify-content: space-between;
-}
-
-.box .inputBox:has(input[type="file"]) label {
-  height: 120px;
-  width: 120px;
-  border-radius: 50%;
-  margin: 0 auto;
-  margin-bottom: 30px;
-  display: flex;
-  position: relative;
-  align-items: center;
-  justify-content: center;
-}
-
-.box .inputBox:has(input[type="file"]) img {
-  height: 100%;
-  width: 100%;
-  border-radius: 50%;
-}
-
-.box .inputBox:has(input[type="file"]) label img {
-  filter: blur(1.5px);
-}
-
-.box .inputBox:has(input[type="file"]) label .imageOverlay {
-  height: 90%;
-  width: 90%;
-  border-radius: 50%;
-  position: absolute;
-  /* background: #000; */
-  color: #fff;
-  z-index: 1000;
+.box form {
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
-  align-content: center;
 }
 
-.box .inputBox:has(input[type="file"]:valid) label img {
-  filter: blur(0);
+.inputBox {
+  position: relative;
 }
 
-.box .inputBox:has(input[type="file"]:valid) label .imageOverlay {
-  display: none;
+.inputGrp {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.box .inputBox input {
+.inputGrp1 {
+  align-items: end;
+}
+
+.inputBox input,
+.inputBox select {
   width: 100%;
-  padding: 10px 0;
-  font-size: 14px;
-  margin-bottom: 30px;
-  color: #fff;
-  border: none;
-  border-bottom-style: solid;
+  min-height: 54px;
+  margin-bottom: 16px;
+  padding: 18px 16px 10px;
+  border: 1px solid rgba(214, 219, 229, 0.95);
+  border-radius: 18px;
   outline: none;
-  letter-spacing: 1px;
-  background: transparent;
+  background: rgba(250, 251, 253, 0.98);
+  color: var(--text-primary);
+  font-size: 0.94rem;
+  box-sizing: border-box;
 }
 
-.box .inputGrp1 .inputBox input[type="date"] {
-  letter-spacing: normal;
-  width: 71%;
-  font-size: 14px;
-  margin-bottom: 0;
+.inputBox input:focus,
+.inputBox select:focus {
+  border-color: rgba(244, 110, 82, 0.42);
+  box-shadow: 0 0 0 4px rgba(244, 110, 82, 0.1);
 }
 
-.box .inputGrp .inputBox {
-  width: 47%;
-}
-
-.box .inputGrp1 .inputBox select {
-  width: 55%;
-}
-
-.box .inputBox input:-webkit-autofill,
-.box .inputBox input:-webkit-autofill:hover,
-.box .inputBox input:-webkit-autofill:focus,
-.box .inputBox input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: #ffffff;
-  border-bottom: 3px solid #fff;
-  caret-color: #fff;
-}
-
-.box .inputBox input + label {
+.inputBox input + label {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 16px;
+  left: 16px;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
   pointer-events: none;
-  color: #fff;
-  font-size: 14px;
-  padding: 10px 0;
-  transition: 0.5s;
+  transition: 0.2s ease;
 }
 
-.box .inputGrp1 .inputBox label {
-  color: #fff;
+.inputBox input:focus ~ label,
+.inputBox input:valid ~ label {
+  top: 8px;
+  left: 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-deep);
 }
 
-.box .inputBox input:focus:not([type="date"]) ~ label,
-.box .inputBox input:valid:not([type="date"]) ~ label {
-  top: -18px;
-  left: 0;
-  color: #03a9f4;
-  font-size: 12px;
+.inputGrp1 .inputBox label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.inputGrp1 .inputBox input,
+.inputGrp1 .inputBox select {
+  padding-top: 14px;
+}
+
+.inputBox:has(input[type="file"]) {
+  margin-bottom: 16px;
+}
+
+.inputBox:has(input[type="file"]) label {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.inputBox:has(input[type="file"]) img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.inputBox:has(input[type="file"]) label img {
+  filter: brightness(0.82);
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  padding: 16px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(17, 24, 39, 0.42);
+  color: #fff;
+  text-align: center;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.inputBox:has(input[type="file"]:valid) label img {
+  filter: none;
+}
+
+.inputBox:has(input[type="file"]:valid) .imageOverlay {
+  display: none;
 }
 
 .box input[type="submit"] {
   width: 100%;
-  background: transparent;
+  min-height: 52px;
+  margin-top: 4px;
   border: none;
-  outline: none;
-  background: #03a9f4;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--accent), #ff8f6b);
   color: #fff;
-  padding: 10px 20px;
+  font-size: 0.98rem;
+  font-weight: 800;
   cursor: pointer;
-  border-radius: 5px;
+  box-shadow: 0 18px 34px rgba(244, 110, 82, 0.25);
 }
 
 .signup {
-  color: #bbb;
-  font-size: 12px;
+  margin-top: 18px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.signup p {
+  margin: 0;
 }
 
 .signup a {
-  color: #4285f4;
+  color: var(--accent-deep);
   text-decoration: none;
+  font-weight: 700;
 }
 
-@media only screen and (max-width: 600px) {
+@media (max-width: 600px) {
+  .Login {
+    padding-top: 90px;
+  }
+
   .box {
-    width: 100%;
-    border-radius: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    padding: 24px 16px;
+    border-radius: 24px;
+  }
+
+  .inputGrp {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }

@@ -1,2 +1,5 @@
-export const backendUrl = "https://social-media-backend-d246.onrender.com";
-// export const backendUrl = "http://localhost:8000";
+const configuredBackendUrl = import.meta.env.VITE_BACKEND_URL?.trim();
+
+export const backendUrl = (
+  configuredBackendUrl || "https://social-media-backend-d246.onrender.com"
+).replace(/\/$/, "");

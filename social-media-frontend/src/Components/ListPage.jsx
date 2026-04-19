@@ -1,7 +1,7 @@
-// import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router";
 import { useEffect } from "react";
 import styles from "./ListPage.module.css";
-// import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
+// import { useLocation } from "react-router/cjs/react-router.min";
 
 export default function ListPage({ list, clicked, setClicked }) {
   //   const navigate = useNavigate();
@@ -30,3 +30,4 @@ export default function ListPage({ list, clicked, setClicked }) {
     </div>
   );
 }
+

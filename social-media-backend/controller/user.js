@@ -1,20 +1,21 @@
 const jwt = require("jsonwebtoken");
 const User = require("../model/User");
-const bcrypt = require("bcryptjs");
-const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
+const cloudinary = require("../utils/cloudinary");
 
-dotenv.config({ path: "../config.env" });
+const sanitizeUser = (user) => {
+  if (!user) {
+    return user;
+  }
 
-const cloudinary = require("cloudinary").v2;
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+  const sanitizedUser = user.toObject ? user.toObject() : { ...user };
+  delete sanitizedUser.password;
+  return sanitizedUser;
+};
 
 const all_users = async (req, res, next) => {
   try {
-    const user = await User.find();
+    const user = await User.find().select("-password");
     if (!user) {
       return res.status(404).json({ message: "User Not Found" });
     }
@@ -38,7 +39,7 @@ const signup = async (req, res, next) => {
         .json({ status: 400, message: "User Already Exist!! Login Instead" });
     }
 
-    const hashedPassword = bcrypt.hashSync(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
     let image = "";
     if (photo.length !== 0) {
       const result = await cloudinary.uploader.upload(photo, {
@@ -58,7 +59,7 @@ const signup = async (req, res, next) => {
       // photo,
     });
     await user.save();
-    return res.status(200).json({ status: 200, user });
+    return res.status(200).json({ status: 200, user: sanitizeUser(user) });
   } catch (err) {
     console.log(err);
     return res
@@ -75,7 +76,7 @@ const editProfile = async (req, res, next) => {
     console.log(req.user);
     const { name, dob, gender, password, city, country, description, photo } =
       req.body;
-    const existing_username = await User.find({ name }).select("_id");
+    const existing_username = await User.findOne({ name }).select("_id");
 
     if (existing_username && name !== req.user.name) {
       return res.status(400).json({
@@ -84,7 +85,7 @@ const editProfile = async (req, res, next) => {
       });
     }
 
-    const hashedPassword = bcrypt.hashSync(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
     let image = "";
     if (photo.length !== 0) {
       const result = await cloudinary.uploader.upload(photo, {
@@ -111,7 +112,11 @@ const editProfile = async (req, res, next) => {
 
     return res
       .status(200)
-      .json({ status: 200, message: "User info changed", user });
+      .json({
+        status: 200,
+        message: "User info changed",
+        user: sanitizeUser(user),
+      });
   } catch (err) {
     return res
       .status(500)
@@ -137,7 +142,7 @@ const login = async (req, res, next) => {
         .json({ status: 400, message: "Incorrect Credentials" });
     }
 
-    const isPasswordCorrect = await bcrypt.compareSync(
+    const isPasswordCorrect = await bcrypt.compare(
       password,
       existingUser.password
     );
@@ -161,7 +166,11 @@ const login = async (req, res, next) => {
         sameSite: "none",
       })
       .status(200)
-      .json({ status: 200, message: "Login successful", user: existingUser });
+      .json({
+        status: 200,
+        message: "Login successful",
+        user: sanitizeUser(existingUser),
+      });
   } catch (err) {
     console.error("Login error:", err);
     return res
@@ -175,7 +184,7 @@ const logout = async (req, res, next) => {
   console.log(req.cookies.token);
   try {
     const cookie = req.cookies.token;
-    if (cookie !== null) {
+    if (cookie) {
       res.clearCookie("token");
       res.json({ status: 200 });
     } else {
@@ -191,12 +200,20 @@ const logout = async (req, res, next) => {
 
 const search = async (req, res, next) => {
   console.log("start");
-  console.log(req.user);
   const { name } = req.body;
   let search_users;
   try {
+    const authName = req.user?.name;
+    const query = {
+      name: { $regex: new RegExp(name, "i") },
+    };
+
+    if (authName) {
+      query.name.$ne = authName;
+    }
+
     search_users = await User.find(
-      { name: { $regex: new RegExp(name, "i"), $ne: req.user.name } },
+      query,
       "name photo"
     );
     if (!search_users) {
@@ -218,7 +235,7 @@ const search = async (req, res, next) => {
 const profile = async (req, res, next) => {
   console.log(req.user);
   try {
-    const user = await User.findOne({ _id: req.user.id });
+    const user = await User.findOne({ _id: req.user.id }).select("-password");
     console.log(user);
     return res.status(200).json({ status: 200, message: "Profile data", user });
   } catch (err) {
@@ -233,7 +250,7 @@ const use = async (req, res, next) => {
   const { _id } = req.body;
   console.log("user");
   try {
-    const user = await User.findOne({ _id });
+    const user = await User.findOne({ _id }).select("-password");
     console.log(user);
     return res.status(200).json({ status: 200, message: "User data", user });
   } catch (err) {
@@ -280,7 +297,11 @@ const follow = async (req, res, next) => {
       await user1.save();
       return res
         .status(200)
-        .json({ status: 200, message: "User unfollowed", user });
+        .json({
+          status: 200,
+          message: "User unfollowed",
+          user: sanitizeUser(user),
+        });
     } else {
       const user = await User.findOneAndUpdate(
         { name: userName },
@@ -300,7 +321,11 @@ const follow = async (req, res, next) => {
       await user1.save();
       return res
         .status(200)
-        .json({ status: 200, message: "User followed", user });
+        .json({
+          status: 200,
+          message: "User followed",
+          user: sanitizeUser(user),
+        });
     }
   } catch (err) {
     console.log("Error: ", err);

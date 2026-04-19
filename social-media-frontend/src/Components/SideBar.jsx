@@ -1,12 +1,11 @@
 import styles from "./SideBar.module.css";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import Home from "@mui/icons-material/Home";
 import Search from "@mui/icons-material/Search";
 import Chat from "@mui/icons-material/Message";
 import Person from "@mui/icons-material/AccountCircle";
 import Settings from "@mui/icons-material/Settings";
 // import FeedIcon from "@mui/icons-material/Feed";
-import { AddCircleOutline } from "@mui/icons-material";
 
 export default function SideBar() {
   return (
@@ -58,3 +57,4 @@ export default function SideBar() {
     </div>
   );
 }
+

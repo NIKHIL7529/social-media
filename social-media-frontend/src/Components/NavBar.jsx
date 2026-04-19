@@ -3,11 +3,11 @@ import Notifications from "@mui/icons-material/Notifications";
 import BookmarkBorder from "@mui/icons-material/Bookmark";
 import CloseIcon from "@mui/icons-material/Close";
 import Logout from "@mui/icons-material/Logout";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
 
-export default function NavBar({ setUser }) {
+export default function NavBar({ setUser, isAuthenticated }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -35,7 +35,7 @@ export default function NavBar({ setUser }) {
         if (data.status === 200 || data.status === 401) {
           console.log("Search Successful");
           setUser(null);
-          navigate("/login", { state: "true" });
+          navigate("/login", { replace: true });
         }
       });
   };
@@ -48,28 +48,43 @@ export default function NavBar({ setUser }) {
         </Link>
       </div>
       <div className={styles.endNav}>
-        <div className={styles.svgNav}>
-          <div className={styles.svgNavIcon}>
-            <Link className={styles.link} to="/posts">
-              <Notifications />
-            </Link>
+        {isAuthenticated ? (
+          <>
+            <div className={styles.svgNav}>
+              <div className={styles.svgNavIcon}>
+                <Link className={styles.link} to="/posts">
+                  <Notifications />
+                </Link>
+              </div>
+              <div
+                className={styles.svgNavIcon}
+                onClick={() => navigate("/savedPosts")}
+              >
+                <BookmarkBorder />
+              </div>
+            </div>
+            <div className={styles.logout} onClick={handleLogout}>
+              <div className={styles.logoutP}>
+                Logout
+                <Logout className={styles.logoutsvg} />
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className={styles.logout}>
+            <div className={styles.logoutP} onClick={() => navigate("/login")}>
+              Login
+            </div>
+            <div
+              className={styles.logoutP}
+              onClick={() => navigate("/signup")}
+            >
+              Signup
+            </div>
           </div>
-          <div
-            className={styles.svgNavIcon}
-            onClick={() => navigate("/savedPosts")}
-          >
-            {/* <Link className={styles.link} to="/posts"> */}
-            <BookmarkBorder />
-            {/* </Link> */}
-          </div>
-        </div>
-        <div className={styles.logout} onClick={handleLogout}>
-          <div className={styles.logoutP}>
-            Logout
-            <Logout className={styles.logoutsvg} />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
+

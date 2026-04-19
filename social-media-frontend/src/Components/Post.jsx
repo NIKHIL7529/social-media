@@ -14,6 +14,7 @@ import { backendUrl } from "../Utils/backendUrl";
 import SendIcon from "@mui/icons-material/Send";
 import Swal from "sweetalert2";
 import EmojiPicker from "emoji-picker-react";
+import { useLocation, useNavigate } from "react-router";
 
 export default function Post(props) {
   const [likes, setLikes] = useState(null);
@@ -32,7 +33,29 @@ export default function Post(props) {
   const textRef = useRef("");
   const post = props.post;
   const user = props.user;
+  const isAuthenticated = props.isAuthenticated;
+  const navigate = useNavigate();
+  const location = useLocation();
   console.log("initial data is ", post, user);
+
+  useEffect(() => {
+    auth_user.current = user?.name || "";
+  }, [user]);
+
+  const requireAuth = () => {
+    Swal.fire({
+      icon: "info",
+      title: "Please sign in to continue",
+      text: "You need an account to interact with posts.",
+      showConfirmButton: true,
+    }).then(() => {
+      navigate("/login", {
+        state: {
+          from: `${location.pathname}${location.search}${location.hash}`,
+        },
+      });
+    });
+  };
 
   useEffect(() => {
     console.log(user.name, post.user.name);
@@ -105,6 +128,10 @@ export default function Post(props) {
   };
 
   const handleFollow = () => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     fetch(`${backendUrl}/api/user/follow`, {
       method: "POST",
       body: JSON.stringify({ userName: post.user.name }),
@@ -132,6 +159,10 @@ export default function Post(props) {
   };
 
   const handleSaved = () => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     fetch(`${backendUrl}/api/post/saved`, {
       method: "POST",
       body: JSON.stringify({ _id: post._id }),
@@ -156,6 +187,10 @@ export default function Post(props) {
   };
 
   const handleLiked = async () => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     await fetch(`${backendUrl}/api/post/liked`, {
       method: "POST",
       body: JSON.stringify({ _id: post._id }),
@@ -181,6 +216,10 @@ export default function Post(props) {
   };
 
   const handleComment = () => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     if (!post.commentable) {
       console.log("Comments are restricted");
       Swal.fire({
@@ -366,8 +405,11 @@ export default function Post(props) {
           </div>
           {comments.length !== 0 ? (
             comments.map((comment) => (
-              <div className={styles.comment} key={comment._id}>
-                <img src={user.photo} alt="" />
+              <div
+                className={styles.comment}
+                key={comment._id || `${comment.sender}-${comment.comment}`}
+              >
+                {user.photo ? <img src={user.photo} alt="" /> : <AccountCircle />}
                 <p>
                   {comment.sender === auth_user.current
                     ? auth_user.current

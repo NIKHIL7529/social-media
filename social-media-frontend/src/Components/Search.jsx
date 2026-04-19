@@ -1,6 +1,6 @@
 import { useState } from "react";
 import styles from "./Search.module.css";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import { backendUrl } from "../Utils/backendUrl";
 import SearchIcon from "@mui/icons-material/Search";
 import Swal from "sweetalert2";
@@ -47,10 +47,10 @@ export default function Search() {
           setUsers(data.search_users);
           if (data.search_users.length === 0) {
             setFound(false);
+          } else {
+            setFound(true);
           }
           console.log("Search Successful");
-        } else if (!data.login) {
-          navigate("/login");
         }
       })
       .catch((err) => console.log("Error during fetch: ", err));
@@ -108,3 +108,4 @@ export default function Search() {
     </div>
   );
 }
+

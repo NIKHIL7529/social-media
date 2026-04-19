@@ -1,24 +1,71 @@
-@import url("https://fonts.googleapis.com/css?family=Open+Sans");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --nav-height: 74px;
+  --sidebar-width: 250px;
+  --bottom-nav-height: 74px;
+  --page-max-width: 1180px;
+  --feed-max-width: 720px;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-strong: #ffffff;
+  --surface-muted: #f5efe7;
+  --border-color: rgba(91, 60, 43, 0.14);
+  --text-primary: #231815;
+  --text-secondary: #6b5d57;
+  --accent: #ff6b4a;
+  --accent-deep: #f04a2a;
+  --accent-soft: rgba(255, 107, 74, 0.12);
+  --shadow-soft: 0 22px 44px rgba(42, 25, 12, 0.08);
+  --shadow-card: 0 18px 36px rgba(42, 25, 12, 0.1);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+}
 
 body {
   margin: 0;
   padding: 0;
-  font-family: "Open Sans", sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at top left, rgba(255, 183, 77, 0.3), transparent 28%),
+    radial-gradient(circle at top right, rgba(255, 107, 74, 0.14), transparent 22%),
+    linear-gradient(180deg, #fffaf5 0%, #f8f2ec 100%);
 }
 
-/* 
+#root {
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
 button {
-  padding: 4px 10px;
-  border: 2px solid black;
-  border-radius: 10px;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 button:hover {
-  border-radius: 12px;
-  cursor: pointer;
-  background-color: cornflowerblue;
+  transform: translateY(-1px);
 }
 
 button:active {
-  background-color: cadetblue;
-} */
+  transform: translateY(0);
+}

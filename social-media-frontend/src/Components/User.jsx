@@ -1,6 +1,5 @@
 import styles from "./User.module.css";
-import pic from "../images/user.jpg";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import Post from "./Post";
 import ListPage from "./ListPage";
@@ -8,16 +7,31 @@ import { backendUrl } from "../Utils/backendUrl";
 import Swal from "sweetalert2";
 import { AccountCircle } from "@mui/icons-material";
 
-export default function User() {
+export default function User({ user: currentUser, isAuthenticated }) {
   const [use, setUse] = useState({});
-  const [user, setUser] = useState({});
   const [posts, setPosts] = useState([]);
   const [followflag, setFollowFlag] = useState(false);
   const [clicked, setClicked] = useState(false);
   const [clickedtype, setClickeddType] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const postsRef = useRef(null);
+
+  const requireAuth = () => {
+    Swal.fire({
+      icon: "info",
+      title: "Please sign in to continue",
+      text: "You need an account to follow or message users.",
+      showConfirmButton: true,
+    }).then(() => {
+      navigate("/login", {
+        state: {
+          from: `${location.pathname}${location.search}${location.hash}`,
+        },
+      });
+    });
+  };
 
   const handleClick = (type) => {
     console.log(type);
@@ -46,24 +60,6 @@ export default function User() {
         Swal.showLoading();
       },
     });
-
-    fetch(`${backendUrl}/api/user/profile`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log(data.user);
-          setUser(data.user);
-          console.log("Search Successful");
-        }
-      })
-      .catch((err) => console.log("Error during fetch: ", err));
 
     fetch(`${backendUrl}/api/user/user`, {
       method: "POST",
@@ -108,17 +104,23 @@ export default function User() {
   }, [id]);
 
   useEffect(() => {
-    if (user && use.followers && use) {
-      const isFollowed = use.followers.includes(user.name);
-      console.log("User ", user.name);
+    if (currentUser && use.followers && use) {
+      const isFollowed = use.followers.includes(currentUser.name);
+      console.log("User ", currentUser.name);
       console.log("is followed -----------------------------", isFollowed);
       console.log("user followers", use.followers);
       setFollowFlag(isFollowed);
       // setFollow(use.name);
+    } else {
+      setFollowFlag(false);
     } // eslint-disable-next-line
-  }, [use.followers]);
+  }, [currentUser, use.followers]);
 
   const handleFollow = () => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
     Swal.fire({
       width: "120",
       allowEscapeKey: false,
@@ -193,7 +195,15 @@ export default function User() {
           <button onClick={handleFollow}>
             {followflag ? "Following" : "Follow"}
           </button>
-          <button onClick={() => navigate("/chat", { state: use.name })}>
+          <button
+            onClick={() => {
+              if (!isAuthenticated) {
+                requireAuth();
+                return;
+              }
+              navigate("/chat", { state: use.name });
+            }}
+          >
             Message
           </button>
         </div>
@@ -205,7 +215,13 @@ export default function User() {
             <div className={styles.posts}>
               {posts &&
                 posts.map((post) => (
-                  <Post key={post._id} post={post} user={user} admin="false" />
+                  <Post
+                    key={post._id}
+                    post={post}
+                    user={currentUser || {}}
+                    admin="false"
+                    isAuthenticated={isAuthenticated}
+                  />
                 ))}
             </div>
           </>
@@ -214,3 +230,4 @@ export default function User() {
     </>
   );
 }
+

@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import styles from "./Signup.module.css";
 import { backendUrl } from "../Utils/backendUrl";
-import styles from "./EditProfile.module.css";
-import { useNavigate } from "react-router-dom";
 import image from "../images/user.jpg";
 import Swal from "sweetalert2";
+import CameraAltOutlinedIcon from "@mui/icons-material/CameraAltOutlined";
 
-export default function EditProfile() {
+export default function Signup() {
   const navigate = useNavigate();
 
   // const [submit, setSubmit] = useState("");
@@ -45,7 +46,6 @@ export default function EditProfile() {
 
   const handleSignup = (e) => {
     e.preventDefault();
-    console.log(formData);
     if (
       formData.dob !== "" &&
       formData.gender !== "" &&
@@ -56,7 +56,7 @@ export default function EditProfile() {
     ) {
       console.log(formData);
       console.log("hi");
-      console.log("Handling Edit Profile...");
+      console.log("Handling Signup...");
       Swal.fire({
         width: "120",
         allowEscapeKey: false,
@@ -66,7 +66,7 @@ export default function EditProfile() {
           Swal.showLoading();
         },
       });
-      fetch(`${backendUrl}/api/user/editProfile`, {
+      fetch(`${backendUrl}/api/user/signup`, {
         method: "POST",
         body: JSON.stringify(formData),
         headers: {
@@ -81,7 +81,7 @@ export default function EditProfile() {
           console.log("Fetch response received: ", data);
           if (data.status === 200) {
             console.log("Registered Successfully");
-            navigate("/profile");
+            navigate("/login");
           }
           if (data.status === 400) {
             // setSubmit("exists");
@@ -112,16 +112,16 @@ export default function EditProfile() {
   };
 
   return (
-    <div className={styles.EditProfile}>
+    <div className={styles.Login}>
       <div className={styles.box}>
-        <h2>Edit Profile</h2>
+        <h2>Signup</h2>
         <form>
           <div className={styles.inputBox}>
             <label htmlFor="image">
               <img src={formData.photo ? formData.photo : image} alt="" />
               <div className={styles.imageOverlay}>
                 <div>
-                  <i className="fa fa-camera fa-2x"></i>
+                  <CameraAltOutlinedIcon fontSize="large" />
                 </div>
                 <div>
                   Add <br /> Profile Photo
@@ -156,7 +156,7 @@ export default function EditProfile() {
               <select id="gender" name="gender" onChange={handleInputChange}>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
-                <option value="others">Others</option>
+                <option value="others">Prefer not to say</option>
               </select>
             </div>
             <div className={styles.inputBox}>
@@ -179,9 +179,9 @@ export default function EditProfile() {
                 name="city"
                 // placeholder="City"
                 value={formData.city}
-                onChange={handleInputChange}
-                required
-              />
+              onChange={handleInputChange}
+              required
+            />
               <label htmlFor="city">City</label>
             </div>
             <div className={styles.inputBox}>
@@ -191,9 +191,9 @@ export default function EditProfile() {
                 name="country"
                 // placeholder="Country"
                 value={formData.country}
-                onChange={handleInputChange}
-                required
-              />
+              onChange={handleInputChange}
+              required
+            />
               <label htmlFor="country">Country</label>
             </div>
           </div>
@@ -223,11 +223,16 @@ export default function EditProfile() {
           </div>
           <input
             type="submit"
-            value="Submit"
+            value="Register Now"
             className={styles.submit_btn}
             onClick={handleSignup}
           />
         </form>
+        <div className={styles.signup}>
+          <p>
+            Already a user? <Link to="/login">Click here to Login</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

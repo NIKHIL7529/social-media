@@ -1,87 +1,115 @@
 .SideBar {
-  width: 230px;
-  height: calc(100% - 56px);
   position: fixed;
-  top: 56px;
+  top: var(--nav-height);
   left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  padding: 24px 16px 24px 20px;
   box-sizing: border-box;
-  /* border-right: 1px solid black; */
-  z-index: -1;
-  background-color: #fff;
+  z-index: 15;
 }
 
 .links {
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-a {
-  text-decoration: none;
+.links a {
   color: inherit;
+  text-decoration: none;
 }
 
 .sidelink {
-  cursor: pointer;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
-  padding: 5px 12px;
-  border-radius: 10px;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(210, 214, 224, 0.88);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+  color: var(--text-secondary);
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+  box-sizing: border-box;
+}
 
-  svg {
-    margin-right: 24px;
-  }
+.sidelink svg {
+  font-size: 1.35rem;
+}
 
-  p {
-    font-size: 1em;
-    line-height: 0.5rem;
-    font-weight: 500;
-  }
+.sidelink p {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .sidelink:hover {
-  background: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border: none;
-
-  svg {
-    fill: #fff;
-    /* stroke: rgba(0, 0, 0, 0.8); */
-  }
+  transform: translateX(2px);
+  background: linear-gradient(135deg, rgba(244, 110, 82, 0.12), rgba(255, 255, 255, 0.88));
+  border-color: rgba(244, 110, 82, 0.24);
+  color: var(--text-primary);
+  box-shadow: 0 14px 28px rgba(244, 110, 82, 0.09);
 }
 
-@media only screen and (max-width: 1024px) {
+@media (max-width: 1024px) {
   .SideBar {
-    width: 100vw;
-    height: 50px;
     top: auto;
+    left: 0;
+    right: 0;
     bottom: 0;
-    border: none;
-    border-top: 1px solid black;
+    width: 100%;
+    height: var(--bottom-nav-height);
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom));
+    background: rgba(255, 252, 247, 0.92);
+    backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(210, 214, 224, 0.92);
+    box-shadow: 0 -18px 40px rgba(15, 23, 42, 0.08);
   }
 
   .links {
     height: 100%;
-    padding: 0;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    align-items: center;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  a {
-    height: 100%;
+  .links a {
+    min-width: 0;
   }
 
   .sidelink {
     height: 100%;
+    min-height: 0;
+    padding: 6px 8px;
+    border-radius: 18px;
+    flex-direction: column;
     justify-content: center;
-    padding: 0;
-    border-radius: 0;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
 
-    svg {
-      margin: 0;
-    }
+  .sidelink:hover {
+    transform: none;
+    background: rgba(244, 110, 82, 0.12);
+    border-color: transparent;
+    box-shadow: none;
+  }
 
-    p {
-      display: none;
-    }
+  .sidelink svg {
+    font-size: 1.4rem;
+  }
+
+  .sidelink p {
+    font-size: 0.68rem;
   }
 }

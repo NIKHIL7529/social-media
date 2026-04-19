@@ -1,6 +1,6 @@
 import styles from "./Profile.module.css";
 import user from "../images/user.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useEffect, useRef, useState } from "react";
 import Post from "./Post";
 import ListPage from "./ListPage";
@@ -149,3 +149,4 @@ export default function Profile() {
     </>
   );
 }
+

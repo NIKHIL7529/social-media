@@ -2,38 +2,34 @@
   "name": "social-media-frontend",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://social-media-backend-d246.onrender.com",
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.2",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "emoji-picker-react": "^4.7.17",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.1",
-    "react-scripts": "5.0.1",
-    "socket.io-client": "^4.7.2",
-    "sweetalert2": "^11.10.5",
-    "timeago-react": "^3.0.6",
-    "web-vitals": "^2.1.4"
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.1",
+    "@mui/icons-material": "9.0.0",
+    "@mui/material": "9.0.0",
+    "date-fns": "4.1.0",
+    "emoji-picker-react": "4.18.0",
+    "react": "19.2.5",
+    "react-dom": "19.2.5",
+    "react-router": "7.14.1",
+    "socket.io-client": "4.8.3",
+    "sweetalert2": "11.26.24"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.0"
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.1",
+    "@vitejs/plugin-react": "6.0.1",
+    "jsdom": "29.0.2",
+    "vite": "8.0.8",
+    "vitest": "4.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run --passWithNoTests"
   },
   "browserslist": {
     "production": [

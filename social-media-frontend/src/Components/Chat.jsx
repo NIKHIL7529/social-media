@@ -1,14 +1,13 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import styles from "./Chat.module.css";
 import io from "socket.io-client";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { backendUrl } from "../Utils/backendUrl";
-import image from "../images/user.jpg";
-import EmojiPicker from "emoji-picker-react/dist";
+import EmojiPicker from "emoji-picker-react";
 import SendIcon from "@mui/icons-material/Send";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import UserContext from "../UserContext";
-import { format } from "timeago.js";
+import { formatDistanceToNow } from "date-fns";
 import Swal from "sweetalert2";
 import { AccountCircle, Groups } from "@mui/icons-material";
 
@@ -553,7 +552,7 @@ export default function Chat() {
                     {receiver.length > 1 && <span>{message.sender}</span>}
                     <p>
                       {message.message}
-                      <sub>{format(message.updatedAt)}</sub>
+                      <sub>{formatMessageTime(message.updatedAt)}</sub>
                     </p>
                   </div>
                   {picker && (
@@ -599,3 +598,6 @@ export default function Chat() {
     </div>
   );
 }
+
+  const formatMessageTime = (value) =>
+    formatDistanceToNow(new Date(value), { addSuffix: true });
