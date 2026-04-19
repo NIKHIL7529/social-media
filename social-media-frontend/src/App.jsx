@@ -19,7 +19,8 @@ import Signup from "./Components/Signup";
 import Login from "./Components/Login";
 import AddPost from "./Components/AddPost";
 import User from "./Components/User";
-import Chat from "./Components/Chat";
+import ChatLayout from "./features/chat/components/ChatLayout";
+import { ChatProvider } from "./features/chat/context/ChatContext";
 import EditProfile from "./Components/EditProfile";
 import UserContext from "./UserContext";
 import SavedPosts from "./Components/SavedPosts";
@@ -50,13 +51,15 @@ function RequireAuth({ authChecked, isAuthenticated, children }) {
 function AppLayout({ user, setUser, isAuthenticated }) {
   return (
     <UserContext.Provider value={user || {}}>
-      <NavBar setUser={setUser} isAuthenticated={isAuthenticated} />
-      <div className="appShell">
-        <SideBar />
-        <main className="appMain">
-          <Outlet />
-        </main>
-      </div>
+      <ChatProvider>
+        <NavBar setUser={setUser} isAuthenticated={isAuthenticated} />
+        <div className="appShell">
+          <SideBar />
+          <main className="appMain">
+            <Outlet />
+          </main>
+        </div>
+      </ChatProvider>
     </UserContext.Provider>
   );
 }
@@ -154,7 +157,7 @@ function App() {
                 authChecked={authChecked}
                 isAuthenticated={Boolean(user)}
               >
-                <Chat />
+                <ChatLayout />
               </RequireAuth>
             }
           />
@@ -165,7 +168,7 @@ function App() {
                 authChecked={authChecked}
                 isAuthenticated={Boolean(user)}
               >
-                <Chat />
+                <ChatLayout />
               </RequireAuth>
             }
           />

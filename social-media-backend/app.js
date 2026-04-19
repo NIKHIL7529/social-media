@@ -8,6 +8,7 @@ const { token_User_Verify } = require("./utils/tokenVerification.js");
 const Message = require("./model/Message.js");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
+const { socketManager } = require("./sockets/socketManager");
 
 const app = express();
 const httpServer = createServer(app);
@@ -76,102 +77,5 @@ mongoose
     }
   });
 
-const onlineUsers = [];
-
-io.on("connection", (socket) => {
-  console.log(
-    "Socket Id:---------------------------------------------------------------------------------------------------------------------- ",
-    socket.id
-  );
-  const cookies = socket.request.headers.cookie;
-  let token = "";
-  if (cookies) {
-    token = cookies.split("=")[1];
-  }
-  const socketId = socket.id;
-
-  try {
-    const user = jwt.verify(token, process.env.SECRET_KEY);
-    
-    let result = -1;
-
-    onlineUsers.map((o_user, index) => {
-      console.log("o user ", o_user.user.name, "Main user", user.name);
-      if (o_user.user.name === user.name) {
-        result = index;
-      }
-    });
-
-    console.log("Result is ********************", result);
-
-    if (result !== -1) {
-      onlineUsers[result].socketId = socketId;
-    } else {
-      onlineUsers.push({ user, socketId });
-      onlineUsers.map((o_user, index) =>
-        io.to(o_user.socketId).emit("chat", onlineUsers)
-      );
-    }
-
-    console.log(onlineUsers);
-
-    socket.on("chat", () => {
-      console.log(
-        "Chat-----------------------------------------////////////////////"
-      );
-      onlineUsers.map((onlineUser) =>
-        io.to(onlineUser.socketId).emit("chat", onlineUsers)
-      );
-    });
-
-    socket.on("message", (message) => {
-      console.log("Message from Client: ", message);
-      if (message.receiver.length === 1) {
-        message.receiver = [message.sender, ...message.receiver];
-      }
-
-      message.receiver.map((receiver) => {
-        let socketId = null;
-        onlineUsers.map((o_user, index) => {
-          console.log("online users", o_user.user.name, "Main user", receiver);
-          if (o_user.user.name === receiver) {
-            socketId = o_user.socketId;
-            io.to(socketId).emit("message", message);
-            console.log(socketId);
-          }
-        });
-      });
-    });
-
-    socket.on("group", (group) => {
-      console.log("Group created: ", group);
-      group.users.map((user) => {
-        let socketId = null;
-        onlineUsers.map((o_user, index) => {
-          console.log("online users", o_user.user.name, "Main user", user);
-          if (o_user.user.name === user) {
-            socketId = o_user.socketId;
-            io.to(socketId).emit("group", group);
-            console.log(socketId);
-          }
-        });
-      });
-    });
-
-    socket.on("disconnect", () => {
-      console.log("User Disconnected");
-      console.log(socket.id);
-      onlineUsers.map((o_user, index) => {
-        if (o_user.socketId === socket.id) {
-          onlineUsers.splice(index, 1);
-        }
-      });
-      console.log(onlineUsers);
-      onlineUsers.map((o_user, index) =>
-        io.to(o_user.socketId).emit("chat", onlineUsers)
-      );
-    });
-  } catch (err) {
-    console.error("Socket Auth Error:", err.message);
-  }
-});
+// Modular Socket Logic
+socketManager(io);
