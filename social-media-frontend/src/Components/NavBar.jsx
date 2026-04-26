@@ -44,7 +44,7 @@ export default function NavBar({ setUser, isAuthenticated }) {
     <div className={styles.NavBar}>
       <div className={styles.appName}>
         <Link to="/posts">
-          <div className={styles.appP}>Chatz</div>
+          <div className={styles.appP}>SocialSphere</div>
         </Link>
       </div>
       <div className={styles.endNav}>
