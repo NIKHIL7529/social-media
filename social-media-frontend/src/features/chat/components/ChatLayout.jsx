@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from 'react';
-import { useNavigate, useLocation, useParams } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router';
 import UserContext from '../../../UserContext';
 import { useChat } from '../context/ChatContext';
 import { useChatSocket } from '../hooks/useChatSocket';
