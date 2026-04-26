@@ -13,12 +13,17 @@ export const useChatSocket = (user) => {
     setChats 
   } = useChat();
 
+  const activeChatIdRef = useRef(activeChatId);
+  useEffect(() => {
+    activeChatIdRef.current = activeChatId;
+  }, [activeChatId]);
+
   const connectSocket = useCallback(() => {
     if (socket.current) return;
 
     socket.current = io(backendUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling'], // Robust transport selection
+      transports: ['websocket', 'polling'],
     });
 
     socket.current.on('connect', () => {
@@ -30,12 +35,11 @@ export const useChatSocket = (user) => {
     });
 
     socket.current.on('message', (msg) => {
-      // Check if the message belongs to the active chat
-      if (activeChatId === msg.chatId) {
+      // Use ref to check activeChatId to avoid closure issues
+      if (activeChatIdRef.current === msg.chatId) {
         setMessages((prev) => [...prev, msg]);
       }
       
-      // Update the chat list (to show last message/update time)
       setChats((prevChats) => {
         const updatedChats = prevChats.map(chat => {
           if (chat.chatId === msg.chatId) {
@@ -72,7 +76,7 @@ export const useChatSocket = (user) => {
       console.error('Socket Connection Error:', err.message);
     });
 
-  }, [activeChatId, setMessages, setOnlineUsers, setTypingUsers, setChats]);
+  }, [setMessages, setOnlineUsers, setTypingUsers, setChats]);
 
   useEffect(() => {
     if (user && user.name) {

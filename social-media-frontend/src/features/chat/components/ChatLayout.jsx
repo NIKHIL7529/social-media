@@ -52,6 +52,23 @@ const ChatLayout = () => {
     }
   }, [id, activeChatId, setActiveChatId]);
 
+  // Handle redirection from profile (location.state)
+  useEffect(() => {
+    if (location.state && chats.length > 0) {
+      const targetUser = location.state;
+      const existingChat = chats.find(c => !c.group && c.users.includes(targetUser));
+      if (existingChat) {
+        setActiveChatId(existingChat.chatId);
+        // Clear state and update URL to the specific chat
+        navigate(`/chat/${existingChat.chatId}`, { replace: true, state: null });
+      } else {
+        // If chat doesn't exist, we could show a "new chat" UI, 
+        // but for now, we'll just navigate to the chat page.
+        // The user can then start a message which will create the chat on the backend.
+      }
+    }
+  }, [location.state, chats, setActiveChatId, navigate]);
+
   // Fetch messages when active chat changes
   useEffect(() => {
     if (activeChatId) {
