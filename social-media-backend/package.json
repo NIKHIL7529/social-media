@@ -4,6 +4,7 @@
   "description": "Social Media Backend",
   "main": "app.js",
   "scripts": {
+    "build": "npm install",
     "dev": "nodemon app.js",
     "start": "node app.js",
     "test": "echo \"No tests configured\""
