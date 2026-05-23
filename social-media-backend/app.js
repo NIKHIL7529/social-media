@@ -47,9 +47,8 @@ app.use("/api/post", require("./routes/post.js"));
 app.use("/api/group", require("./routes/group.js"));
 app.use("/api/message", require("./routes/message.js"));
 
-app.get("/testing", async (req, res) => {
-  const temp = await Message.find({});
-  res.json(temp);
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "API is healthy!", uptime: process.uptime() });
 });
 
 mongoose
@@ -57,20 +56,20 @@ mongoose
   .then(() => httpServer.listen(PORT))
   .then(() =>
     console.log(
-      "Connected to Database and Listening to LocalHost on Port: " + PORT
-    )
+      "Connected to Database and Listening to LocalHost on Port: " + PORT,
+    ),
   )
   .catch((err) => {
     console.error("Database connection error:");
     if (err.code === "ENOTFOUND") {
       console.error(
-        "DIAGNOSIS: DNS Resolution Failure. Your computer cannot find the MongoDB host."
+        "DIAGNOSIS: DNS Resolution Failure. Your computer cannot find the MongoDB host.",
       );
       console.error(
-        "FIX 1: Verify the connection string in config.env. (Is cluster0.rvopthm.mongodb.net correct?)"
+        "FIX 1: Verify the connection string in config.env. (Is cluster0.rvopthm.mongodb.net correct?)",
       );
       console.error(
-        "FIX 2: Try using the 'Standard Connection String' (mongodb:// instead of mongodb+srv://) from the Atlas Connect modal."
+        "FIX 2: Try using the 'Standard Connection String' (mongodb:// instead of mongodb+srv://) from the Atlas Connect modal.",
       );
     } else {
       console.error(err);
