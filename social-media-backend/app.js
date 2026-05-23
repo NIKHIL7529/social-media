@@ -17,7 +17,7 @@ dotenv.config({ path: "./config.env" });
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
-  "https://main--majestic-choux-1d8140.netlify.app",
+  "http://localhost:3000",
 ];
 
 const io = new Server(httpServer, {
@@ -48,7 +48,13 @@ app.use("/api/group", require("./routes/group.js"));
 app.use("/api/message", require("./routes/message.js"));
 
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "API is healthy!", uptime: process.uptime() });
+  res
+    .status(200)
+    .json({
+      status: "OK",
+      message: "API is healthy!",
+      uptime: process.uptime(),
+    });
 });
 
 mongoose
