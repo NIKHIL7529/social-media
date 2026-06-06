@@ -1,0 +1,29 @@
+services:
+  backend:
+    image: social-backend:v1.0.5
+    build:
+      context: ./social-media-backend
+    container_name: social-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./social-media-backend/config.env
+    restart: unless-stopped
+    networks:
+      - social-network
+
+  frontend:
+    image: social-frontend:v1.0.3
+    build:
+      context: ./social-media-frontend
+    container_name: social-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - social-network
+
+networks:
+  social-network:
