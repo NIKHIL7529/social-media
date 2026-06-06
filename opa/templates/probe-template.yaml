@@ -1,0 +1,34 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredprobe
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredProbe
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+
+      rego: |
+        package k8srequiredprobe
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.readinessProbe
+
+          msg := sprintf(
+            "Container %v must define a readiness probe",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.livenessProbe
+
+          msg := sprintf(
+            "Container %v must define a liveness probe",
+            [container.name]
+          )
+        }

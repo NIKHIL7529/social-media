@@ -1,0 +1,34 @@
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredlimits
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredLimits
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+
+      rego: |
+        package k8srequiredlimits
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.limits.cpu
+
+          msg := sprintf(
+            "Container %v must define CPU resource limits",
+            [container.name]
+          )
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.limits.memory
+
+          msg := sprintf(
+            "Container %v must define memory resource limits",
+            [container.name]
+          )
+        }
