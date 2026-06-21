@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { getAuthCookieOptions } = require("./authCookie");
 require("dotenv").config();
 
 const token_User_Verify = (req, res, next) => {
@@ -18,7 +19,7 @@ const token_User_Verify = (req, res, next) => {
     next(); // Proceed to the next middleware
   } catch (err) {
     console.error("Token verification failed:", err.message);
-    res.clearCookie("token"); // Clear invalid token from cookies
+    res.clearCookie("token", getAuthCookieOptions(req));
     return res.status(401).json({ status: 401 }); // Redirect to login if token verification fails
   }
 };

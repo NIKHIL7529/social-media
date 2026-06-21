@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/User");
 const bcrypt = require("bcrypt");
 const cloudinary = require("../utils/cloudinary");
+const { getAuthCookieOptions } = require("../utils/authCookie");
 
 const sanitizeUser = (user) => {
   if (!user) {
@@ -155,15 +156,14 @@ const login = async (req, res, next) => {
 
     const token = jwt.sign(
       { id: existingUser._id, name: existingUser.name },
-      process.env.SECRET_KEY
+      process.env.SECRET_KEY,
+      { expiresIn: "60h" },
     );
 
     return res
       .cookie("token", token, {
+        ...getAuthCookieOptions(req),
         maxAge: 60 * 60 * 60 * 1000,
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
       })
       .status(200)
       .json({
@@ -185,7 +185,7 @@ const logout = async (req, res, next) => {
   try {
     const cookie = req.cookies.token;
     if (cookie) {
-      res.clearCookie("token");
+      res.clearCookie("token", getAuthCookieOptions(req));
       res.json({ status: 200 });
     } else {
       res.json({ status: 200 });

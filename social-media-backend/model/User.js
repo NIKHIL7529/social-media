@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
       maxlength: 20,
     },
     dob: {
@@ -23,21 +24,29 @@ const userSchema = new mongoose.Schema(
     },
     city: {
       type: String,
+      trim: true,
+      maxlength: 80,
     },
     country: {
       type: String,
+      trim: true,
+      maxlength: 80,
     },
     description: {
       type: String,
+      trim: true,
+      maxlength: 500,
     },
     photo: {
       type: String,
     },
     followers: {
-      type: Array,
+      type: [String],
+      default: [],
     },
     followings: {
-      type: Array,
+      type: [String],
+      default: [],
     },
     saved: [
       {
@@ -56,5 +65,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("User", userSchema);

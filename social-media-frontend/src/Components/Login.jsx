@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router";
 import styles from "./Login.module.css";
 import { useEffect, useState } from "react";
-import { backendUrl } from "../Utils/backendUrl";
+import { authService } from "../services/authService";
 import Swal from "sweetalert2";
 
 const Login = ({ setUser, isAuthenticated, authChecked }) => {
@@ -42,16 +42,8 @@ const Login = ({ setUser, isAuthenticated, authChecked }) => {
           Swal.showLoading();
         },
       });
-      fetch(`${backendUrl}/api/user/login`, {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8",
-        },
-        withCredentials: true,
-        credentials: "include",
-      })
-        .then((response) => response.json())
+      authService
+        .login(formData)
         .then((data) => {
           Swal.close();
           console.log("Fetch response received: ", data);
@@ -80,7 +72,20 @@ const Login = ({ setUser, isAuthenticated, authChecked }) => {
             });
           }
         })
-        .catch((err) => console.log("Error during fetch: ", err));
+        .catch((error) => {
+          Swal.close();
+          Swal.fire({
+            icon: error.status === 400 ? "warning" : "error",
+            title:
+              error.status === 400
+                ? "Incorrect credentials"
+                : "Unable to sign in",
+            text:
+              error.status === 400
+                ? "Check your username and password."
+                : "Please try again shortly.",
+          });
+        });
     } else {
       console.log("incomplete");
       // setSubmit("incomplete");

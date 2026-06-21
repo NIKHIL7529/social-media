@@ -12,6 +12,7 @@ const { socketManager } = require("./sockets/socketManager");
 
 const app = express();
 const httpServer = createServer(app);
+app.set("trust proxy", 1);
 
 dotenv.config({ path: "./config.env" });
 const allowedOrigins = [
