@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: space-between;
   backdrop-filter: blur(18px);
-  background: rgba(255, 252, 247, 0.84);
-  border-bottom: 1px solid rgba(210, 214, 224, 0.9);
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--border-color);
   box-shadow: 0 12px 32px rgba(18, 38, 63, 0.08);
   box-sizing: border-box;
 }
@@ -31,7 +31,7 @@
   align-items: center;
   font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: 0;
   color: var(--text-primary);
 }
 
@@ -50,7 +50,7 @@
 .svgNavIcon {
   width: 44px;
   height: 44px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -91,7 +91,7 @@
 .logoutP {
   min-height: 44px;
   padding: 0 16px;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@
   .logoutP {
     min-height: 40px;
     padding: 0 12px;
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     font-size: 0.88rem;
   }
 }

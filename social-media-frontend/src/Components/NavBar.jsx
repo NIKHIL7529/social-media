@@ -1,10 +1,9 @@
 import styles from "./NavBar.module.css";
-import Notifications from "@mui/icons-material/Notifications";
+import { AddCircle } from "@mui/icons-material";
 import BookmarkBorder from "@mui/icons-material/Bookmark";
-import CloseIcon from "@mui/icons-material/Close";
 import Logout from "@mui/icons-material/Logout";
 import { Link, useNavigate } from "react-router";
-import { backendUrl } from "../Utils/backendUrl";
+import { authService } from "../services/authService";
 import Swal from "sweetalert2";
 
 export default function NavBar({ setUser, isAuthenticated }) {
@@ -20,23 +19,21 @@ export default function NavBar({ setUser, isAuthenticated }) {
         Swal.showLoading();
       },
     });
-    fetch(`${backendUrl}/api/user/logout`, {
-      method: "GET",
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
+    authService
+      .logout()
       .then((data) => {
         Swal.close();
         console.log("Fetch response received: ", data);
-        if (data.status === 200 || data.status === 401) {
+        if (data.status === 200) {
           console.log("Search Successful");
           setUser(null);
           navigate("/login", { replace: true });
         }
+      })
+      .catch(() => {
+        Swal.close();
+        setUser(null);
+        navigate("/login", { replace: true });
       });
   };
 
@@ -52,8 +49,8 @@ export default function NavBar({ setUser, isAuthenticated }) {
           <>
             <div className={styles.svgNav}>
               <div className={styles.svgNavIcon}>
-                <Link className={styles.link} to="/posts">
-                  <Notifications />
+                <Link className={styles.link} to="/addPost" title="Create post">
+                  <AddCircle />
                 </Link>
               </div>
               <div
@@ -87,4 +84,3 @@ export default function NavBar({ setUser, isAuthenticated }) {
     </div>
   );
 }
-
