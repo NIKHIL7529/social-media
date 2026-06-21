@@ -24,7 +24,7 @@ import { ChatProvider } from "./features/chat/context/ChatContext";
 import EditProfile from "./Components/EditProfile";
 import UserContext from "./UserContext";
 import SavedPosts from "./Components/SavedPosts";
-import { backendUrl } from "./Utils/backendUrl";
+import { authService } from "./services/authService";
 
 function RequireAuth({ authChecked, isAuthenticated, children }) {
   const location = useLocation();
@@ -69,14 +69,15 @@ function App() {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    fetch(`${backendUrl}/api/user/profile`, {
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
+    const handleUnauthorized = () => {
+      setUser(null);
+      setAuthChecked(true);
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    authService
+      .getProfile()
       .then((data) => {
         if (data.status === 200) {
           setUser(data.user);
@@ -90,6 +91,10 @@ function App() {
       .finally(() => {
         setAuthChecked(true);
       });
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
   }, []);
 
   return (

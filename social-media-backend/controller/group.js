@@ -1,37 +1,51 @@
 const Group = require("../model/Group");
 const Message = require("../model/Message");
+const ChatMessage = require("../model/ChatMessage");
 
-const createGroup = async (req, res, next) => {
-  console.log("Add Group");
-  let group = req.body;
-  console.log(group);
+const createGroup = async (req, res) => {
+  const group = req.body;
   const creator = req.user.name;
-  group.users = [...group.users, creator];
+  const name = typeof group.name === "string" ? group.name.trim() : "";
+  const users = [...new Set([...(group.users || []), creator])];
+
+  if (!name || users.length < 2) {
+    return res.status(400).json({
+      status: 400,
+      message: "Group name and at least one member are required",
+    });
+  }
+
   try {
-    const message = new Message({
-      messages: [{ message: "Created Group", sender: creator }],
-      users: group.users,
+    const conversation = await Message.create({
+      users,
       group: true,
+      lastMessage: {
+        message: "Created Group",
+        sender: creator,
+        createdAt: new Date(),
+      },
     });
-    await message.save();
 
-    const addGroup = new Group({
+    await ChatMessage.create({
+      conversation: conversation._id,
+      sender: creator,
+      message: "Created Group",
+      type: "system",
+    });
+
+    const addGroup = await Group.create({
       creator,
-      users: group.users,
-      name: group.name,
-      chatId: message._id,
+      users,
+      name,
+      chatId: conversation._id,
     });
-    await addGroup.save();
-    console.log(addGroup);
 
-    console.log(message);
-
-    res.json({ status: 200, message: "Group created", addGroup });
+    return res.status(200).json({ status: 200, message: "Group created", addGroup });
   } catch (err) {
-    console.log(err);
+    console.error("Create group error:", err);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error" , err});
+      .json({ status: 500, message: "Internal server error" });
   }
 };
 
