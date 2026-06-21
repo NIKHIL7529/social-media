@@ -10,7 +10,9 @@ services:
       - ./social-media-backend/config.env
     restart: unless-stopped
     networks:
-      - social-network
+      social-network:
+        aliases:
+          - backend-service
 
   frontend:
     image: social-frontend:v1.0.3
