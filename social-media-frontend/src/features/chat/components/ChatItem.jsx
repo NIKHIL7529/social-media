@@ -16,7 +16,9 @@ const ChatItem = ({ chat, isActive, onClick, isOnline }) => {
         <div className={styles.ChatName}>
           {chat.name || (chat.users.length > 0 ? chat.users[0] : 'Unknown')}
         </div>
-        {isOnline && <div className={styles.StatusText}>Online</div>}
+        <div className={isOnline ? styles.StatusText : styles.MessagePreview}>
+          {isOnline ? 'Online' : chat.lastMessage?.message || 'No messages yet'}
+        </div>
       </div>
     </div>
   );

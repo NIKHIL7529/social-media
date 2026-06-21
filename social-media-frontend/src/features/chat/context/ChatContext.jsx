@@ -6,6 +6,10 @@ export const ChatProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [messagePagination, setMessagePagination] = useState({
+    hasMore: false,
+    nextCursor: null,
+  });
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState({}); // { chatId: { userName: true } }
 
@@ -21,6 +25,8 @@ export const ChatProvider = ({ children }) => {
     activeChat,
     messages,
     setMessages,
+    messagePagination,
+    setMessagePagination,
     onlineUsers,
     setOnlineUsers,
     typingUsers,

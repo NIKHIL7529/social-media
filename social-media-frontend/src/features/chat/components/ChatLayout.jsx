@@ -7,8 +7,8 @@ import ChatSidebar from './ChatSidebar';
 import MessageWindow from './MessageWindow';
 import CreateGroupModal from './CreateGroupModal';
 import styles from '../styles/Chat.module.css';
-import { backendUrl } from '../../../Utils/backendUrl';
 import Swal from 'sweetalert2';
+import { chatService } from '../../../services/chatService';
 
 const ChatLayout = () => {
   const user = useContext(UserContext);
@@ -18,10 +18,12 @@ const ChatLayout = () => {
     activeChatId, 
     activeChat, 
     setMessages, 
-    chats 
+    chats,
+    messagePagination,
+    setMessagePagination,
   } = useChat();
   const [isGroupModalOpen, setIsGroupModalOpen] = React.useState(false);
-  const { sendMessage, emitTyping, emitGroup } = useChatSocket(user);
+  const { sendMessage, emitTyping, emitGroup, connectionState } = useChatSocket(user);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,10 +33,7 @@ const ChatLayout = () => {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch(`${backendUrl}/api/message/allChats`, {
-          credentials: "include"
-        });
-        const data = await response.json();
+        const data = await chatService.getChats();
         if (data.status === 200) {
           setChats(data.chats);
         }
@@ -74,13 +73,7 @@ const ChatLayout = () => {
     if (activeChatId) {
       const fetchMessages = async () => {
         try {
-          const response = await fetch(`${backendUrl}/api/message/messages`, {
-            method: "POST",
-            body: JSON.stringify({ _id: activeChatId }),
-            headers: { "Content-type": "application/json" },
-            credentials: "include"
-          });
-          const data = await response.json();
+          const data = await chatService.getMessages(activeChatId);
           if (data.status === 200) {
             // Map messages to include "isMine" for UI rendering
             const mappedMessages = data.messages.messages.map(m => ({
@@ -88,6 +81,10 @@ const ChatLayout = () => {
               isMine: m.sender === user.name
             }));
             setMessages(mappedMessages);
+            setMessagePagination(data.pagination || {
+              hasMore: false,
+              nextCursor: null,
+            });
           }
         } catch (err) {
           console.error("Failed to fetch messages:", err);
@@ -97,6 +94,25 @@ const ChatLayout = () => {
       navigate(`/chat/${activeChatId}`);
     }
   }, [activeChatId, setMessages, user.name, navigate]);
+
+  const handleLoadOlderMessages = async () => {
+    if (!activeChatId || !messagePagination.hasMore) return;
+
+    try {
+      const data = await chatService.getMessages(activeChatId, {
+        before: messagePagination.nextCursor,
+        limit: 50,
+      });
+      const olderMessages = data.messages.messages.map((message) => ({
+        ...message,
+        isMine: message.sender === user.name,
+      }));
+      setMessages((current) => [...olderMessages, ...current]);
+      setMessagePagination(data.pagination);
+    } catch (error) {
+      console.error("Failed to load older messages:", error);
+    }
+  };
 
   const handleSendMessage = async (text) => {
     const messageData = {
@@ -109,18 +125,27 @@ const ChatLayout = () => {
 
     // 1. Send to server via REST (to save in DB)
     try {
-      const response = await fetch(`${backendUrl}/api/message/sendMessage`, {
-        method: "POST",
-        body: JSON.stringify({ receiver: activeChat.users, msg: text, _id: activeChatId }),
-        headers: { "Content-type": "application/json" },
-        credentials: "include"
+      const data = await chatService.sendMessage({
+        conversationId: activeChatId,
+        receiver: activeChat.users,
+        message: text,
       });
-      const data = await response.json();
       
       if (data.status === 200) {
         // 2. Broadcast via Socket
         const savedMessage = data.message.messages[data.message.messages.length - 1];
-        sendMessage({ ...savedMessage, chatId: activeChatId, isMine: true });
+        const deliveredLive = sendMessage({
+          ...savedMessage,
+          receiver: activeChat.users,
+          chatId: activeChatId,
+          isMine: true,
+        });
+        if (!deliveredLive) {
+          setMessages((previous) => [
+            ...previous,
+            { ...savedMessage, chatId: activeChatId, isMine: true },
+          ]);
+        }
       }
     } catch (err) {
       console.error("Failed to send message:", err);
@@ -129,18 +154,12 @@ const ChatLayout = () => {
 
   const handleCreateGroup = async (groupData) => {
     try {
-      const response = await fetch(`${backendUrl}/api/group/createGroup`, {
-        method: "POST",
-        body: JSON.stringify(groupData),
-        headers: { "Content-type": "application/json" },
-        credentials: "include"
-      });
-      const data = await response.json();
+      const data = await chatService.createGroup(groupData);
       if (data.status === 200) {
         const newGroup = {
           chatId: data.addGroup.chatId,
           name: groupData.name,
-          users: groupData.users,
+          users: data.addGroup.users,
           group: true,
           updatedAt: new Date().toISOString()
         };
@@ -167,6 +186,9 @@ const ChatLayout = () => {
       <MessageWindow 
         onSendMessage={handleSendMessage}
         onTyping={emitTyping}
+        connectionState={connectionState}
+        onLoadOlder={handleLoadOlderMessages}
+        hasOlderMessages={messagePagination.hasMore}
       />
       <CreateGroupModal 
         open={isGroupModalOpen}

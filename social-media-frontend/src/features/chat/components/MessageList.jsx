@@ -1,20 +1,45 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import styles from '../styles/Chat.module.css';
 
-const MessageList = ({ messages, activeChat, typingDisplay }) => {
+const MessageList = ({
+  messages,
+  activeChat,
+  typingDisplay,
+  onLoadOlder,
+  hasOlderMessages,
+}) => {
   const scrollRef = useRef(null);
+  const previousFirstMessageRef = useRef(null);
+  const previousScrollHeightRef = useRef(0);
 
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  useLayoutEffect(() => {
+    const list = scrollRef.current;
+    if (!list) return;
+
+    const firstMessageId = messages[0]?._id || null;
+    const historyWasPrepended =
+      previousFirstMessageRef.current &&
+      firstMessageId !== previousFirstMessageRef.current;
+
+    if (historyWasPrepended) {
+      list.scrollTop = list.scrollHeight - previousScrollHeightRef.current;
+    } else {
+      list.scrollTop = list.scrollHeight;
     }
+
+    previousFirstMessageRef.current = firstMessageId;
+    previousScrollHeightRef.current = list.scrollHeight;
   }, [messages, typingDisplay]);
 
   return (
     <>
       <div className={styles.MessageList} ref={scrollRef}>
+        {hasOlderMessages && (
+          <button className={styles.LoadOlderButton} onClick={onLoadOlder}>
+            Load older messages
+          </button>
+        )}
         {messages.length > 0 ? (
           messages.map((msg, index) => (
             <div 

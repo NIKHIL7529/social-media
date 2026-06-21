@@ -2,7 +2,14 @@ import React from 'react';
 import { AccountCircle, Groups } from '@mui/icons-material';
 import styles from '../styles/Chat.module.css';
 
-const ChatHeader = ({ activeChat }) => {
+const ChatHeader = ({ activeChat, connectionState }) => {
+  const statusText = {
+    connected: 'Live',
+    connecting: 'Connecting...',
+    disconnected: 'Reconnecting...',
+    error: 'Connection unavailable',
+  }[connectionState];
+
   return (
     <div className={styles.WindowHeader}>
       <div className={styles.AvatarWrapper}>
@@ -10,7 +17,10 @@ const ChatHeader = ({ activeChat }) => {
       </div>
       <div className={styles.ChatTitle}>
         <h3>{activeChat.name || activeChat.users[0]}</h3>
-        {activeChat.group && <p>{activeChat.users.length} members</p>}
+        <p className={connectionState === 'connected' ? styles.LiveStatus : styles.OfflineStatus}>
+          {activeChat.group ? `${activeChat.users.length} members · ` : ''}
+          {statusText}
+        </p>
       </div>
     </div>
   );

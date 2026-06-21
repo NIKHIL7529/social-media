@@ -6,7 +6,13 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import styles from '../styles/Chat.module.css';
 
-const MessageWindow = ({ onSendMessage, onTyping }) => {
+const MessageWindow = ({
+  onSendMessage,
+  onTyping,
+  connectionState,
+  onLoadOlder,
+  hasOlderMessages,
+}) => {
   const { activeChat, messages, activeChatId, typingUsers } = useChat();
 
   const chatTyping = typingUsers[activeChatId] || {};
@@ -24,17 +30,21 @@ const MessageWindow = ({ onSendMessage, onTyping }) => {
 
   return (
     <div className={styles.ChatWindow}>
-      <ChatHeader activeChat={activeChat} />
+      <ChatHeader activeChat={activeChat} connectionState={connectionState} />
       
       <MessageList 
         messages={messages} 
         activeChat={activeChat} 
         typingDisplay={typingDisplay} 
+        onLoadOlder={onLoadOlder}
+        hasOlderMessages={hasOlderMessages}
       />
 
       <MessageInput 
         onSendMessage={onSendMessage} 
-        onTyping={onTyping} 
+        onTyping={(chatId, isTyping) =>
+          onTyping(chatId, isTyping, activeChat.users)
+        }
         activeChatId={activeChatId} 
       />
     </div>

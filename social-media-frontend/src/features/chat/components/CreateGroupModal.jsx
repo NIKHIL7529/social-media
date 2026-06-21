@@ -5,7 +5,7 @@ import {
   Checkbox, ListItemAvatar, Avatar 
 } from '@mui/material';
 import { AccountCircle } from '@mui/icons-material';
-import { backendUrl } from '../../../Utils/backendUrl';
+import { chatService } from '../../../services/chatService';
 
 const CreateGroupModal = ({ open, onClose, onCreate }) => {
   const [groupName, setGroupName] = useState('');
@@ -15,11 +15,15 @@ const CreateGroupModal = ({ open, onClose, onCreate }) => {
   useEffect(() => {
     if (open) {
       // Fetch followings to select from
-      fetch(`${backendUrl}/api/message/followings`, { credentials: "include" })
-        .then(res => res.json())
+      chatService.getFollowings()
         .then(data => {
           if (data.status === 200 && data.followings[0]) {
             setFriends(data.followings[0].followings);
+          }
+        })
+        .catch((error) => {
+          if (error.status !== 401) {
+            console.error("Failed to load followings:", error);
           }
         });
     }

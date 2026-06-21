@@ -1,10 +1,11 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import io from 'socket.io-client';
 import { backendUrl } from '../../../Utils/backendUrl';
 import { useChat } from '../context/ChatContext';
 
 export const useChatSocket = (user) => {
   const socket = useRef(null);
+  const [connectionState, setConnectionState] = useState('disconnected');
   const { 
     setMessages, 
     setOnlineUsers, 
@@ -25,9 +26,14 @@ export const useChatSocket = (user) => {
       withCredentials: true,
       transports: ['websocket', 'polling'],
     });
+    setConnectionState('connecting');
 
     socket.current.on('connect', () => {
-      console.log('Socket connected:', socket.current.id);
+      setConnectionState('connected');
+    });
+
+    socket.current.on('disconnect', () => {
+      setConnectionState('disconnected');
     });
 
     socket.current.on('update-online-users', (users) => {
@@ -35,9 +41,14 @@ export const useChatSocket = (user) => {
     });
 
     socket.current.on('message', (msg) => {
+      const incomingMessage = {
+        ...msg,
+        isMine: msg.sender === user?.name,
+      };
+
       // Use ref to check activeChatId to avoid closure issues
       if (activeChatIdRef.current === msg.chatId) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => [...prev, incomingMessage]);
       }
       
       setChats((prevChats) => {
@@ -74,9 +85,13 @@ export const useChatSocket = (user) => {
 
     socket.current.on('connect_error', (err) => {
       console.error('Socket Connection Error:', err.message);
+      setConnectionState('error');
+      if (err.message.startsWith('Authentication error:')) {
+        window.dispatchEvent(new Event('auth:unauthorized'));
+      }
     });
 
-  }, [setMessages, setOnlineUsers, setTypingUsers, setChats]);
+  }, [setMessages, setOnlineUsers, setTypingUsers, setChats, user?.name]);
 
   useEffect(() => {
     if (user && user.name) {
@@ -88,26 +103,31 @@ export const useChatSocket = (user) => {
         socket.current.disconnect();
         socket.current = null;
       }
+      setConnectionState('disconnected');
     };
-  }, [user, connectSocket]);
+  }, [user?.name, connectSocket]);
 
   const sendMessage = (messageData) => {
-    if (socket.current) {
+    if (socket.current?.connected) {
       socket.current.emit('message', messageData);
+      return true;
     }
+    return false;
   };
 
-  const emitTyping = (chatId, isTyping) => {
-    if (socket.current) {
-      socket.current.emit('typing', { chatId, isTyping });
+  const emitTyping = (chatId, isTyping, receiver) => {
+    if (socket.current?.connected) {
+      socket.current.emit('typing', { chatId, isTyping, receiver });
     }
   };
 
   const emitGroup = (groupData) => {
-    if (socket.current) {
+    if (socket.current?.connected) {
       socket.current.emit('group', groupData);
+      return true;
     }
+    return false;
   };
 
-  return { sendMessage, emitTyping, emitGroup };
+  return { sendMessage, emitTyping, emitGroup, connectionState };
 };
