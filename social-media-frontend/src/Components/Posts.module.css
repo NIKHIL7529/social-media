@@ -1,8 +1,53 @@
 .Posts {
   width: 100%;
   min-height: calc(100vh - var(--nav-height));
-  overflow-y: auto;
-  scrollbar-width: none;
+}
+
+.feedHeader {
+  width: min(100%, var(--feed-max-width));
+  margin: 0 auto 16px;
+  padding: 4px 0 14px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.feedHeader h1 {
+  margin: 3px 0 0;
+  font-size: 1.65rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.feedHeader button,
+.state button,
+.loadMore {
+  min-height: 42px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.feedHeader button svg,
+.state button svg {
+  font-size: 1.15rem;
 }
 
 .posts {
@@ -12,7 +57,125 @@
   box-sizing: border-box;
 }
 
+.state {
+  padding: 48px 24px;
+  border: 1px dashed #b9c8c6;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  text-align: center;
+}
+
+.state h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.state p,
+.inlineError,
+.feedEnd {
+  color: var(--text-secondary);
+}
+
+.state p {
+  margin: 8px 0 18px;
+}
+
+.loadMore {
+  width: 100%;
+  margin-top: 4px;
+  background: var(--surface);
+  color: var(--accent);
+}
+
+.loadMore:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.inlineError,
+.feedEnd {
+  margin: 16px 0;
+  text-align: center;
+  font-size: 0.88rem;
+}
+
+.inlineError {
+  color: var(--danger);
+}
+
+.skeleton {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+
+.skeletonHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skeletonHeader span {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e5ebea;
+}
+
+.skeletonHeader div,
+.skeletonLine,
+.skeletonLineShort,
+.skeletonMedia {
+  background: #e5ebea;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeletonHeader div {
+  width: 130px;
+  height: 13px;
+  border-radius: 4px;
+}
+
+.skeletonMedia {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  margin: 14px 0;
+  border-radius: 6px;
+}
+
+.skeletonLine,
+.skeletonLineShort {
+  height: 11px;
+  margin-top: 9px;
+  border-radius: 4px;
+}
+
+.skeletonLineShort {
+  width: 62%;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
 @media (max-width: 768px) {
+  .feedHeader {
+    align-items: center;
+  }
+
+  .feedHeader h1 {
+    font-size: 1.35rem;
+  }
+
+  .feedHeader button {
+    min-height: 40px;
+    padding: 0 10px;
+  }
+
   .posts {
     width: 100%;
     padding-top: 2px;

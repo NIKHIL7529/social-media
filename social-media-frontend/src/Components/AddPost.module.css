@@ -9,7 +9,7 @@
   margin-bottom: 18px;
   font-size: 1.9rem;
   font-weight: 800;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
   color: var(--text-primary);
   text-align: center;
 }
@@ -22,7 +22,7 @@
 
 .inputBox {
   min-width: 0;
-  border-radius: 28px;
+  border-radius: var(--radius-xl);
   background: rgba(255, 255, 255, 0.84);
   border: 1px solid rgba(214, 219, 229, 0.95);
   box-shadow: var(--shadow-card);
@@ -63,7 +63,7 @@
   padding: 20px;
   color: #fff;
   text-align: center;
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.18), rgba(17, 24, 39, 0.52));
+  background: rgba(17, 24, 39, 0.42);
 }
 
 .inputBox:has(input[type="file"]:valid) label img {
@@ -125,8 +125,8 @@
   min-height: 52px;
   padding: 0 22px;
   border: none;
-  border-radius: 18px;
-  background: linear-gradient(135deg, var(--accent), #ff8f6b);
+  border-radius: var(--radius-lg);
+  background: var(--accent);
   color: #fff;
   font-size: 0.98rem;
   font-weight: 800;

@@ -1,6 +1,7 @@
 const Post = require("../model/Post");
 const User = require("../model/User");
 const cloudinary = require("../utils/cloudinary");
+const mongoose = require("mongoose");
 
 const userPopulate = {
   path: "user",
@@ -8,19 +9,42 @@ const userPopulate = {
 };
 
 const all_posts = async (req, res, next) => {
-  const { skip } = req.body;
+  const requestedLimit = Number(req.body.limit) || 10;
+  const limit = Math.min(Math.max(requestedLimit, 1), 25);
+  const { cursor } = req.body;
+
   try {
-    console.log("All Posts");
-    const post = await Post.find().limit(5).skip(skip).populate(userPopulate);
-    if (!post) {
-      return res.status(504).json({ status: 504, message: "No post uploaded" });
+    if (cursor && !mongoose.isValidObjectId(cursor)) {
+      return res.status(400).json({ status: 400, message: "Invalid feed cursor" });
     }
-    return res.status(200).json({ status: 200, message: "All Posts", post });
+
+    const query = {};
+    if (cursor) {
+      query._id = { $lt: cursor };
+    }
+
+    const posts = await Post.find(query)
+      .sort({ _id: -1 })
+      .limit(limit + 1)
+      .populate(userPopulate)
+      .lean();
+    const hasMore = posts.length > limit;
+    const page = posts.slice(0, limit);
+
+    return res.status(200).json({
+      status: 200,
+      message: "All Posts",
+      post: page,
+      pagination: {
+        hasMore,
+        nextCursor: hasMore ? page[page.length - 1]._id : null,
+      },
+    });
   } catch (err) {
-    console.log(err);
+    console.error("All posts error:", err);
     return res
       .status(500)
-      .json({ status: 500, message: "Internal server error", err });
+      .json({ status: 500, message: "Internal server error" });
   }
 };
 
@@ -58,15 +82,16 @@ const deletePost = async (req, res, next) => {
   console.log("Delete Post");
   const { _id } = req.body;
   try {
-    const user = await User.findOneAndUpdate(
-      { _id: req.user.id },
-      { $pull: { saved: _id, liked: _id } },
-      { new: true }
-    );
-    await user.save();
-    console.log(user);
     const post = await Post.findOneAndDelete({ user: req.user.id, _id: _id });
-    console.log(post);
+    if (!post) {
+      return res.status(404).json({ status: 404, message: "Post not found" });
+    }
+
+    await User.updateMany(
+      { $or: [{ saved: _id }, { liked: _id }] },
+      { $pull: { saved: _id, liked: _id } },
+    );
+
     return res.status(200).json({ status: 200, message: "Post Deleted" });
   } catch (error) {
     console.log(error);

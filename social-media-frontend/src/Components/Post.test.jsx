@@ -22,6 +22,10 @@ vi.mock("sweetalert2", () => ({
   },
 }));
 
+vi.mock("emoji-picker-react", () => ({
+  default: () => <div>emoji-picker</div>,
+}));
+
 describe("Post guest protections", () => {
   const post = {
     _id: "post-1",
@@ -84,5 +88,58 @@ describe("Post guest protections", () => {
       });
     });
     expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("uses the user identity when isAuthenticated is not passed", async () => {
+    const user = userEvent.setup();
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 200, likes: 13 }),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/profile"]}>
+        <Post post={post} user={{ name: "alice", liked: [], saved: [] }} admin="false" />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: "Like post" }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(/\/api\/post\/liked$/),
+        expect.objectContaining({ method: "POST", credentials: "include" }),
+      );
+    });
+    expect(screen.getByText("13 likes")).toBeInTheDocument();
+  });
+
+  it("prompts for login when an authenticated action returns 401", async () => {
+    const user = userEvent.setup();
+    fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ status: 401 }),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/posts"]}>
+        <Post
+          post={post}
+          user={{ name: "alice", liked: [], saved: [] }}
+          admin="false"
+          isAuthenticated
+        />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByRole("button", { name: "Like post" }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/login", {
+        state: { from: "/posts" },
+      });
+    });
   });
 });

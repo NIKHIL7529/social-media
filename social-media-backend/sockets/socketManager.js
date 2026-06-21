@@ -1,19 +1,24 @@
 const jwt = require("jsonwebtoken");
 const { registerChatHandlers } = require("./chatHandler");
 
-let onlineUsers = [];
+const connectedUsers = new Map();
+
+const getOnlineUsers = () =>
+  Array.from(connectedUsers.values()).map(({ user }) => ({ user }));
+
+const broadcastOnlineUsers = (io) => {
+  io.emit("update-online-users", getOnlineUsers());
+};
 
 const socketManager = (io) => {
-  // Authentication Middleware
   io.use((socket, next) => {
     const cookieHeader = socket.request.headers.cookie;
     if (!cookieHeader) {
       return next(new Error("Authentication error: No cookies found"));
     }
 
-    // Robust cookie parsing for 'token'
-    const tokenMatch = cookieHeader.match(/token=([^;]+)/);
-    const token = tokenMatch ? tokenMatch[1] : null;
+    const tokenMatch = cookieHeader.match(/(?:^|;\s*)token=([^;]+)/);
+    const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
 
     if (!token) {
       return next(new Error("Authentication error: Token missing"));
@@ -21,9 +26,9 @@ const socketManager = (io) => {
 
     try {
       const user = jwt.verify(token, process.env.SECRET_KEY);
-      socket.user = user; // Attach user to socket
+      socket.user = user;
       next();
-    } catch (err) {
+    } catch {
       return next(new Error("Authentication error: Invalid token"));
     }
   });
@@ -31,24 +36,31 @@ const socketManager = (io) => {
   io.on("connection", (socket) => {
     console.log("User Connected via Socket:", socket.id, "User:", socket.user.name);
 
-    // Track online users
-    const existingIndex = onlineUsers.findIndex(u => u.user.id === socket.user.id);
-    if (existingIndex !== -1) {
-      onlineUsers[existingIndex].socketId = socket.id;
-    } else {
-      onlineUsers.push({ user: socket.user, socketId: socket.id });
-    }
+    const userId = String(socket.user.id);
+    const connectedUser = connectedUsers.get(userId) || {
+      user: socket.user,
+      socketIds: new Set(),
+    };
 
-    // Broadcast updated online users
-    io.emit("update-online-users", onlineUsers);
+    connectedUser.socketIds.add(socket.id);
+    connectedUsers.set(userId, connectedUser);
+    socket.join(`user:${socket.user.name}`);
 
-    // Register modular handlers
-    registerChatHandlers(io, socket, onlineUsers);
+    broadcastOnlineUsers(io);
+    registerChatHandlers(io, socket);
 
     socket.on("disconnect", () => {
       console.log("User Disconnected:", socket.id);
-      onlineUsers = onlineUsers.filter(u => u.socketId !== socket.id);
-      io.emit("update-online-users", onlineUsers);
+      const currentUser = connectedUsers.get(userId);
+
+      if (currentUser) {
+        currentUser.socketIds.delete(socket.id);
+        if (currentUser.socketIds.size === 0) {
+          connectedUsers.delete(userId);
+        }
+      }
+
+      broadcastOnlineUsers(io);
     });
   });
 };

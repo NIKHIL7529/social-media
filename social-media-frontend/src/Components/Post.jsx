@@ -10,11 +10,11 @@ import {
   ThumbUpSharp,
 } from "@mui/icons-material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
-import { backendUrl } from "../Utils/backendUrl";
 import SendIcon from "@mui/icons-material/Send";
 import Swal from "sweetalert2";
 import EmojiPicker from "emoji-picker-react";
 import { useLocation, useNavigate } from "react-router";
+import { postService } from "../services/postService";
 
 export default function Post(props) {
   const [likes, setLikes] = useState(null);
@@ -28,12 +28,14 @@ export default function Post(props) {
   const [fullText, setFullText] = useState(false);
   const [buttonShow, setButtonShow] = useState(false);
   const [picker, setPicker] = useState(false);
+  const [pendingAction, setPendingAction] = useState("");
 
   const auth_user = useRef();
   const textRef = useRef("");
   const post = props.post;
   const user = props.user;
-  const isAuthenticated = props.isAuthenticated;
+  const isAuthenticated =
+    props.isAuthenticated ?? Boolean(user?.name);
   const navigate = useNavigate();
   const location = useLocation();
   console.log("initial data is ", post, user);
@@ -42,12 +44,14 @@ export default function Post(props) {
     auth_user.current = user?.name || "";
   }, [user]);
 
-  const requireAuth = () => {
+  const requireAuth = (sessionExpired = false) => {
     Swal.fire({
       icon: "info",
-      title: "Please sign in to continue",
-      text: "You need an account to interact with posts.",
-      showConfirmButton: true,
+      title: sessionExpired ? "Session expired" : "Sign in to continue",
+      text: sessionExpired
+        ? "Please sign in again to continue."
+        : "You need an account to interact with posts.",
+      confirmButtonText: "Go to login",
     }).then(() => {
       navigate("/login", {
         state: {
@@ -94,37 +98,49 @@ export default function Post(props) {
     }
   }, [user, post.user.name]);
 
-  const handleDelete = () => {
-    Swal.fire({
-      width: "120",
-      allowEscapeKey: false,
-      allowOutsideClick: false,
-      timer: 2000,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-    fetch(`${backendUrl}/api/post/deletePost`, {
-      method: "POST",
-      body: JSON.stringify({ _id: post._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        Swal.close();
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log(data.message);
-          console.log("Search Successful");
-          console.log(post._id);
-          props.setIndex(post._id);
-          // document.window.reload();
-        }
+  const runPostAction = async (action, request, onSuccess) => {
+    if (!isAuthenticated) {
+      requireAuth();
+      return;
+    }
+
+    setPendingAction(action);
+    try {
+      const data = await request();
+      if (data.status === 200) {
+        onSuccess(data);
+      }
+    } catch (error) {
+      if (error.status === 401) {
+        requireAuth(true);
+        return;
+      }
+      Swal.fire({
+        icon: "error",
+        title: "Action failed",
+        text: error.message || "Please try again.",
       });
+    } finally {
+      setPendingAction("");
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmation = await Swal.fire({
+      icon: "warning",
+      title: "Delete this post?",
+      text: "This action cannot be undone.",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      confirmButtonColor: "#c2413b",
+    });
+    if (!confirmation.isConfirmed) return;
+
+    runPostAction(
+      "delete",
+      () => postService.remove(post._id),
+      () => props.setIndex?.(post._id),
+    );
   };
 
   const handleFollow = () => {
@@ -132,30 +148,14 @@ export default function Post(props) {
       requireAuth();
       return;
     }
-    fetch(`${backendUrl}/api/user/follow`, {
-      method: "POST",
-      body: JSON.stringify({ userName: post.user.name }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
+    runPostAction(
+      "follow",
+      () => postService.follow(post.user.name),
+      () => {
+        setFollowFlag((previous) => !previous);
+        props.setFollow?.(post.user.name);
       },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log(data.user1);
-          // setUse(data.user);
-          console.log("Search Successful");
-          setFollowFlag((prevFollowFlag) => !prevFollowFlag);
-          props.setFollow(post.user.name);
-          // document.window.reload();
-        } else {
-          return;
-        }
-      })
-      .catch((err) => console.log("Error during fetch: ", err));
+    );
   };
 
   const handleSaved = () => {
@@ -163,27 +163,11 @@ export default function Post(props) {
       requireAuth();
       return;
     }
-    fetch(`${backendUrl}/api/post/saved`, {
-      method: "POST",
-      body: JSON.stringify({ _id: post._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
-      },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log(data);
-          console.log("Search Successful");
-          setSaveFlag((prevSaveFlag) => !prevSaveFlag);
-        } else {
-          return;
-        }
-      })
-      .catch((err) => console.log("Error during fetch: ", err));
+    runPostAction(
+      "save",
+      () => postService.save(post._id),
+      () => setSaveFlag((previous) => !previous),
+    );
   };
 
   const handleLiked = async () => {
@@ -191,28 +175,14 @@ export default function Post(props) {
       requireAuth();
       return;
     }
-    await fetch(`${backendUrl}/api/post/liked`, {
-      method: "POST",
-      body: JSON.stringify({ _id: post._id }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8",
+    await runPostAction(
+      "like",
+      () => postService.like(post._id),
+      (data) => {
+        setLikes(data.likes);
+        setLikeFlag((previous) => !previous);
       },
-      withCredentials: true,
-      credentials: "include",
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetch response received: ", data);
-        if (data.status === 200) {
-          console.log("likes", data.likes);
-          setLikes(data.likes);
-          console.log("Search Successful");
-          setLikeFlag((prevLikeFlag) => !prevLikeFlag);
-        } else {
-          return;
-        }
-      })
-      .catch((err) => console.log("Error during fetch: ", err));
+    );
   };
 
   const handleComment = () => {
@@ -300,6 +270,36 @@ export default function Post(props) {
     setComment((prevMessage) => prevMessage + emojiData.emoji);
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: post.topic || "SocialSphere post",
+      text: post.text || "View this post on SocialSphere",
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        Swal.fire({
+          icon: "success",
+          title: "Link copied",
+          timer: 1400,
+          showConfirmButton: false,
+        });
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        Swal.fire({
+          icon: "error",
+          title: "Unable to share",
+          text: "Please try again.",
+        });
+      }
+    }
+  };
+
   return (
     <div className={styles.Post}>
       <div className={styles.postheader}>
@@ -317,11 +317,19 @@ export default function Post(props) {
         </div>
 
         {button === "Follow" && (
-          <button onClick={handleFollow}>
+          <button onClick={handleFollow} disabled={pendingAction === "follow"}>
             {followflag ? "Following" : "Follow"}
           </button>
         )}
-        {button === "Delete" && <button onClick={handleDelete}>Delete</button>}
+        {button === "Delete" && (
+          <button
+            className={styles.deleteButton}
+            onClick={handleDelete}
+            disabled={pendingAction === "delete"}
+          >
+            {pendingAction === "delete" ? "Deleting..." : "Delete"}
+          </button>
+        )}
       </div>
       <div className={styles.image}>
         <img src={post.photo} alt="post" />
@@ -355,27 +363,39 @@ export default function Post(props) {
         className={styles.postfooter}
         style={{ borderRadius: commentClick ? "0" : "" }}
       >
-        <button onClick={handleLiked}>
+        <button
+          className={likeflag ? styles.activeAction : ""}
+          onClick={handleLiked}
+          disabled={pendingAction === "like"}
+          aria-label={likeflag ? "Unlike post" : "Like post"}
+          title={likeflag ? "Unlike" : "Like"}
+        >
           {likeflag ? (
-            <ThumbUpSharp style={{ fill: "blue" }} />
+            <ThumbUpSharp />
           ) : (
             <ThumbUpOutlinedIcon />
           )}
         </button>
-        <button onClick={handleComment}>
+        <button onClick={handleComment} aria-label="Comment on post" title="Comment">
           <ChatRounded />
         </button>
-        <button onClick={handleSaved}>
+        <button
+          className={saveflag ? styles.activeAction : ""}
+          onClick={handleSaved}
+          disabled={pendingAction === "save"}
+          aria-label={saveflag ? "Remove saved post" : "Save post"}
+          title={saveflag ? "Remove from saved" : "Save"}
+        >
           {saveflag ? (
-            <BookmarkOutlined style={{ fill: "blue" }} />
+            <BookmarkOutlined />
           ) : (
             <BookmarkBorderOutlinedIcon />
           )}
         </button>
-        <button>
+        <button onClick={handleShare} aria-label="Share post" title="Share">
           <ShareOutlinedIcon />
         </button>
-        <p>{likes !== null ? likes : post.likes} likes</p>
+        <p aria-live="polite">{likes !== null ? likes : post.likes} likes</p>
         {picker && (
           <div className={styles.Picker}>
             <EmojiPicker height={400} width={400} onEmojiClick={onEmojiClick} />
