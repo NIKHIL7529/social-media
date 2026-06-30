@@ -9,11 +9,13 @@ const Message = require("./model/Message.js");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const { socketManager } = require("./sockets/socketManager");
-
+const dns = require("node:dns");
 const app = express();
 const httpServer = createServer(app);
 app.set("trust proxy", 1);
-
+if (process.env.NODE_ENV !== "production") {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+}
 dotenv.config({ path: "./config.env" });
 const allowedOrigins = [
   process.env.FRONTEND_URL,
