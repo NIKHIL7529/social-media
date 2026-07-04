@@ -1,6 +1,6 @@
 # SocialSphere: Next.js + FastAPI Platform
 
-Production-oriented rewrite of the original SocialSphere MERN app. The old Vite/Express apps remain in the repository, while this folder contains the new Next.js, TypeScript, TailwindCSS, FastAPI, Uvicorn, MongoDB, Cloudinary, TanStack Query, and WebSocket implementation.
+Production-oriented SocialSphere app built with Next.js, TypeScript, TailwindCSS, FastAPI, Uvicorn, MongoDB, Cloudinary, TanStack Query, and WebSockets.
 
 ## Key Features
 

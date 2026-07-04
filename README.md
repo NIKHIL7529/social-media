@@ -1,6 +1,6 @@
 # SocialSphere
 
-SocialSphere is a full-stack social media application rebuilt on a production-oriented Next.js and FastAPI foundation. The original MERN application is still present for reference in `social-media-frontend/` and `social-media-backend/`; active development now lives in `apps/`.
+SocialSphere is a full-stack social media application built on a production-oriented Next.js and FastAPI foundation. The application code lives in `apps/`.
 
 ## Current Stack
 
@@ -32,9 +32,6 @@ apps/
   web/      Next.js frontend
   README.md
   docker-compose.yml
-
-social-media-backend/    Original Express backend reference
-social-media-frontend/   Original React/Vite frontend reference
 ```
 
 ## Local Development
