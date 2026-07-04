@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Bookmark, BookmarkCheck, Heart, MessageCircle, Send, Share2, ThumbsUp, Trash2, UserCircle, X } from "lucide-react";
-import { type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -34,6 +34,12 @@ export function PostCard({ post, priority = false }: Props) {
   const isMine = user?.name === post.user.name;
   const canReadMore = (post.text || "").length > 140;
   const [expanded, setExpanded] = useState(!canReadMore);
+
+  useEffect(() => {
+    setLiked(Boolean(user?.liked?.includes(post._id)));
+    setSaved(Boolean(user?.saved?.includes(post._id)));
+    setFollowing(Boolean(user?.followings?.includes(post.user.name)));
+  }, [post._id, post.user.name, user?.followings, user?.liked, user?.saved]);
   const visibleText = useMemo(() => {
     if (!post.text) return "";
     return expanded ? post.text : `${post.text.slice(0, 140)}...`;

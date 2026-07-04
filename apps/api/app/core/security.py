@@ -8,6 +8,7 @@ from jose import JWTError, jwt
 
 from app.core.config import get_settings
 from app.core.database import get_database
+from app.schemas.common import serialize_doc
 
 MAX_BCRYPT_BYTES = 72
 
@@ -68,6 +69,11 @@ async def get_optional_user(token: Annotated[str | None, Cookie()] = None) -> di
         return await get_current_user(token)
     except HTTPException:
         return None
+
+
+def serialize_auth_user(user: dict) -> dict:
+    safe_user = {key: value for key, value in user.items() if key != "password"}
+    return serialize_doc(safe_user)
 
 
 def auth_cookie_options(request: Request) -> dict:

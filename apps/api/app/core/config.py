@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     database: str
     secret_key: str
     frontend_url: str = "http://localhost:3000"
+    frontend_urls: str = ""
+    cors_origin_regex: str = ""
     environment: str = "development"
     cloudinary_cloud_name: str = ""
     cloudinary_api_key: str = ""
@@ -24,15 +26,22 @@ class Settings(BaseSettings):
 
     @property
     def allowed_origins(self) -> List[str]:
-        return [
-            self.frontend_url,
+        origins = [
+            origin.strip().rstrip("/")
+            for origin in f"{self.frontend_url},{self.frontend_urls}".split(",")
+            if origin.strip()
+        ]
+        return list(dict.fromkeys([
+            *origins,
             "http://localhost:3000",
             "http://localhost:5173",
-        ]
+        ]))
 
     @property
     def cookie_secure(self) -> bool:
-        return self.environment == "production"
+        if self.environment == "production":
+            return True
+        return any(origin.startswith("https://") for origin in self.allowed_origins)
 
     @property
     def mongo_dns_nameservers(self) -> list[str]:

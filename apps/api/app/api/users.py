@@ -12,6 +12,7 @@ from app.core.security import (
     get_current_user,
     get_optional_user,
     hash_password,
+    serialize_auth_user,
     verify_password,
 )
 from app.schemas.common import serialize_doc
@@ -118,7 +119,7 @@ async def login(payload: LoginPayload, request: Request, response: Response) -> 
     return {
         "status": 200,
         "message": "Login successful",
-        "user": serialize_doc(user),
+        "user": serialize_auth_user(user),
     }
 
 
@@ -138,7 +139,7 @@ async def profile(current_user: dict = Depends(get_current_user)) -> dict:
     return {
         "status": 200,
         "message": "Profile data",
-        "user": serialize_doc(current_user),
+        "user": serialize_auth_user(current_user),
     }
 
 
@@ -168,7 +169,7 @@ async def edit_profile(
     }
     await db.users.update_one({"_id": current_user["_id"]}, {"$set": update})
     user = await db.users.find_one({"_id": current_user["_id"]})
-    return {"status": 200, "message": "User info changed", "user": serialize_doc(user)}
+    return {"status": 200, "message": "User info changed", "user": serialize_auth_user(user)}
 
 
 @router.post("/changePassword")

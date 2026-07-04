@@ -31,11 +31,24 @@ Create `.env` from `.env.example`.
 DATABASE=mongodb://127.0.0.1:27017/SocialMediaDB
 SECRET_KEY=change-me
 FRONTEND_URL=http://localhost:3000
+FRONTEND_URLS=
+CORS_ORIGIN_REGEX=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ENVIRONMENT=development
 ```
+
+For Render + Vercel production, set:
+
+```env
+ENVIRONMENT=production
+FRONTEND_URL=https://your-vercel-domain.vercel.app
+FRONTEND_URLS=https://your-custom-domain.com,https://your-preview-domain.vercel.app
+SECRET_KEY=a-long-stable-random-value
+```
+
+The API issues an HTTP-only JWT cookie. Cross-site Vercel-to-Render requests require the frontend origin to be allowed by CORS and the cookie to be sent as `Secure; SameSite=None`. The API enables that automatically for HTTPS frontend origins, but keeping `ENVIRONMENT=production` explicit on Render is still recommended. Do not change `SECRET_KEY` after users log in unless you want all existing sessions to expire.
 
 ## Run
 
