@@ -1,60 +1,100 @@
-# SocialSphere: Real-Time Full-Stack Social Platform
+# SocialSphere
 
-A robust, feature-rich social media platform designed for real-time engagement and high-performance user interaction. Built with the **MERN** stack (MongoDB, Express, React, Node.js) and powered by **Socket.io** for seamless, low-latency communication.
+SocialSphere is a full-stack social media application rebuilt on a production-oriented Next.js and FastAPI foundation. The original MERN application is still present for reference in `social-media-frontend/` and `social-media-backend/`; active development now lives in `apps/`.
 
-## 🚀 Key Features
+## Current Stack
 
-### 💬 Real-Time Communication
-- **Engineered Messaging**: Individual and group chat support utilizing a modular socket handler architecture.
-- **Presence Tracking**: Real-time "Online/Offline" status synchronization across the platform.
-- **Engagement Indicators**: Cross-client typing indicators for enhanced conversational flow.
+| Layer | Technology |
+| --- | --- |
+| Web | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query |
+| API | Python 3.13, FastAPI, Uvicorn, Pydantic |
+| Realtime | Authenticated native WebSockets |
+| Database | MongoDB |
+| Media | Cloudinary |
+| Auth | JWT in httpOnly cookies |
 
-### 📱 Social Core
-- **Interactive Feed**: Dynamic content discovery with post likes, saves, and real-time updates.
-- **Relationship Management**: Robust follower/following ecosystem with instant notification mapping.
-- **Discovery**: Optimized user search functionality.
+## Features
 
-### 🛠 Technical Architecture
-- **State management**: Component-driven frontend utilizing React Context and custom hooks for persistent real-time states.
-- **Security**: JWT-based authentication with secure httpOnly cookie management.
-- **Media Optimization**: Integrated Cloudinary support for optimized image persistence and delivery.
-- **Scalability**: Decoupled frontend/backend architecture with modular event-driven socket logic.
+- Auth, signup, logout, protected sessions, edit profile, and separate password change.
+- Cursor-paginated feed with Instagram-style infinite loading.
+- Cloudinary image upload and optimized Next image rendering.
+- Likes, saved posts, persisted comments, post deletion, and post liker lists.
+- User search, public profiles, followers/following views, and follow/unfollow.
+- Direct chats, group chats, optional group names, group rename, unread counts, read marks, typing, presence, and resilient WebSocket reconnects.
+- Responsive layouts for feed, profile, search, settings, upload, and chat.
+- Seed script for repeatable local dummy data.
 
-## 💻 Tech Stack
+## Project Structure
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React 18, Vite, Material UI (MUI), Socket.io-client |
-| **Backend** | Node.js, Express, Socket.io, JWT |
-| **Database** | MongoDB, Mongoose |
-| **Cloud** | Cloudinary (Media), Render/Vercel (Deployment) |
+```text
+apps/
+  api/      FastAPI backend
+  web/      Next.js frontend
+  README.md
+  docker-compose.yml
 
-## 🏗 Project Structure
-
-```bash
-├── social-media-backend/    # Node.js/Express server & Socket.io handlers
-└── social-media-frontend/   # React/Vite client application
+social-media-backend/    Original Express backend reference
+social-media-frontend/   Original React/Vite frontend reference
 ```
 
-## ⚙️ Installation & Setup
+## Local Development
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Nikhil7529/social-media.git
-   cd social-media
-   ```
+### API
 
-2. **Backend Configuration**
-   - Navigate to `social-media-backend/`
-   - Install dependencies: `npm install`
-   - Create a `config.env` based on the environment section in the backend directory.
-   - Run: `npm run dev`
+```bash
+cd apps/api
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --reload --port 8000
+```
 
-3. **Frontend Configuration**
-   - Navigate to `social-media-frontend/`
-   - Install dependencies: `npm install`
-   - Create a `.env` file with `VITE_BACKEND_URL`.
-   - Run: `npm run dev`
+### Web
 
----
-*Developed by [Nikhil Gupta](https://github.com/Nikhil7529)*
+```bash
+cd apps/web
+npm install
+copy .env.example .env.local
+npm run dev
+```
+
+The web app runs at `http://localhost:3000` and expects the API at `http://localhost:8000`.
+
+## Seed Data
+
+```bash
+cd apps/api
+.venv\Scripts\activate
+python scripts/seed.py
+```
+
+Seeded accounts use the password `password123`.
+
+## Docker
+
+From the repository root:
+
+```bash
+docker compose up --build
+```
+
+You can also run the compose file from `apps/`:
+
+```bash
+cd apps
+docker compose up --build
+```
+
+## Verification
+
+```bash
+cd apps/api
+python -m compileall app scripts
+
+cd ../web
+npm run typecheck
+npm run build
+```
+
+Developed by [Nikhil Gupta](https://github.com/Nikhil7529).
