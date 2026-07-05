@@ -27,8 +27,14 @@ function sortByRecentActivity(chats: Chat[]) {
 
 export function addGroupToChatList(queryClient: QueryClient, chat: Chat) {
   queryClient.setQueryData<ChatListCache>(queryKeys.chatList, (current) => {
-    if (!current || current.chats.some((item) => item.chatId === chat.chatId)) return current;
-    return { ...current, chats: [chat, ...current.chats] };
+    if (!current) return current;
+    if (current.chats.some((item) => item.chatId === chat.chatId)) {
+      return {
+        ...current,
+        chats: current.chats.map((item) => (item.chatId === chat.chatId ? { ...item, ...chat, group: true } : item)),
+      };
+    }
+    return { ...current, chats: [{ ...chat, group: true }, ...current.chats] };
   });
 }
 

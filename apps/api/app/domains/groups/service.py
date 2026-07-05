@@ -4,13 +4,17 @@ from pymongo import ReturnDocument
 from app.core.database import get_database
 from app.core.time import utc_now
 from app.core.validation import object_id_or_400
+from app.domains.chat.read_keys import read_receipt_key
 from app.schemas.common import serialize_doc
 
 
 async def create_group(name: str, users: list[str], current_user: dict) -> dict:
     db = get_database()
     creator = current_user["name"]
-    unique_users = list(dict.fromkeys([*users, creator]))
+    requested_users = [user.strip() for user in users if user.strip()]
+    existing_users = await db.users.find({"name": {"$in": requested_users}}, {"name": 1}).to_list(length=len(requested_users))
+    existing_names = [user["name"] for user in existing_users]
+    unique_users = list(dict.fromkeys([*existing_names, creator]))
     if len(unique_users) < 2:
         raise HTTPException(status_code=400, detail="At least one member is required")
 
@@ -19,7 +23,7 @@ async def create_group(name: str, users: list[str], current_user: dict) -> dict:
         "users": unique_users,
         "group": True,
         "messages": [],
-        "readBy": {creator: now},
+        "readBy": {read_receipt_key(user): now for user in unique_users},
         "lastMessage": {"message": "Created Group", "sender": creator, "createdAt": now},
         "createdAt": now,
         "updatedAt": now,
@@ -40,6 +44,8 @@ async def create_group(name: str, users: list[str], current_user: dict) -> dict:
         "creator": creator,
         "users": unique_users,
         "name": name.strip(),
+        "group": True,
+        "lastMessage": conversation["lastMessage"],
         "chatId": conversation["_id"],
         "createdAt": now,
         "updatedAt": now,
@@ -58,4 +64,5 @@ async def rename_group(chat_id_value: str, name: str, current_user: dict) -> dic
     )
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
+    group["group"] = True
     return {"status": 200, "message": "Group renamed", "group": serialize_doc(group)}

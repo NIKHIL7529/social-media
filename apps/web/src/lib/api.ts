@@ -18,6 +18,7 @@ type ApiOptions = RequestInit & {
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   let response: Response;
+  const csrfToken = typeof document !== "undefined" ? readCookie("csrf_token") : "";
 
   try {
     response = await fetch(`${API_URL}${path}`, {
@@ -25,6 +26,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
       credentials: "include",
       headers: {
         ...(options.body ? { "Content-Type": "application/json; charset=UTF-8" } : {}),
+        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
         ...options.headers,
       },
     });
@@ -48,6 +50,13 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   }
 
   return data as T;
+}
+
+function readCookie(name: string) {
+  const cookies = `; ${document.cookie}`;
+  const parts = cookies.split(`; ${name}=`);
+  if (parts.length < 2) return "";
+  return decodeURIComponent(parts.pop()?.split(";").shift() || "");
 }
 
 export function jsonPost<TResponse, TBody>(path: string, body: TBody): Promise<TResponse> {

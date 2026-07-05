@@ -30,11 +30,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(user_id: ObjectId, name: str) -> str:
+def create_access_token(user_id: ObjectId, name: str, session_version: int = 1) -> str:
     settings = get_settings()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=60)
     return jwt.encode(
-        {"id": str(user_id), "name": name, "exp": expires_at},
+        {"id": str(user_id), "name": name, "sessionVersion": session_version, "exp": expires_at},
         settings.secret_key,
         algorithm="HS256",
     )
@@ -51,6 +51,7 @@ async def get_current_user(token: Annotated[str | None, Cookie()] = None) -> dic
     try:
         payload = jwt.decode(token, get_settings().secret_key, algorithms=["HS256"])
         user_id = payload.get("id")
+        session_version = payload.get("sessionVersion", 1)
         if not user_id or not ObjectId.is_valid(user_id):
             raise credentials_error
     except JWTError as exc:
@@ -58,6 +59,8 @@ async def get_current_user(token: Annotated[str | None, Cookie()] = None) -> dic
 
     user = await get_database().users.find_one({"_id": ObjectId(user_id)})
     if not user:
+        raise credentials_error
+    if user.get("sessionVersion", 1) != session_version:
         raise credentials_error
     return user
 

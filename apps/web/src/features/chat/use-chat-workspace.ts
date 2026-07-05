@@ -1,7 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -11,29 +10,22 @@ import type { Chat } from "@/types/social";
 import {
   addGroupToChatList,
   appendMessageToChat,
-  markChatReadInList,
-  prependMessagesToChat,
   renameGroupInChatList,
   upsertChatPreview,
 } from "@/features/chat/chat-cache";
 import { chatService } from "@/features/chat/chat-service";
+import { useChatMessages } from "@/features/chat/use-chat-messages";
+import { useChatPresence } from "@/features/chat/use-chat-presence";
 import { useChatRealtime } from "@/features/chat/use-chat-realtime";
-import { useMessageScroll } from "@/features/chat/use-message-scroll";
+import { useChatSelection } from "@/features/chat/use-chat-selection";
 
 export function useChatWorkspace() {
   const queryClient = useQueryClient();
-  const params = useParams<{ id?: string }>();
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: user } = useCurrentUser();
-  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
-  const [olderCursor, setOlderCursor] = useState<string | null>(null);
   const [showGroupForm, setShowGroupForm] = useState(false);
   const [renamingGroup, setRenamingGroup] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState("");
-  const [onlineUsers, setOnlineUsers] = useState<Array<{ user: string }>>([]);
-  const [typingUsers, setTypingUsers] = useState<Record<string, Record<string, boolean>>>({});
 
   const chatsQuery = useQuery({
     queryKey: queryKeys.chatList,
@@ -41,46 +33,16 @@ export function useChatWorkspace() {
     enabled: Boolean(user),
   });
   const chats = chatsQuery.data?.chats || [];
-  const draftRecipient = params.id === "new" ? searchParams.get("user") : null;
-  const draftChat = useMemo<Chat | null>(() => (draftRecipient ? { chatId: "new", users: [draftRecipient], group: false } : null), [draftRecipient]);
-  const activeChat = useMemo(
-    () => draftChat || chats.find((chat) => chat.chatId === activeChatId) || null,
-    [activeChatId, chats, draftChat],
-  );
-  const resolvedActiveChatId = activeChat && activeChat.chatId !== "new" ? activeChat.chatId : null;
-
-  useEffect(() => {
-    if (params.id && params.id !== "new") {
-      setActiveChatId(params.id);
-      return;
-    }
-    setActiveChatId(null);
-  }, [params.id]);
-
-  const messagesQuery = useQuery({
-    queryKey: queryKeys.chatMessages(resolvedActiveChatId),
-    queryFn: () => chatService.getMessages(resolvedActiveChatId as string),
-    enabled: Boolean(resolvedActiveChatId),
-  });
-  const messages = messagesQuery.data?.messages.messages || [];
-  const messageListRef = useMessageScroll({ dependency: `${resolvedActiveChatId || ""}:${messages.length}` });
-
-  const isChatOnline = (chat: Chat) => chat.users.some((chatUser) => onlineUsers.some((online) => online.user === chatUser));
+  const { activeChat, backToChatList, replaceDraftWithChat, resolvedActiveChatId, selectChat, setActiveChatId } = useChatSelection(chats);
+  const presence = useChatPresence(user?.name);
+  const chatMessages = useChatMessages(resolvedActiveChatId);
 
   const realtime = useChatRealtime({
     enabled: Boolean(user),
     activeChatId: resolvedActiveChatId,
-    onOnlineUsers: setOnlineUsers,
+    onOnlineUsers: presence.setOnlineUsers,
     onGroup: (chat) => addGroupToChatList(queryClient, chat),
-    onTyping: ({ chatId, user: typingUser, isTyping }) => {
-      if (typingUser === user?.name) return;
-      setTypingUsers((current) => {
-        const chatTyping = { ...(current[chatId] || {}) };
-        if (isTyping) chatTyping[typingUser] = true;
-        else delete chatTyping[typingUser];
-        return { ...current, [chatId]: chatTyping };
-      });
-    },
+    onTyping: presence.applyTyping,
     onMessage: (message) => {
       const isActiveChat = message.chatId === resolvedActiveChatId;
       if (isActiveChat) {
@@ -96,12 +58,6 @@ export function useChatWorkspace() {
       });
     },
   });
-
-  useEffect(() => {
-    if (!resolvedActiveChatId || !messages.length) return;
-    chatService.markRead(resolvedActiveChatId).catch(() => undefined);
-    markChatReadInList(queryClient, resolvedActiveChatId);
-  }, [messages.length, queryClient, resolvedActiveChatId]);
 
   const sendMutation = useMutation({
     mutationFn: () =>
@@ -125,7 +81,7 @@ export function useChatWorkspace() {
         });
         setActiveChatId(nextChatId);
         queryClient.invalidateQueries({ queryKey: queryKeys.chatList });
-        if (!resolvedActiveChatId) router.replace(`/chat/${nextChatId}`);
+        if (!resolvedActiveChatId) replaceDraftWithChat(nextChatId);
       }
       setDraft("");
       if (nextChatId) realtime.send({ type: "typing", chatId: nextChatId, isTyping: false });
@@ -137,6 +93,7 @@ export function useChatWorkspace() {
     mutationFn: () => chatService.renameGroup({ chatId: resolvedActiveChatId || "", name: groupNameDraft }),
     onSuccess: (data) => {
       renameGroupInChatList(queryClient, data.group);
+      realtime.send({ type: "group", users: data.group.users, chat: data.group });
       setRenamingGroup(false);
       toast.success("Group updated");
     },
@@ -153,25 +110,10 @@ export function useChatWorkspace() {
     sendMutation.mutate();
   }
 
-  async function loadOlder() {
-    if (!resolvedActiveChatId || !messagesQuery.data?.pagination.hasMore) return;
-    try {
-      const page = await chatService.getMessages(resolvedActiveChatId, {
-        before: olderCursor || messagesQuery.data.pagination.nextCursor,
-        limit: 50,
-      });
-      setOlderCursor(page.pagination.nextCursor);
-      prependMessagesToChat(queryClient, resolvedActiveChatId, page, messages);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not load older messages");
-    }
-  }
-
-  function selectChat(chatId: string) {
-    setActiveChatId(chatId);
-    setOlderCursor(null);
-    router.push(`/chat/${chatId}`);
-  }
+  const chooseChat = (chatId: string) => {
+    chatMessages.resetPagination();
+    selectChat(chatId);
+  };
 
   function updateDraft(value: string) {
     setDraft(value);
@@ -204,26 +146,26 @@ export function useChatWorkspace() {
     chatsQuery,
     draft,
     groupNameDraft,
-    isChatOnline,
-    loadOlder,
-    messageListRef,
-    messages,
-    messagesQuery,
+    isChatOnline: presence.isChatOnline,
+    loadOlder: chatMessages.loadOlder,
+    messageListRef: chatMessages.messageListRef,
+    messages: chatMessages.messages,
+    messagesQuery: chatMessages.messagesQuery,
     notifyGroupCreated,
     realtimeStatus: realtime.status,
     renameGroup,
     renamingGroup,
-    selectChat,
+    selectChat: chooseChat,
     send,
     sendPending: sendMutation.isPending,
     showGroupForm,
     stopTyping,
     toggleGroupForm: () => setShowGroupForm((value) => !value),
     toggleRenameGroup,
-    typingUsers,
+    typingUsers: presence.typingUsers,
     updateDraft,
     updateGroupNameDraft: setGroupNameDraft,
     user,
-    backToChatList: () => router.push("/chat"),
+    backToChatList,
   };
 }

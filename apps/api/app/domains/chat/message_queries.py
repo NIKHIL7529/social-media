@@ -5,7 +5,7 @@ from fastapi import HTTPException
 
 from app.core.database import get_database
 from app.schemas.common import serialize_doc
-from app.services.conversation_service import get_conversation_for_user
+from app.domains.chat.identity import get_conversation_for_user
 
 
 async def list_messages(conversation_id: str, before: str | None, limit: int, current_user: dict) -> dict:

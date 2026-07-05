@@ -8,7 +8,7 @@ const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
   ["second", 1],
 ];
 
-const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
 const localDateTimeFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
   timeStyle: "short",

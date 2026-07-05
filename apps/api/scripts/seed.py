@@ -30,6 +30,7 @@ def main() -> None:
     db.messages.delete_many({"seed": True})
     db.groups.delete_many({"seed": True})
     db.chatmessages.delete_many({"seed": True})
+    db.notifications.delete_many({"seed": True})
 
     users = [
         {
@@ -48,6 +49,7 @@ def main() -> None:
             "followings": ["ananya", "rahul"],
             "saved": [],
             "liked": [],
+            "sessionVersion": 1,
             "createdAt": now,
             "updatedAt": now,
         },
@@ -67,6 +69,7 @@ def main() -> None:
             "followings": ["nikhil"],
             "saved": [],
             "liked": [],
+            "sessionVersion": 1,
             "createdAt": now,
             "updatedAt": now,
         },
@@ -86,6 +89,7 @@ def main() -> None:
             "followings": ["nikhil"],
             "saved": [],
             "liked": [],
+            "sessionVersion": 1,
             "createdAt": now,
             "updatedAt": now,
         },

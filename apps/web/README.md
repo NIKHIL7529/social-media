@@ -11,6 +11,7 @@ Next.js App Router replacement for the original Vite frontend. Targets Node `24.
 - Followers/following dialogs.
 - Post likes, saves, delete, share, liked-by lists, and persisted comments.
 - Saved posts page.
+- Notifications page for likes, comments, follows, and messages.
 - Realtime chat with direct messages, groups, unread counts, typing, and online presence.
 - Mobile-aware shell with bottom navigation and independent chat scrolling.
 
@@ -18,11 +19,13 @@ Next.js App Router replacement for the original Vite frontend. Targets Node `24.
 
 ```bash
 src/app/       # Next.js routes
-src/components # shared shell/layout components
-src/features/  # auth, chat, feed, users
+src/components # shared shell/layout/form/media components
+src/features/  # auth, chat, feed, notifications, users, shared social cache utilities
 src/lib/       # API client, Cloudinary loader, utilities
 src/types/     # shared TypeScript models
 ```
+
+Feature folders own their service calls, hooks, cache rules, and presentational components for that feature. Shared cache mechanics live under `features/social/cache-utils.ts`, while domain actions such as post reactions and follow state stay in `features/feed` and `features/users`. Route files should stay thin and compose feature hooks/components.
 
 ## Environment
 

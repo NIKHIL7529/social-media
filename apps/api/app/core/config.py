@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     mongodb_dns_nameservers: str = "1.1.1.1,8.8.8.8"
     mongodb_server_selection_timeout_ms: int = 10000
     mongodb_connect_timeout_ms: int = 5000
+    rate_limit_window_seconds: int = 60
+    rate_limit_max_requests: int = 120
+    auth_rate_limit_max_requests: int = 20
 
     model_config = SettingsConfigDict(
         env_file=".env",

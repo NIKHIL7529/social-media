@@ -1,38 +1,20 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
 
 from app.core.security import get_current_user
-from app.services.conversation_service import (
-    MAX_PAGE_SIZE,
+from app.domains.chat import (
+    DirectConversationPayload,
     get_direct_conversation,
     list_chats,
     list_followings,
+    list_messages,
+    MarkReadPayload,
+    MessagesPayload,
     mark_read as mark_read_service,
+    SendMessagePayload,
     send_message as send_message_service,
 )
-from app.services.message_query_service import list_messages
 
 router = APIRouter()
-
-
-class SendMessagePayload(BaseModel):
-    receiver: list[str] = Field(default_factory=list)
-    msg: str = ""
-    id: str | None = Field(default=None, alias="_id")
-
-
-class MessagesPayload(BaseModel):
-    id: str = Field(alias="_id")
-    before: str | None = None
-    limit: int = Field(default=50, ge=1, le=MAX_PAGE_SIZE)
-
-
-class MarkReadPayload(BaseModel):
-    id: str = Field(alias="_id")
-
-
-class DirectConversationPayload(BaseModel):
-    userName: str
 
 
 @router.get("/allChats")

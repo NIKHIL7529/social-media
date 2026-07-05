@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-import { Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
@@ -9,7 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/app-shell";
 import { TextAreaField, TextField } from "@/components/form-controls";
-import { fileToDataUrl } from "@/lib/file-to-data-url";
+import { ImageUploadField } from "@/components/image-upload-field";
+import { addPostToCaches } from "@/features/feed/post-cache";
 import { postService } from "@/features/feed/post-service";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -24,7 +23,7 @@ export default function AddPostPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     try {
-      await toast.promise(
+      const result = await toast.promise(
         postService.create({ topic, text, photo, commentable }),
         {
           loading: "Publishing...",
@@ -32,6 +31,7 @@ export default function AddPostPage() {
           error: (error) => error.message || "Could not publish",
         },
       );
+      addPostToCaches(queryClient, result.post);
       queryClient.invalidateQueries({ queryKey: queryKeys.feed });
       queryClient.invalidateQueries({ queryKey: queryKeys.profilePosts });
       router.push("/posts");
@@ -48,49 +48,16 @@ export default function AddPostPage() {
           className="rounded-lg border border-line bg-white p-5 shadow-card"
         >
           <h1 className="text-2xl font-extrabold text-ink">New post</h1>
-          <label className="mt-5 block cursor-pointer overflow-hidden rounded-lg border border-dashed border-line bg-slate-50">
-            <input
+          <div className="mt-5">
+            <ImageUploadField
+              label="Post preview"
+              emptyText="Select photo from device"
+              helperText="Image uploads support up to 10MB"
+              preview={photo}
+              onChange={setPhoto}
               required
-              type="file"
-              accept="image/*"
-              onChange={async (event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                try {
-                  setPhoto(await fileToDataUrl(file));
-                } catch (error) {
-                  event.currentTarget.value = "";
-                  toast.error(
-                    error instanceof Error
-                      ? error.message
-                      : "Could not read image",
-                  );
-                }
-              }}
-              className="sr-only"
             />
-            <div className="relative grid aspect-[4/3] place-items-center">
-              {photo ? (
-                <Image
-                  src={photo}
-                  alt="Post preview"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-3 text-ink-muted">
-                  <span className="grid size-14 place-items-center rounded-full bg-white text-accent-deep shadow-soft">
-                    <Camera />
-                  </span>
-                  <span className="font-bold">Select photo from device</span>
-                  <span className="text-sm">
-                    Image uploads support up to 10MB
-                  </span>
-                </div>
-              )}
-            </div>
-          </label>
+          </div>
           <div className="mt-5">
             <TextField label="Topic" value={topic} onChange={setTopic} />
           </div>

@@ -15,3 +15,5 @@ async def ensure_indexes() -> None:
     await db.messages.create_index("participantKey", unique=True, sparse=True)
     await db.groups.create_index([("users", 1), ("updatedAt", -1)])
     await db.chatmessages.create_index([("conversation", 1), ("createdAt", -1)])
+    await db.chatmessages.create_index([("conversation", 1), ("sender", 1), ("type", 1), ("createdAt", -1)])
+    await db.notifications.create_index([("recipient", 1), ("read", 1), ("createdAt", -1)])

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bookmark, Home, LogIn, LogOut, MessageCircle, PlusCircle, Search, Settings, UserRound } from "lucide-react";
+import { Bell, Bookmark, Home, LogIn, LogOut, MessageCircle, PlusCircle, Search, Settings, UserRound } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { authService } from "@/features/auth/auth-service";
@@ -13,6 +13,7 @@ const links = [
   { href: "/posts", label: "Home", icon: Home },
   { href: "/search", label: "Search", icon: Search },
   { href: "/chat", label: "Messages", icon: MessageCircle },
+  { href: "/notifications", label: "Alerts", icon: Bell },
   { href: "/profile", label: "Profile", icon: UserRound },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -83,7 +84,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </header>
 
-      <aside className="fixed bottom-0 left-0 z-20 grid h-[var(--bottom-nav-height)] w-full grid-cols-5 border-t border-line bg-white lg:top-[var(--nav-height)] lg:h-[calc(100vh-var(--nav-height))] lg:w-[var(--sidebar-width)] lg:grid-cols-1 lg:content-start lg:border-r lg:border-t-0 lg:px-3 lg:py-5">
+      <aside className="fixed bottom-0 left-0 z-20 grid h-[var(--bottom-nav-height)] w-full grid-cols-6 border-t border-line bg-white lg:top-[var(--nav-height)] lg:h-[calc(100vh-var(--nav-height))] lg:w-[var(--sidebar-width)] lg:grid-cols-1 lg:content-start lg:border-r lg:border-t-0 lg:px-3 lg:py-5">
         {links.map(({ href, label, icon: Icon }) => {
           const active = pathname === href;
           return (

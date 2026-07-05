@@ -9,8 +9,9 @@ import { useCurrentUser } from "@/components/app-shell";
 import { ApiError } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { Post, PostComment } from "@/types/social";
-import { applyFollow, applyPostLike, applyPostSave, removePostFromCaches } from "@/features/social/social-cache";
+import { applyPostComment, applyPostLike, applyPostSave, applyPostShare, removePostFromCaches } from "@/features/feed/post-cache";
 import { postService } from "@/features/feed/post-service";
+import { applyFollow } from "@/features/users/follow-cache";
 
 export function usePostCardActions(post: Post) {
   const router = useRouter();
@@ -86,8 +87,11 @@ export function usePostCardActions(post: Post) {
     mutationFn: () => postService.comment(post._id, comment.trim()),
     onSuccess: (data) => {
       setComments((items) => [...items, data.comment]);
+      queryClient.setQueryData<{ status: number; comments: PostComment[] }>(queryKeys.postComments(post._id), (current) =>
+        current ? { ...current, comments: [...current.comments, data.comment] } : current,
+      );
       setComment("");
-      queryClient.invalidateQueries({ queryKey: queryKeys.postComments(post._id) });
+      applyPostComment(queryClient, post._id, data.commentCount);
     },
     onError: handleMutationError,
   });
@@ -115,7 +119,9 @@ export function usePostCardActions(post: Post) {
   async function sharePost() {
     const url = window.location.href;
     try {
-      postService.share(post._id).catch(() => undefined);
+      postService.share(post._id)
+        .then((data) => applyPostShare(queryClient, post._id, data.share))
+        .catch(() => undefined);
       if (navigator.share) {
         await navigator.share({ title: post.topic || "SocialSphere post", text: post.text || "View this post", url });
       } else {

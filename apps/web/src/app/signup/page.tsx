@@ -6,8 +6,8 @@ import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
 import { SelectField, TextAreaField, TextField } from "@/components/form-controls";
+import { ImageUploadField } from "@/components/image-upload-field";
 import { jsonPost } from "@/lib/api";
-import { fileToDataUrl } from "@/lib/file-to-data-url";
 
 const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
 
@@ -60,19 +60,15 @@ export default function SignupPage() {
         <div className="mt-4">
           <TextAreaField label="Description" value={form.description} onChange={(description) => setForm({ ...form, description })} />
         </div>
-        <label className="mt-4 block text-sm font-bold text-ink">
-          Profile photo
-          <input type="file" accept="image/*" onChange={async (event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            try {
-              setForm({ ...form, photo: await fileToDataUrl(file) });
-            } catch (error) {
-              event.currentTarget.value = "";
-              toast.error(error instanceof Error ? error.message : "Could not read image");
-            }
-          }} className="mt-2 block w-full text-sm" />
-        </label>
+        <div className="mt-4">
+          <ImageUploadField
+            label="Profile preview"
+            emptyText="Choose profile photo"
+            aspectClass="aspect-[16/9]"
+            preview={form.photo}
+            onChange={(photo) => setForm({ ...form, photo })}
+          />
+        </div>
         <button className="mt-6 min-h-11 w-full rounded-md bg-accent font-bold text-white">Signup</button>
         <p className="mt-4 text-center text-sm text-ink-muted">
           Already have an account? <Link className="font-bold text-accent-deep" href="/login">Login</Link>

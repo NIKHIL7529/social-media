@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import { queryKeys } from "@/lib/query-keys";
-import type { User } from "@/types/social";
 import { authService } from "@/features/auth/auth-service";
+import { clearSessionCaches } from "@/features/auth/session-cache";
 
 export function useLogout() {
   const router = useRouter();
@@ -22,7 +21,7 @@ export function useLogout() {
     } catch {
       // Logout should still clear local state if the API is unavailable.
     } finally {
-      queryClient.setQueryData<User | null>(queryKeys.authProfile, null);
+      clearSessionCaches(queryClient);
       router.push("/login");
     }
   };

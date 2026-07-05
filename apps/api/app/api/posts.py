@@ -1,44 +1,26 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
 
 from app.core.security import get_current_user
-from app.services.post_service import (
+from app.domains.posts import (
+    AddPostPayload,
+    CommentPayload,
     create_comment,
     create_post,
     delete_post as delete_post_service,
+    FeedPayload,
     list_comments,
     list_feed,
     list_liked_by,
     list_posts_for_user,
     list_saved_posts,
     list_signed_user_posts,
+    PostIdPayload,
     share_post,
     toggle_liked,
     toggle_saved,
 )
 
 router = APIRouter()
-
-
-class FeedPayload(BaseModel):
-    cursor: str | None = None
-    limit: int = Field(default=10, ge=1, le=25)
-
-
-class AddPostPayload(BaseModel):
-    topic: str = ""
-    text: str = ""
-    photo: str
-    commentable: bool = True
-
-
-class PostIdPayload(BaseModel):
-    id: str = Field(alias="_id")
-
-
-class CommentPayload(BaseModel):
-    id: str = Field(alias="_id")
-    comment: str = Field(min_length=1, max_length=1000)
 
 
 @router.post("")

@@ -42,8 +42,16 @@ Production-oriented SocialSphere app built with Next.js, TypeScript, TailwindCSS
 
 ```bash
 apps/
-  api/   # FastAPI service, routers, realtime manager, seed script
+  api/   # FastAPI service
+    app/api/      # HTTP/WebSocket routers
+    app/core/     # shared infrastructure
+    app/domains/  # posts, users, chat, groups, media modules
+    scripts/      # seed and maintenance scripts
   web/   # Next.js App Router client
+    src/app/       # routes
+    src/components # shared UI controls
+    src/features/  # feature modules
+    src/lib/       # API/query/time utilities
 ```
 
 ## Local Setup

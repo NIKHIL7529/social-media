@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Response
-from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from app.core.csrf import delete_csrf_cookie, set_csrf_cookie
 from app.core.security import (
     auth_cookie_options,
     create_access_token,
@@ -8,78 +8,27 @@ from app.core.security import (
     get_optional_user,
     serialize_auth_user,
 )
-from app.services.user_service import (
+from app.domains.users import (
     authenticate_user,
+    ChangePasswordPayload,
     create_user,
+    EditProfilePayload,
+    FollowPayload,
     get_user_by_id,
     get_user_by_name,
     list_users,
-    normalize_username,
+    LoginPayload,
+    SearchPayload,
     search_users,
+    SignupPayload,
     toggle_follow,
     update_password,
     update_profile,
+    UserLookupPayload,
+    UserNameLookupPayload,
 )
 
 router = APIRouter()
-
-
-class SignupPayload(BaseModel):
-    username: str = Field(min_length=3, max_length=30)
-    email: EmailStr
-    dob: str
-    gender: str
-    password: str = Field(min_length=8)
-    city: str = ""
-    country: str = ""
-    description: str = ""
-    photo: str = ""
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, value: str) -> str:
-        return normalize_username(value)
-
-
-class EditProfilePayload(BaseModel):
-    username: str = Field(min_length=3, max_length=30)
-    dob: str
-    gender: str
-    city: str = ""
-    country: str = ""
-    description: str = ""
-    photo: str = ""
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, value: str) -> str:
-        return normalize_username(value)
-
-
-class ChangePasswordPayload(BaseModel):
-    currentPassword: str = Field(min_length=1)
-    newPassword: str = Field(min_length=8)
-
-
-class LoginPayload(BaseModel):
-    name: str
-    password: str
-
-
-class SearchPayload(BaseModel):
-    name: str = ""
-
-
-class UserLookupPayload(BaseModel):
-    id: str | None = Field(default=None, alias="_id")
-
-
-class UserNameLookupPayload(BaseModel):
-    name: str
-
-
-class FollowPayload(BaseModel):
-    userName: str
 
 
 @router.get("/")
@@ -95,14 +44,28 @@ async def signup(payload: SignupPayload) -> dict:
 @router.post("/login")
 async def login(payload: LoginPayload, request: Request, response: Response) -> dict:
     user = await authenticate_user(payload.name, payload.password)
-    response.set_cookie("token", create_access_token(user["_id"], user["name"]), **auth_cookie_options(request))
+    response.set_cookie(
+        "token",
+        create_access_token(user["_id"], user["name"], user.get("sessionVersion", 1)),
+        **auth_cookie_options(request),
+    )
+    set_csrf_cookie(request, response)
     return {"status": 200, "message": "Login successful", "user": serialize_auth_user(user)}
 
 
-@router.get("/logout")
-async def logout(request: Request, response: Response) -> dict:
+@router.post("/logout")
+async def logout(
+    request: Request,
+    response: Response,
+    current_user: dict | None = Depends(get_optional_user),
+) -> dict:
+    if current_user:
+        from app.core.database import get_database
+
+        await get_database().users.update_one({"_id": current_user["_id"]}, {"$inc": {"sessionVersion": 1}})
     cookie_options = auth_cookie_options(request)
     response.delete_cookie("token", path="/", secure=cookie_options["secure"], samesite=cookie_options["samesite"])
+    delete_csrf_cookie(request, response)
     return {"status": 200}
 
 
@@ -120,7 +83,11 @@ async def edit_profile(
 ) -> dict:
     user, username_changed = await update_profile(payload.model_dump(), current_user)
     if username_changed:
-        response.set_cookie("token", create_access_token(current_user["_id"], user["name"]), **auth_cookie_options(request))
+        response.set_cookie(
+            "token",
+            create_access_token(current_user["_id"], user["name"], user.get("sessionVersion", 1)),
+            **auth_cookie_options(request),
+        )
     return {"status": 200, "message": "User info changed", "user": serialize_auth_user(user)}
 
 

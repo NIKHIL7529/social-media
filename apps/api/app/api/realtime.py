@@ -3,9 +3,7 @@ import asyncio
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
 from app.schemas.common import serialize_doc
-from app.services.conversation_service import get_conversation_users
-from app.services.realtime import realtime_manager
-from app.services.realtime_auth import authenticate_socket
+from app.domains.chat import authenticate_socket, get_conversation_users, realtime_manager
 
 router = APIRouter()
 

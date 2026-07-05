@@ -24,7 +24,7 @@ export const postService = {
   getComments: (postId: string) =>
     jsonPost<{ status: number; comments: PostComment[] }, { _id: string }>("/api/post/comments", { _id: postId }),
   comment: (postId: string, comment: string) =>
-    jsonPost<{ status: number; comment: PostComment }, { _id: string; comment: string }>("/api/post/comment", {
+    jsonPost<{ status: number; comment: PostComment; commentCount: number }, { _id: string; comment: string }>("/api/post/comment", {
       _id: postId,
       comment,
     }),

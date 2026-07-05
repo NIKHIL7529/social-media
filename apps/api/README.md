@@ -4,24 +4,43 @@ FastAPI replacement for the original Express backend. Targets Python `3.13.1`.
 
 ## Features
 
-- JWT authentication using secure HTTP-only cookies.
+- JWT authentication using secure HTTP-only cookies, CSRF tokens, and session-version invalidation.
+- Basic API rate limiting with tighter login/signup limits.
 - MongoDB persistence with Motor/PyMongo.
-- Cloudinary image uploads.
+- Cloudinary image uploads with size/type validation and best-effort cleanup.
 - Feed, posts, users, followers, saved posts, likes, liked-by, and persisted comments.
 - Direct and group chat REST contracts.
 - Authenticated WebSocket realtime layer for live messages, typing, and presence.
+- Persisted notifications for likes, comments, follows, and messages.
 - Graceful database-unavailable responses for local development.
 - Seed script for dummy users, posts, and chats.
 
 ## Key Directories
 
 ```bash
-app/api/       # FastAPI routers
-app/core/      # config, database, security
-app/services/  # Cloudinary and realtime services
+app/api/       # FastAPI routers; HTTP/WebSocket boundary only
+app/core/      # config, database, security, validation, time
+app/domains/   # business modules grouped by domain
+app/models/    # database indexes and model setup
 app/schemas/   # serialization helpers
 scripts/       # seed and maintenance scripts
 ```
+
+## Domain Modules
+
+The API is organized by business capability instead of one flat service layer.
+
+```bash
+app/domains/
+  chat/     # identity, direct chat, listing, message commands/queries, read state, realtime
+  groups/   # group creation and rename rules
+  media/    # Cloudinary integration
+  notifications/ # persisted notification commands/queries
+  posts/    # post lifecycle, comments, reactions/share, request schemas
+  users/    # account/profile, public queries, follow graph, username rules, request schemas
+```
+
+Routers import each domain through its package boundary, for example `app.domains.posts`, not by reaching into unrelated modules. Keep new business behavior in its domain folder, put request DTOs in that domain's `schemas.py`, keep reusable policy in small rules/constants modules, and keep `app/api` handlers thin.
 
 ## Environment
 
@@ -37,6 +56,9 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ENVIRONMENT=development
+RATE_LIMIT_WINDOW_SECONDS=60
+RATE_LIMIT_MAX_REQUESTS=120
+AUTH_RATE_LIMIT_MAX_REQUESTS=20
 ```
 
 For Render + Vercel production, set:
@@ -50,6 +72,8 @@ SECRET_KEY=a-long-stable-random-value
 
 The API issues an HTTP-only JWT cookie. Cross-site Vercel-to-Render requests require the frontend origin to be allowed by CORS and the cookie to be sent as `Secure; SameSite=None`. The API enables that automatically for HTTPS frontend origins, but keeping `ENVIRONMENT=production` explicit on Render is still recommended. Do not change `SECRET_KEY` after users log in unless you want all existing sessions to expire.
 
+Realtime is intentionally single-instance and in-memory for this Mongo-only commit. When you later add Redis, the WebSocket manager can be swapped to a Pub/Sub adapter without changing the route contract.
+
 ## Run
 
 ```powershell
@@ -57,6 +81,13 @@ python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
+```
+
+## Checks
+
+```powershell
+python -m unittest discover tests
+python -m compileall app scripts
 ```
 
 ## Seed Data
@@ -71,6 +102,7 @@ python scripts\seed.py
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
 | `/api/user/login` | POST | Login and set auth cookie |
+| `/api/user/logout` | POST | Logout, invalidate session, and clear auth cookie |
 | `/api/user/profile` | GET | Current user profile |
 | `/api/user/search` | POST | Search users |
 | `/api/user/follow` | POST | Follow or unfollow |
@@ -83,4 +115,6 @@ python scripts\seed.py
 | `/api/message/markRead` | POST | Mark chat read |
 | `/api/group/createGroup` | POST | Create group |
 | `/api/group/renameGroup` | POST | Rename group |
+| `/api/notifications` | GET | List notifications |
+| `/api/notifications/read` | POST | Mark notifications read |
 | `/ws/chat` | WebSocket | Live messages, typing, presence |
