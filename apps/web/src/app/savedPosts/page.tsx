@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/app-shell";
 import { apiFetch } from "@/lib/api";
+import { queryKeys } from "@/lib/query-keys";
 import type { Post } from "@/types/social";
 import { PostCard } from "@/features/feed/post-card";
 import { FeedSkeleton } from "@/features/feed/feed-skeleton";
 
 export default function SavedPostsPage() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["saved-posts"],
+    queryKey: queryKeys.savedPosts,
     queryFn: () => apiFetch<{ status: number; post: Post[] }>("/api/post/savedPosts"),
   });
 

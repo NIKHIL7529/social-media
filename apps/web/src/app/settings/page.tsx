@@ -3,31 +3,14 @@
 import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, LogIn, LogOut, Shield, UserPlus, UserRound } from "lucide-react";
-import toast from "react-hot-toast";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { AppShell, useCurrentUser } from "@/components/app-shell";
-import { authService } from "@/features/auth/auth-service";
+import { useLogout } from "@/features/auth/use-logout";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
-
-  async function logout() {
-    try {
-      await toast.promise(authService.logout(), {
-        loading: "Signing out...",
-        success: "Signed out",
-        error: "Signed out locally",
-      });
-    } catch {
-      // Logout should still clear local state if the API is unavailable.
-    } finally {
-      queryClient.setQueryData(["auth", "profile"], null);
-      router.push("/login");
-    }
-  }
+  const logout = useLogout();
 
   return (
     <AppShell>

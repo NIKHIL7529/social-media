@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 
 import { authService } from "@/features/auth/auth-service";
+import { queryKeys } from "@/lib/query-keys";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function LoginPage() {
         success: "Welcome back",
         error: (error) => error.message || "Incorrect credentials",
       });
-      queryClient.setQueryData(["auth", "profile"], data.user);
+      queryClient.setQueryData(queryKeys.authProfile, data.user);
       router.push("/posts");
     } catch {
       // toast.promise already renders the actionable error.

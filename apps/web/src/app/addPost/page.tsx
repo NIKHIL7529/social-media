@@ -8,8 +8,10 @@ import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/app-shell";
+import { TextAreaField, TextField } from "@/components/form-controls";
 import { fileToDataUrl } from "@/lib/file-to-data-url";
 import { postService } from "@/features/feed/post-service";
+import { queryKeys } from "@/lib/query-keys";
 
 export default function AddPostPage() {
   const router = useRouter();
@@ -30,8 +32,8 @@ export default function AddPostPage() {
           error: (error) => error.message || "Could not publish",
         },
       );
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
-      queryClient.invalidateQueries({ queryKey: ["profile", "posts"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.feed });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profilePosts });
       router.push("/posts");
     } catch {
       // toast.promise already renders the actionable error.
@@ -89,22 +91,12 @@ export default function AddPostPage() {
               )}
             </div>
           </label>
-          <label className="mt-5 block text-sm font-bold text-ink">
-            Topic
-            <input
-              value={topic}
-              onChange={(event) => setTopic(event.target.value)}
-              className="mt-2 min-h-11 w-full rounded-md border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
-            />
-          </label>
-          <label className="mt-4 block text-sm font-bold text-ink">
-            Text
-            <textarea
-              value={text}
-              onChange={(event) => setText(event.target.value)}
-              className="mt-2 min-h-32 w-full rounded-md border border-line px-3 py-2 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
-            />
-          </label>
+          <div className="mt-5">
+            <TextField label="Topic" value={topic} onChange={setTopic} />
+          </div>
+          <div className="mt-4 [&_textarea]:min-h-32">
+            <TextAreaField label="Text" value={text} onChange={setText} />
+          </div>
           <label className="mt-4 flex items-center gap-3 text-sm font-bold text-ink">
             <input
               type="checkbox"

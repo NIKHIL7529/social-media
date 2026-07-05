@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 
+import { SelectField, TextAreaField, TextField } from "@/components/form-controls";
 import { jsonPost } from "@/lib/api";
 import { fileToDataUrl } from "@/lib/file-to-data-url";
+
+const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -41,18 +44,22 @@ export default function SignupPage() {
       <form onSubmit={submit} className="w-full max-w-xl rounded-lg border border-line bg-white p-6 shadow-card">
         <h1 className="text-2xl font-extrabold text-ink">Create account</h1>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Field label="Username" value={form.username} onChange={(username) => setForm({ ...form, username: username.toLowerCase() })} required />
-          <Field label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} required />
-          <Field label="Password" type="password" value={form.password} onChange={(password) => setForm({ ...form, password })} required />
-          <Field label="Date of birth" type="date" value={form.dob} onChange={(dob) => setForm({ ...form, dob })} required />
-          <Field label="Gender" value={form.gender} onChange={(gender) => setForm({ ...form, gender })} required />
-          <Field label="City" value={form.city} onChange={(city) => setForm({ ...form, city })} />
-          <Field label="Country" value={form.country} onChange={(country) => setForm({ ...form, country })} />
+          <TextField label="Username" value={form.username} onChange={(username) => setForm({ ...form, username: username.toLowerCase() })} required />
+          <TextField label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} required />
+          <TextField label="Password" type="password" value={form.password} onChange={(password) => setForm({ ...form, password })} required />
+          <TextField label="Date of birth" type="date" value={form.dob} onChange={(dob) => setForm({ ...form, dob })} required />
+          <SelectField label="Gender" value={form.gender} onChange={(gender) => setForm({ ...form, gender })} required>
+            <option value="" disabled>Select gender</option>
+            {genderOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </SelectField>
+          <TextField label="City" value={form.city} onChange={(city) => setForm({ ...form, city })} />
+          <TextField label="Country" value={form.country} onChange={(country) => setForm({ ...form, country })} />
         </div>
-        <label className="mt-4 block text-sm font-bold text-ink">
-          Description
-          <textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="mt-2 min-h-24 w-full rounded-md border border-line px-3 py-2 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft" />
-        </label>
+        <div className="mt-4">
+          <TextAreaField label="Description" value={form.description} onChange={(description) => setForm({ ...form, description })} />
+        </div>
         <label className="mt-4 block text-sm font-bold text-ink">
           Profile photo
           <input type="file" accept="image/*" onChange={async (event) => {
@@ -72,26 +79,5 @@ export default function SignupPage() {
         </p>
       </form>
     </main>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  required,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block text-sm font-bold text-ink">
-      {label}
-      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} className="mt-2 min-h-11 w-full rounded-md border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft" />
-    </label>
   );
 }

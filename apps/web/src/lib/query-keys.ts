@@ -1,0 +1,15 @@
+export const queryKeys = {
+  authProfile: ["auth", "profile"] as const,
+  feed: ["feed"] as const,
+  profilePosts: ["profile", "posts"] as const,
+  savedPosts: ["saved-posts"] as const,
+  user: (id: string) => ["user", id] as const,
+  userByName: (name: string) => ["user", "name", name] as const,
+  userPosts: (id: string) => ["user", id, "posts"] as const,
+  postLikedBy: (postId: string) => ["post", postId, "likedBy"] as const,
+  postComments: (postId: string) => ["post", postId, "comments"] as const,
+  postRoot: (postId: string) => ["post", postId] as const,
+  chatList: ["chat", "list"] as const,
+  chatMessages: (chatId: string | null) => ["chat", "messages", chatId] as const,
+  chatFollowings: ["chat", "followings"] as const,
+};

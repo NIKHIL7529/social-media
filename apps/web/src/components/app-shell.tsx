@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Bookmark, Home, LogIn, LogOut, MessageCircle, PlusCircle, Search, Settings, UserRound } from "lucide-react";
-import toast from "react-hot-toast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { authService } from "@/features/auth/auth-service";
-import type { User } from "@/types/social";
+import { useLogout } from "@/features/auth/use-logout";
+import { queryKeys } from "@/lib/query-keys";
 
 const links = [
   { href: "/posts", label: "Home", icon: Home },
@@ -19,7 +19,7 @@ const links = [
 
 export function useCurrentUser() {
   return useQuery({
-    queryKey: ["auth", "profile"],
+    queryKey: queryKeys.authProfile,
     queryFn: async () => {
       try {
         const data = await authService.getProfile();
@@ -33,24 +33,8 @@ export function useCurrentUser() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
-
-  async function logout() {
-    try {
-      await toast.promise(authService.logout(), {
-        loading: "Signing out...",
-        success: "Signed out",
-        error: "Signed out locally",
-      });
-    } catch {
-      // Logout should still clear local state if the API is unavailable.
-    } finally {
-      queryClient.setQueryData<User | null>(["auth", "profile"], null);
-      router.push("/login");
-    }
-  }
+  const logout = useLogout();
 
   return (
     <>

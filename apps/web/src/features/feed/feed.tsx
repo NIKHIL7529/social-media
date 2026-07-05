@@ -6,6 +6,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Plus, RefreshCw } from "lucide-react";
 
 import { useCurrentUser } from "@/components/app-shell";
+import { queryKeys } from "@/lib/query-keys";
 import { PostCard } from "./post-card";
 import { postService } from "./post-service";
 import { FeedSkeleton } from "./feed-skeleton";
@@ -22,7 +23,7 @@ export function Feed() {
     isLoading,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["feed"],
+    queryKey: queryKeys.feed,
     initialPageParam: null as string | null,
     queryFn: ({ pageParam }) => postService.getFeed({ cursor: pageParam, limit: 10 }),
     getNextPageParam: (lastPage) => lastPage.pagination.nextCursor,

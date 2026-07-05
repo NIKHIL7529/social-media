@@ -1,37 +1,13 @@
-from bson import ObjectId
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
-from jose import JWTError, jwt
+import asyncio
 
-from app.core.config import get_settings
-from app.core.database import get_database
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
+
 from app.schemas.common import serialize_doc
+from app.services.conversation_service import get_conversation_users
 from app.services.realtime import realtime_manager
+from app.services.realtime_auth import authenticate_socket
 
 router = APIRouter()
-
-
-async def authenticate_socket(websocket: WebSocket) -> dict | None:
-    token = websocket.cookies.get("token")
-    if not token:
-        return None
-    try:
-        payload = jwt.decode(token, get_settings().secret_key, algorithms=["HS256"])
-        user_id = payload.get("id")
-        if not user_id or not ObjectId.is_valid(user_id):
-            return None
-    except JWTError:
-        return None
-    return await get_database().users.find_one({"_id": ObjectId(user_id)}, {"password": 0})
-
-
-async def get_conversation_users(chat_id: str, user_name: str) -> list[str]:
-    if not ObjectId.is_valid(chat_id):
-        return []
-    conversation = await get_database().messages.find_one(
-        {"_id": ObjectId(chat_id), "users": user_name},
-        {"users": 1},
-    )
-    return conversation.get("users", []) if conversation else []
 
 
 @router.websocket("/ws/chat")
@@ -52,7 +28,7 @@ async def chat_socket(websocket: WebSocket) -> None:
             chat_id = data.get("chatId")
 
             if event_type in {"message", "typing"}:
-                recipients = await get_conversation_users(chat_id, user_name)
+                recipients = await get_conversation_users(chat_id or "", user_name)
                 if not recipients:
                     continue
 
@@ -70,11 +46,9 @@ async def chat_socket(websocket: WebSocket) -> None:
                 users = data.get("users") or []
                 for recipient in users:
                     await realtime_manager.send_to_user(recipient, {**data, "sender": user_name})
-
     except (WebSocketDisconnect, asyncio.CancelledError):
         realtime_manager.disconnect(websocket)
         try:
             await realtime_manager.broadcast_online_users()
         except Exception:
             pass
-import asyncio

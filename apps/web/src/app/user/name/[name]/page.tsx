@@ -6,12 +6,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/app-shell";
 import { userService } from "@/features/users/user-service";
+import { queryKeys } from "@/lib/query-keys";
 
 export default function UserByNamePage() {
   const { name } = useParams<{ name: string }>();
   const router = useRouter();
   const userQuery = useQuery({
-    queryKey: ["user", "name", name],
+    queryKey: queryKeys.userByName(name),
     queryFn: () => userService.getByName(decodeURIComponent(name)),
     enabled: Boolean(name),
   });
