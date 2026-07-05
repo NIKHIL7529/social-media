@@ -71,8 +71,13 @@ async def get_optional_user(token: Annotated[str | None, Cookie()] = None) -> di
         return None
 
 
-def serialize_auth_user(user: dict) -> dict:
-    safe_user = {key: value for key, value in user.items() if key != "password"}
+def serialize_auth_user(user: dict, include_email: bool = True) -> dict:
+    blocked = {"password"}
+    if not include_email:
+        blocked.add("email")
+    safe_user = {key: value for key, value in user.items() if key not in blocked}
+    if "username" not in safe_user and safe_user.get("name"):
+        safe_user["username"] = safe_user["name"]
     return serialize_doc(safe_user)
 
 

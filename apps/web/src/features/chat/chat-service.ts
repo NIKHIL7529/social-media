@@ -34,8 +34,8 @@ export const chatService = {
     jsonPost<{ status: number; message: string }, { _id: string }>("/api/message/markRead", {
       _id: conversationId,
     }),
-  getOrCreateDirect: (userName: string) =>
-    jsonPost<{ status: number; chat: Chat }, { userName: string }>("/api/message/direct", { userName }),
+  getDirect: (userName: string) =>
+    jsonPost<{ status: number; chat: Chat | null; recipient?: { name: string } }, { userName: string }>("/api/message/direct", { userName }),
   createGroup: (group: { name: string; users: string[] }) =>
     jsonPost<{ status: number; addGroup: Chat }, typeof group>("/api/group/createGroup", group),
   renameGroup: (group: { chatId: string; name: string }) =>

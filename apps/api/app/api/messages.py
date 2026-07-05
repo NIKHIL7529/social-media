@@ -48,7 +48,7 @@ async def all_chats(current_user: dict = Depends(get_current_user)) -> dict:
     db = get_database()
     user_name = current_user["name"]
     conversations = await db.messages.find(
-        {"users": user_name, "group": False},
+        {"users": user_name, "group": False, "lastMessage": {"$exists": True}},
         {"users": 1, "updatedAt": 1, "lastMessage": 1, "readBy": 1},
     ).sort("updatedAt", -1).to_list(length=500)
     groups = await db.groups.find({"users": user_name}).sort("updatedAt", -1).to_list(length=500)
@@ -193,23 +193,17 @@ async def direct_conversation(
 
     users = [current_user["name"], target["name"]]
     key = participant_key(users)
-    now = datetime.now(timezone.utc)
-    conversation = await db.messages.find_one_and_update(
-        {"participantKey": key},
-        {
-            "$setOnInsert": {
-                "users": users,
-                "participantKey": key,
-                "group": False,
-                "messages": [],
-                "readBy": {current_user["name"]: now},
-                "createdAt": now,
-                "updatedAt": now,
-            }
-        },
-        upsert=True,
-        return_document=ReturnDocument.AFTER,
+    conversation = await db.messages.find_one(
+        {"participantKey": key, "group": False, "users": {"$all": users, "$size": len(users)}},
     )
+    if not conversation or not conversation.get("lastMessage"):
+        return {
+            "status": 200,
+            "message": "Direct conversation draft",
+            "chat": None,
+            "recipient": serialize_doc({"name": target["name"]}),
+        }
+
     return {
         "status": 200,
         "message": "Direct conversation",

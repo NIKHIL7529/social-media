@@ -7,5 +7,5 @@ export const userService = {
   getByName: (name: string) =>
     jsonPost<{ status: number; user: User }, { name: string }>("/api/user/byName", { name }),
   follow: (userName: string) =>
-    jsonPost<{ status: number; message: string; user: User }, { userName: string }>("/api/user/follow", { userName }),
+    jsonPost<{ status: number; message: string; following: boolean; user: User }, { userName: string }>("/api/user/follow", { userName }),
 };

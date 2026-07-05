@@ -1,21 +1,21 @@
 import { apiFetch, jsonPost } from "@/lib/api";
-import type { FeedPage, Post, PostComment } from "@/types/social";
+import type { FeedPage, Post, PostComment, User } from "@/types/social";
 
 export const postService = {
   getFeed: ({ cursor, limit = 10 }: { cursor?: string | null; limit?: number }) =>
     jsonPost<FeedPage, { cursor?: string | null; limit: number }>("/api/post", { cursor, limit }),
   like: (postId: string) =>
-    jsonPost<{ status: number; message: string; likes: number }, { _id: string }>("/api/post/liked", {
+    jsonPost<{ status: number; message: string; liked: boolean; likes: number }, { _id: string }>("/api/post/liked", {
       _id: postId,
     }),
   save: (postId: string) =>
-    jsonPost<{ status: number; message: string }, { _id: string }>("/api/post/saved", { _id: postId }),
+    jsonPost<{ status: number; message: string; saved: boolean; savedCount: number }, { _id: string }>("/api/post/saved", { _id: postId }),
   remove: (postId: string) =>
     jsonPost<{ status: number; message: string }, { _id: string }>("/api/post/deletePost", { _id: postId }),
   follow: (userName: string) =>
-    jsonPost<{ status: number; message: string }, { userName: string }>("/api/user/follow", { userName }),
+    jsonPost<{ status: number; message: string; following: boolean; user: User }, { userName: string }>("/api/user/follow", { userName }),
   create: (post: { topic: string; text: string; photo: string; commentable: boolean }) =>
-    jsonPost<{ status: number; message: string }, typeof post>("/api/post/addPost", post),
+    jsonPost<{ status: number; message: string; post: Post }, typeof post>("/api/post/addPost", post),
   getMyPosts: () => apiFetch<{ status: number; post: Post[] }>("/api/post/signedUserPosts"),
   getUserPosts: (userId: string) =>
     jsonPost<{ status: number; post: Post[] }, { _id: string }>("/api/post/userPosts", { _id: userId }),
@@ -28,4 +28,6 @@ export const postService = {
       _id: postId,
       comment,
     }),
+  share: (postId: string) =>
+    jsonPost<{ status: number; share: number }, { _id: string }>("/api/post/shared", { _id: postId }),
 };

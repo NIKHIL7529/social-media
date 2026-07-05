@@ -11,6 +11,7 @@ import { AppShell, useCurrentUser } from "@/components/app-shell";
 import { chatService } from "@/features/chat/chat-service";
 import { PostCard } from "@/features/feed/post-card";
 import { postService } from "@/features/feed/post-service";
+import { applyFollow } from "@/features/social/social-cache";
 import { UserListDialog } from "@/features/users/user-list-dialog";
 import { userService } from "@/features/users/user-service";
 
@@ -39,16 +40,23 @@ export default function PublicUserPage() {
 
   const followMutation = useMutation({
     mutationFn: () => userService.follow(user?.name || ""),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user", id] });
-      queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
+    onSuccess: (data) => {
+      if (!currentUser?.name || !user?.name) return;
+      applyFollow(queryClient, user.name, currentUser.name, data.following, data.user);
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Follow failed"),
   });
 
   const chatMutation = useMutation({
-    mutationFn: () => chatService.getOrCreateDirect(user?.name || ""),
-    onSuccess: (data) => router.push(`/chat/${data.chat.chatId}`),
+    mutationFn: () => chatService.getDirect(user?.name || ""),
+    onSuccess: (data) => {
+      if (data.chat) {
+        router.push(`/chat/${data.chat.chatId}`);
+        return;
+      }
+      const recipient = data.recipient?.name || user?.name || "";
+      router.push(`/chat/new?user=${encodeURIComponent(recipient)}`);
+    },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Could not start chat"),
   });
 

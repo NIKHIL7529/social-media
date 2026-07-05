@@ -26,6 +26,7 @@ def main() -> None:
 
     db.users.delete_many({"name": {"$in": ["nikhil", "ananya", "rahul"]}})
     db.posts.delete_many({"topic": {"$regex": "^Seed:"}})
+    db.comments.delete_many({"seed": True})
     db.messages.delete_many({"seed": True})
     db.groups.delete_many({"seed": True})
     db.chatmessages.delete_many({"seed": True})
@@ -34,6 +35,8 @@ def main() -> None:
         {
             "_id": ObjectId(),
             "name": "nikhil",
+            "username": "nikhil",
+            "email": "nikhil@example.com",
             "dob": "1998-01-01",
             "gender": "Male",
             "password": hash_password(PASSWORD),
@@ -51,6 +54,8 @@ def main() -> None:
         {
             "_id": ObjectId(),
             "name": "ananya",
+            "username": "ananya",
+            "email": "ananya@example.com",
             "dob": "1999-05-10",
             "gender": "Female",
             "password": hash_password(PASSWORD),
@@ -68,6 +73,8 @@ def main() -> None:
         {
             "_id": ObjectId(),
             "name": "rahul",
+            "username": "rahul",
+            "email": "rahul@example.com",
             "dob": "1997-09-20",
             "gender": "Male",
             "password": hash_password(PASSWORD),
@@ -86,10 +93,11 @@ def main() -> None:
     db.users.insert_many(users)
     by_name = {user["name"]: user for user in users}
 
+    post_one_id = ObjectId()
     db.posts.insert_many(
         [
             {
-                "_id": ObjectId(),
+                "_id": post_one_id,
                 "topic": "Seed: First SocialSphere post",
                 "text": "A seeded post for testing feeds, profile posts, likes, and saved posts.",
                 "photo": "https://res.cloudinary.com/demo/image/upload/sample.jpg",
@@ -97,14 +105,7 @@ def main() -> None:
                 "saved": 0,
                 "share": 0,
                 "commentable": True,
-                "comments": [
-                    {
-                        "_id": ObjectId(),
-                        "sender": "ananya",
-                        "comment": "Seeded comment for persistence testing.",
-                        "createdAt": now,
-                    }
-                ],
+                "commentCount": 1,
                 "user": by_name["nikhil"]["_id"],
                 "createdAt": now,
                 "updatedAt": now,
@@ -118,12 +119,24 @@ def main() -> None:
                 "saved": 0,
                 "share": 0,
                 "commentable": True,
-                "comments": [],
+                "commentCount": 0,
                 "user": by_name["ananya"]["_id"],
                 "createdAt": now,
                 "updatedAt": now,
             },
         ]
+    )
+    db.comments.insert_one(
+        {
+            "_id": ObjectId(),
+            "post": post_one_id,
+            "sender": "ananya",
+            "comment": "Seeded comment for persistence testing.",
+            "status": "visible",
+            "seed": True,
+            "createdAt": now,
+            "updatedAt": now,
+        }
     )
 
     conversation_id = ObjectId()

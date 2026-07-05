@@ -7,7 +7,7 @@ export const authService = {
     jsonPost<{ status: number; message: string; user: User }, typeof credentials>("/api/user/login", credentials),
   logout: () => apiFetch<{ status: number }>("/api/user/logout"),
   editProfile: (profile: {
-    name: string;
+    username: string;
     dob: string;
     gender: string;
     city: string;

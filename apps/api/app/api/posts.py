@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from pymongo import ReturnDocument
 
 from app.core.database import get_database
 from app.core.security import get_current_user
@@ -38,10 +39,13 @@ async def hydrate_posts(posts: list[dict]) -> list[dict]:
         return []
     db = get_database()
     user_ids = [post["user"] for post in posts if ObjectId.is_valid(str(post.get("user")))]
-    users = await db.users.find({"_id": {"$in": user_ids}}, {"password": 0}).to_list(length=len(user_ids))
+    users = await db.users.find({"_id": {"$in": user_ids}}, {"password": 0, "email": 0}).to_list(length=len(user_ids))
     user_map = {str(user["_id"]): user for user in users}
     for post in posts:
         post["user"] = user_map.get(str(post.get("user")))
+        if "commentCount" not in post:
+            post["commentCount"] = len(post.get("comments", []))
+        post.pop("comments", None)
     return [post for post in posts if post.get("user")]
 
 
@@ -86,7 +90,7 @@ async def add_post(payload: AddPostPayload, current_user: dict = Depends(get_cur
         "likes": 0,
         "saved": 0,
         "share": 0,
-        "comments": [],
+        "commentCount": 0,
         "user": current_user["_id"],
         "createdAt": now,
         "updatedAt": now,
@@ -109,6 +113,7 @@ async def delete_post(payload: PostIdPayload, current_user: dict = Depends(get_c
         {"$or": [{"saved": post_id}, {"liked": post_id}]},
         {"$pull": {"saved": post_id, "liked": post_id}},
     )
+    await db.comments.delete_many({"post": post_id})
     return {"status": 200, "message": "Post Deleted"}
 
 
@@ -147,11 +152,14 @@ async def saved(payload: PostIdPayload, current_user: dict = Depends(get_current
         await db.posts.update_one({"_id": post_id}, {"$inc": {"saved": -1}})
         await db.users.update_one({"_id": current_user["_id"]}, {"$pull": {"saved": post_id}})
         message = "Post unsaved"
+        saved_state = False
     else:
         await db.posts.update_one({"_id": post_id}, {"$inc": {"saved": 1}})
         await db.users.update_one({"_id": current_user["_id"]}, {"$addToSet": {"saved": post_id}})
         message = "Post saved"
-    return {"status": 200, "message": message}
+        saved_state = True
+    post = await db.posts.find_one({"_id": post_id}, {"saved": 1})
+    return {"status": 200, "message": message, "saved": saved_state, "savedCount": post.get("saved", 0)}
 
 
 @router.post("/liked")
@@ -165,12 +173,14 @@ async def liked(payload: PostIdPayload, current_user: dict = Depends(get_current
         await db.posts.update_one({"_id": post_id}, {"$inc": {"likes": -1}})
         await db.users.update_one({"_id": current_user["_id"]}, {"$pull": {"liked": post_id}})
         message = "Post unliked"
+        liked_state = False
     else:
         await db.posts.update_one({"_id": post_id}, {"$inc": {"likes": 1}})
         await db.users.update_one({"_id": current_user["_id"]}, {"$addToSet": {"liked": post_id}})
         message = "Post liked"
+        liked_state = True
     post = await db.posts.find_one({"_id": post_id}, {"likes": 1})
-    return {"status": 200, "message": message, "likes": post.get("likes", 0)}
+    return {"status": 200, "message": message, "liked": liked_state, "likes": post.get("likes", 0)}
 
 
 @router.post("/likedBy")
@@ -180,7 +190,7 @@ async def liked_by(payload: PostIdPayload) -> dict:
     post_id = ObjectId(payload.id)
     users = await get_database().users.find(
         {"liked": post_id},
-        {"name": 1, "photo": 1},
+        {"name": 1, "username": 1, "photo": 1},
     ).to_list(length=500)
     return {"status": 200, "users": serialize_doc(users)}
 
@@ -191,16 +201,21 @@ async def add_comment(payload: CommentPayload, current_user: dict = Depends(get_
         raise HTTPException(status_code=400, detail="Invalid post id")
     comment = {
         "_id": ObjectId(),
+        "post": ObjectId(payload.id),
         "sender": current_user["name"],
         "comment": payload.comment.strip(),
+        "status": "visible",
         "createdAt": datetime.now(timezone.utc),
+        "updatedAt": datetime.now(timezone.utc),
     }
-    result = await get_database().posts.update_one(
+    db = get_database()
+    result = await db.posts.update_one(
         {"_id": ObjectId(payload.id), "commentable": True},
-        {"$push": {"comments": comment}},
+        {"$inc": {"commentCount": 1}, "$set": {"updatedAt": datetime.now(timezone.utc)}},
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Post not found or comments disabled")
+    await db.comments.insert_one(comment)
     return {"status": 200, "message": "Comment added", "comment": serialize_doc(comment)}
 
 
@@ -208,7 +223,30 @@ async def add_comment(payload: CommentPayload, current_user: dict = Depends(get_
 async def comments(payload: PostIdPayload) -> dict:
     if not ObjectId.is_valid(payload.id):
         raise HTTPException(status_code=400, detail="Invalid post id")
-    post = await get_database().posts.find_one({"_id": ObjectId(payload.id)}, {"comments": 1})
+    db = get_database()
+    post = await db.posts.find_one({"_id": ObjectId(payload.id)}, {"_id": 1})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    return {"status": 200, "comments": serialize_doc(post.get("comments", []))}
+    comment_docs = await db.comments.find(
+        {"post": ObjectId(payload.id), "status": "visible"},
+        {"post": 0},
+    ).sort("createdAt", 1).limit(200).to_list(length=200)
+    if not comment_docs:
+        legacy = await db.posts.find_one({"_id": ObjectId(payload.id)}, {"comments": 1})
+        comment_docs = legacy.get("comments", []) if legacy else []
+    return {"status": 200, "comments": serialize_doc(comment_docs)}
+
+
+@router.post("/shared")
+async def shared(payload: PostIdPayload) -> dict:
+    if not ObjectId.is_valid(payload.id):
+        raise HTTPException(status_code=400, detail="Invalid post id")
+    post = await get_database().posts.find_one_and_update(
+        {"_id": ObjectId(payload.id)},
+        {"$inc": {"share": 1}},
+        projection={"share": 1},
+        return_document=ReturnDocument.AFTER,
+    )
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return {"status": 200, "share": post.get("share", 0)}

@@ -31,6 +31,7 @@ export default function AddPostPage() {
         },
       );
       queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile", "posts"] });
       router.push("/posts");
     } catch {
       // toast.promise already renders the actionable error.

@@ -1,6 +1,8 @@
 export type User = {
   _id: string;
   name: string;
+  username?: string;
+  email?: string;
   dob?: string;
   gender?: string;
   city?: string;
@@ -21,6 +23,7 @@ export type Post = {
   likes: number;
   saved: number;
   share: number;
+  commentCount?: number;
   commentable: boolean;
   user: User;
   comments?: PostComment[];
@@ -30,6 +33,7 @@ export type Post = {
 
 export type PostComment = {
   _id: string;
+  post?: string;
   sender: string;
   comment: string;
   createdAt?: string;

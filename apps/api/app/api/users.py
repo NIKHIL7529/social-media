@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from pymongo.errors import DuplicateKeyError
 
 from app.core.database import get_database
@@ -22,7 +22,8 @@ router = APIRouter()
 
 
 class SignupPayload(BaseModel):
-    name: str = Field(min_length=1, max_length=20)
+    username: str = Field(min_length=3, max_length=30)
+    email: EmailStr
     dob: str
     gender: str
     password: str = Field(min_length=8)
@@ -31,15 +32,31 @@ class SignupPayload(BaseModel):
     description: str = ""
     photo: str = ""
 
+    @field_validator("username")
+    @classmethod
+    def normalize_username(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if not normalized.replace("_", "").replace(".", "").isalnum():
+            raise ValueError("Username can contain letters, numbers, dots, and underscores")
+        return normalized
+
 
 class EditProfilePayload(BaseModel):
-    name: str = Field(min_length=1, max_length=20)
+    username: str = Field(min_length=3, max_length=30)
     dob: str
     gender: str
     city: str = ""
     country: str = ""
     description: str = ""
     photo: str = ""
+
+    @field_validator("username")
+    @classmethod
+    def normalize_username(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if not normalized.replace("_", "").replace(".", "").isalnum():
+            raise ValueError("Username can contain letters, numbers, dots, and underscores")
+        return normalized
 
 
 class ChangePasswordPayload(BaseModel):
@@ -70,20 +87,23 @@ class FollowPayload(BaseModel):
 
 @router.get("/")
 async def all_users() -> dict:
-    users = await get_database().users.find({}, {"password": 0}).to_list(length=500)
+    users = await get_database().users.find({}, {"password": 0, "email": 0}).to_list(length=500)
     return {"status": 200, "user": serialize_doc(users)}
 
 
 @router.post("/signup")
 async def signup(payload: SignupPayload) -> dict:
     db = get_database()
-    if await db.users.find_one({"name": payload.name}):
-        raise HTTPException(status_code=400, detail="User Already Exist!! Login Instead")
+    email = str(payload.email).lower()
+    if await db.users.find_one({"$or": [{"name": payload.username}, {"username": payload.username}, {"email": email}]}):
+        raise HTTPException(status_code=400, detail="Username or email already exists")
 
     image = await upload_image(payload.photo, "images") if payload.photo else ""
     now = datetime.now(timezone.utc)
     user = {
-        "name": payload.name,
+        "name": payload.username,
+        "username": payload.username,
+        "email": email,
         "dob": payload.dob,
         "gender": payload.gender,
         "password": hash_password(payload.password),
@@ -102,15 +122,18 @@ async def signup(payload: SignupPayload) -> dict:
     try:
         result = await db.users.insert_one(user)
     except DuplicateKeyError as exc:
-        raise HTTPException(status_code=400, detail="User Already Exist!! Login Instead") from exc
+        raise HTTPException(status_code=400, detail="Username or email already exists") from exc
 
     user["_id"] = result.inserted_id
-    return {"status": 200, "user": serialize_doc(user)}
+    return {"status": 200, "user": serialize_auth_user(user)}
 
 
 @router.post("/login")
 async def login(payload: LoginPayload, request: Request, response: Response) -> dict:
-    user = await get_database().users.find_one({"name": payload.name})
+    identifier = payload.name.strip().lower()
+    user = await get_database().users.find_one(
+        {"$or": [{"name": identifier}, {"username": identifier}, {"email": identifier}]}
+    )
     if not user or not verify_password(payload.password, user["password"]):
         raise HTTPException(status_code=400, detail="Incorrect Credentials")
 
@@ -146,10 +169,21 @@ async def profile(current_user: dict = Depends(get_current_user)) -> dict:
 @router.post("/editProfile")
 async def edit_profile(
     payload: EditProfilePayload,
+    request: Request,
+    response: Response,
     current_user: dict = Depends(get_current_user),
 ) -> dict:
     db = get_database()
-    existing = await db.users.find_one({"name": payload.name, "_id": {"$ne": current_user["_id"]}})
+    previous_username = current_user.get("username") or current_user["name"]
+    existing = await db.users.find_one(
+        {
+            "_id": {"$ne": current_user["_id"]},
+            "$or": [
+                {"name": payload.username},
+                {"username": payload.username},
+            ],
+        }
+    )
     if existing:
         raise HTTPException(
             status_code=400,
@@ -158,7 +192,8 @@ async def edit_profile(
 
     image = await upload_image(payload.photo, "images") if payload.photo else current_user.get("photo", "")
     update = {
-        "name": payload.name,
+        "name": payload.username,
+        "username": payload.username,
         "dob": payload.dob,
         "gender": payload.gender,
         "city": payload.city,
@@ -168,6 +203,19 @@ async def edit_profile(
         "updatedAt": datetime.now(timezone.utc),
     }
     await db.users.update_one({"_id": current_user["_id"]}, {"$set": update})
+    if previous_username != payload.username:
+        await db.users.update_many({"followers": previous_username}, {"$set": {"followers.$": payload.username}})
+        await db.users.update_many({"followings": previous_username}, {"$set": {"followings.$": payload.username}})
+        await db.messages.update_many({"users": previous_username}, {"$set": {"users.$": payload.username}})
+        await db.groups.update_many({"users": previous_username}, {"$set": {"users.$": payload.username}})
+        await db.chatmessages.update_many({"sender": previous_username}, {"$set": {"sender": payload.username}})
+        await db.comments.update_many({"sender": previous_username}, {"$set": {"sender": payload.username}})
+        await db.posts.update_many(
+            {"comments.sender": previous_username},
+            {"$set": {"comments.$[comment].sender": payload.username}},
+            array_filters=[{"comment.sender": previous_username}],
+        )
+        response.set_cookie("token", create_access_token(current_user["_id"], payload.username), **auth_cookie_options(request))
     user = await db.users.find_one({"_id": current_user["_id"]})
     return {"status": 200, "message": "User info changed", "user": serialize_auth_user(user)}
 
@@ -188,10 +236,15 @@ async def change_password(
 
 @router.post("/search")
 async def search(payload: SearchPayload, current_user: dict | None = Depends(get_optional_user)) -> dict:
-    query: dict = {"name": {"$regex": payload.name, "$options": "i"}}
+    query: dict = {
+        "$or": [
+            {"name": {"$regex": payload.name, "$options": "i"}},
+            {"username": {"$regex": payload.name, "$options": "i"}},
+        ]
+    }
     if current_user:
-        query["name"]["$ne"] = current_user["name"]
-    users = await get_database().users.find(query, {"name": 1, "photo": 1}).to_list(length=50)
+        query = {"$and": [query, {"_id": {"$ne": current_user["_id"]}}]}
+    users = await get_database().users.find(query, {"name": 1, "username": 1, "photo": 1}).to_list(length=50)
     return {
         "status": 200,
         "message": "User found",
@@ -203,7 +256,7 @@ async def search(payload: SearchPayload, current_user: dict | None = Depends(get
 async def user(payload: UserLookupPayload) -> dict:
     if not payload.id or not ObjectId.is_valid(payload.id):
         raise HTTPException(status_code=400, detail="Invalid user id")
-    found = await get_database().users.find_one({"_id": ObjectId(payload.id)}, {"password": 0})
+    found = await get_database().users.find_one({"_id": ObjectId(payload.id)}, {"password": 0, "email": 0})
     if not found:
         raise HTTPException(status_code=404, detail="User Not Found")
     return {"status": 200, "message": "User data", "user": serialize_doc(found)}
@@ -211,7 +264,10 @@ async def user(payload: UserLookupPayload) -> dict:
 
 @router.post("/byName")
 async def user_by_name(payload: UserNameLookupPayload) -> dict:
-    found = await get_database().users.find_one({"name": payload.name}, {"password": 0})
+    found = await get_database().users.find_one(
+        {"$or": [{"name": payload.name}, {"username": payload.name}]},
+        {"password": 0, "email": 0},
+    )
     if not found:
         raise HTTPException(status_code=404, detail="User Not Found")
     return {"status": 200, "message": "User data", "user": serialize_doc(found)}
@@ -220,20 +276,25 @@ async def user_by_name(payload: UserNameLookupPayload) -> dict:
 @router.post("/follow")
 async def follow(payload: FollowPayload, current_user: dict = Depends(get_current_user)) -> dict:
     db = get_database()
-    target = await db.users.find_one({"name": payload.userName})
+    target = await db.users.find_one({"$or": [{"name": payload.userName}, {"username": payload.userName}]})
     if not target:
         raise HTTPException(status_code=404, detail="User Not Found")
+    if target["_id"] == current_user["_id"]:
+        raise HTTPException(status_code=400, detail="Cannot follow yourself")
 
     profile_name = current_user["name"]
+    target_name = target["name"]
     is_following = profile_name in target.get("followers", [])
     if is_following:
-        await db.users.update_one({"name": payload.userName}, {"$pull": {"followers": profile_name}})
-        await db.users.update_one({"_id": current_user["_id"]}, {"$pull": {"followings": payload.userName}})
+        await db.users.update_one({"_id": target["_id"]}, {"$pull": {"followers": profile_name}})
+        await db.users.update_one({"_id": current_user["_id"]}, {"$pull": {"followings": target_name}})
         message = "User unfollowed"
+        following_state = False
     else:
-        await db.users.update_one({"name": payload.userName}, {"$addToSet": {"followers": profile_name}})
-        await db.users.update_one({"_id": current_user["_id"]}, {"$addToSet": {"followings": payload.userName}})
+        await db.users.update_one({"_id": target["_id"]}, {"$addToSet": {"followers": profile_name}})
+        await db.users.update_one({"_id": current_user["_id"]}, {"$addToSet": {"followings": target_name}})
         message = "User followed"
+        following_state = True
 
-    updated = await db.users.find_one({"name": payload.userName}, {"password": 0})
-    return {"status": 200, "message": message, "user": serialize_doc(updated)}
+    updated = await db.users.find_one({"_id": target["_id"]}, {"password": 0, "email": 0})
+    return {"status": 200, "message": message, "following": following_state, "user": serialize_doc(updated)}

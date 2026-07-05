@@ -18,7 +18,7 @@ export default function EditProfilePage() {
   const queryClient = useQueryClient();
   const { data: user, isLoading } = useCurrentUser();
   const [form, setForm] = useState({
-    name: "",
+    username: "",
     dob: "",
     gender: "",
     city: "",
@@ -34,7 +34,7 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (!user) return;
     setForm({
-      name: user.name || "",
+      username: user.username || user.name || "",
       dob: user.dob || "",
       gender: user.gender || "",
       city: user.city || "",
@@ -115,7 +115,7 @@ export default function EditProfilePage() {
               </label>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <Field label="Username" value={form.name} onChange={(name) => setForm({ ...form, name })} required />
+                <Field label="Username" value={form.username} onChange={(username) => setForm({ ...form, username: username.toLowerCase() })} required />
                 <label className="block text-sm font-bold text-ink">
                   Gender
                   <select

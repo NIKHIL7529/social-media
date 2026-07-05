@@ -3,13 +3,14 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Bookmark, BookmarkCheck, Heart, MessageCircle, Send, Share2, ThumbsUp, Trash2, UserCircle, X } from "lucide-react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/components/app-shell";
 import { ApiError } from "@/lib/api";
 import type { Post, PostComment } from "@/types/social";
+import { applyFollow, applyPostLike, applyPostSave, removePostFromCaches } from "@/features/social/social-cache";
 import { postService } from "./post-service";
 
 type Props = {
@@ -21,10 +22,6 @@ export function PostCard({ post, priority = false }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
-  const [likes, setLikes] = useState(post.likes);
-  const [liked, setLiked] = useState(Boolean(user?.liked?.includes(post._id)));
-  const [saved, setSaved] = useState(Boolean(user?.saved?.includes(post._id)));
-  const [following, setFollowing] = useState(Boolean(user?.followings?.includes(post.user.name)));
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [likersOpen, setLikersOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -32,14 +29,12 @@ export function PostCard({ post, priority = false }: Props) {
   const [comments, setComments] = useState<PostComment[]>(post.comments || []);
 
   const isMine = user?.name === post.user.name;
+  const liked = Boolean(user?.liked?.includes(post._id));
+  const saved = Boolean(user?.saved?.includes(post._id));
+  const following = Boolean(user?.followings?.includes(post.user.name));
   const canReadMore = (post.text || "").length > 140;
   const [expanded, setExpanded] = useState(!canReadMore);
 
-  useEffect(() => {
-    setLiked(Boolean(user?.liked?.includes(post._id)));
-    setSaved(Boolean(user?.saved?.includes(post._id)));
-    setFollowing(Boolean(user?.followings?.includes(post.user.name)));
-  }, [post._id, post.user.name, user?.followings, user?.liked, user?.saved]);
   const visibleText = useMemo(() => {
     if (!post.text) return "";
     return expanded ? post.text : `${post.text.slice(0, 140)}...`;
@@ -61,21 +56,25 @@ export function PostCard({ post, priority = false }: Props) {
   const likeMutation = useMutation({
     mutationFn: () => postService.like(post._id),
     onSuccess: (data) => {
-      setLikes(data.likes);
-      setLiked((value) => !value);
+      applyPostLike(queryClient, post._id, data.liked, data.likes);
     },
     onError: handleMutationError,
   });
 
   const saveMutation = useMutation({
     mutationFn: () => postService.save(post._id),
-    onSuccess: () => setSaved((value) => !value),
+    onSuccess: (data) => {
+      applyPostSave(queryClient, post._id, data.saved, data.savedCount);
+    },
     onError: handleMutationError,
   });
 
   const followMutation = useMutation({
     mutationFn: () => postService.follow(post.user.name),
-    onSuccess: () => setFollowing((value) => !value),
+    onSuccess: (data) => {
+      if (!user?.name) return;
+      applyFollow(queryClient, post.user.name, user.name, data.following, data.user);
+    },
     onError: handleMutationError,
   });
 
@@ -83,10 +82,8 @@ export function PostCard({ post, priority = false }: Props) {
     mutationFn: () => postService.remove(post._id),
     onSuccess: () => {
       setDeleted(true);
+      removePostFromCaches(queryClient, post._id);
       toast.success("Post deleted");
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
-      queryClient.invalidateQueries({ queryKey: ["profile", "posts"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-posts"] });
     },
     onError: handleMutationError,
   });
@@ -122,6 +119,7 @@ export function PostCard({ post, priority = false }: Props) {
   async function sharePost() {
     const url = window.location.href;
     try {
+      postService.share(post._id).catch(() => undefined);
       if (navigator.share) {
         await navigator.share({ title: post.topic || "SocialSphere post", text: post.text || "View this post", url });
       } else {
@@ -231,7 +229,7 @@ export function PostCard({ post, priority = false }: Props) {
           aria-label="View people who liked this post"
         >
           <Heart size={16} />
-          {likes} likes
+          {post.likes} likes
         </button>
       </footer>
 
