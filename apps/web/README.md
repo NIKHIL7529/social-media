@@ -52,8 +52,10 @@ npm run start
 
 ## Docker
 
-From `apps/`:
+From the repository root:
 
 ```powershell
 docker compose up --build
 ```
+
+For Kubernetes behind the provided same-origin ingress, build the web image with `NEXT_PUBLIC_API_URL=/` so browser requests use `/api` and `/ws` on the same host. For local direct API access, keep `NEXT_PUBLIC_API_URL=http://localhost:8000`.

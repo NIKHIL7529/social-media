@@ -74,6 +74,12 @@ The API issues an HTTP-only JWT cookie. Cross-site Vercel-to-Render requests req
 
 Realtime is intentionally single-instance and in-memory for this Mongo-only commit. When you later add Redis, the WebSocket manager can be swapped to a Pub/Sub adapter without changing the route contract.
 
+## Containers and Kubernetes
+
+The API image runs as UID `10001`, exposes port `8000`, and includes a `/api/health` container health check. Kubernetes config lives at the repository root in `k8s/`, `ingress.yaml`, `network-policy.yaml`, and `role.yaml`.
+
+Do not commit real Kubernetes secrets. Use `k8s/api-secret.example.yaml` as the shape for your cluster secret and keep real values outside git.
+
 ## Run
 
 ```powershell

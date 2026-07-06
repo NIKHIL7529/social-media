@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: socialsphere-api-config
+  namespace: social-media
+data:
+  ENVIRONMENT: "production"
+  FRONTEND_URL: "https://social.local"
+  FRONTEND_URLS: "https://social.local"
+  CORS_ORIGIN_REGEX: ""
+  MONGODB_DNS_NAMESERVERS: "1.1.1.1,8.8.8.8"
+  MONGODB_SERVER_SELECTION_TIMEOUT_MS: "10000"
+  MONGODB_CONNECT_TIMEOUT_MS: "5000"
+  RATE_LIMIT_WINDOW_SECONDS: "60"
+  RATE_LIMIT_MAX_REQUESTS: "120"
+  AUTH_RATE_LIMIT_MAX_REQUESTS: "20"

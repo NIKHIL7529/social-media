@@ -13,4 +13,7 @@ __pycache__/
 .env.*
 !.env.example
 
+k8s/*secret*.yaml
+!k8s/*.example.yaml
+
 *.log

@@ -87,9 +87,11 @@ python scripts\seed.py
 Docker:
 
 ```powershell
-cd apps
+cd ..
 docker compose up --build
 ```
+
+The root compose file starts API, Web, and Nginx. Open `http://localhost:8080` to exercise the same reverse-proxy paths used in Kubernetes: `/` for Next.js, `/api` for FastAPI, and `/ws` for WebSockets.
 
 ## Migration Parity
 

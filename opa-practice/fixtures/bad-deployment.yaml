@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa-deny-example
+  namespace: social-media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opa-deny-example
+  template:
+    metadata:
+      labels:
+        app: opa-deny-example
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          securityContext:
+            privileged: true

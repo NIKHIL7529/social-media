@@ -1,8 +1,27 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: socialsphere-api
+  namespace: social-media
+automountServiceAccountToken: false
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: pod-reader
-rules:
-  - apiGroups: [""]
-    resources: ['pods']
-    verbs: ['get', 'list']
+  name: socialsphere-api-runtime
+  namespace: social-media
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: socialsphere-api-runtime
+  namespace: social-media
+subjects:
+  - kind: ServiceAccount
+    name: socialsphere-api
+    namespace: social-media
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: socialsphere-api-runtime

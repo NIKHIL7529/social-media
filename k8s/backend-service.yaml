@@ -1,11 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
-spec: 
+  name: socialsphere-api
+  namespace: social-media
+  labels:
+    app.kubernetes.io/name: socialsphere
+    app.kubernetes.io/component: api
+spec:
+  type: ClusterIP
   selector:
-    app: backend
+    app.kubernetes.io/name: socialsphere
+    app.kubernetes.io/component: api
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8000
-      targetPort: 8000
+      targetPort: http

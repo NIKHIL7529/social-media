@@ -1,17 +1,36 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: social-ingress
+  name: socialsphere
+  namespace: social-media
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "20m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
+  ingressClassName: nginx
   rules:
     - host: social.local
-      http: 
+      http:
         paths:
-          - path: /
+          - path: /api
             pathType: Prefix
-            
-            backend:  
+            backend:
               service:
-                name: backend-service
+                name: socialsphere-api
                 port:
                   number: 8000
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: socialsphere-api
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: socialsphere-web
+                port:
+                  number: 3000
