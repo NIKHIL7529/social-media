@@ -1,0 +1,28 @@
+{
+  "kind": "Deployment",
+  "spec": {
+    "template": {
+      "spec": {
+        "hostNetwork": true,
+        "containers": [
+          {
+            "name": "nginx",
+            "image": "nginx:latest",
+            "securityContext": {
+              "privileged": true,
+              "allowPrivilegeEscalation": true
+            }
+          }
+        ],
+        "volumes": [
+          {
+            "name": "host-root",
+            "hostPath": {
+              "path": "/"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

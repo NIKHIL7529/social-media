@@ -2,24 +2,60 @@ apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
   name: k8sapprovedregistry
+  labels:
+    app.kubernetes.io/name: socialsphere
+    app.kubernetes.io/component: policy
 spec:
   crd:
     spec:
       names:
         kind: K8sApprovedRegistry
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            allowedImagePrefixes:
+              type: array
+              items:
+                type: string
   targets:
     - target: admission.k8s.gatekeeper.sh
-    
       rego: |
         package k8sapprovedregistry
 
-        violation[{"msg": msg}] {
-          container := input.review.object.spec.template.spec.containers[_]
-          not startswith(container.image, "social-")
-          not startswith(container.image, "nginx")
+        import rego.v1
 
-          msg := sprintf(
-            "Image %v uses an unapproved registry",
-            [container.image]
-          )
+        workload := input.review.object
+
+        pod_spec := workload.spec if {
+          workload.kind == "Pod"
+        }
+
+        pod_spec := workload.spec.jobTemplate.spec.template.spec if {
+          workload.kind == "CronJob"
+        }
+
+        pod_spec := workload.spec.template.spec if {
+          workload.kind != "Pod"
+          workload.kind != "CronJob"
+        }
+
+        containers contains container if {
+          container := pod_spec.containers[_]
+        }
+
+        containers contains container if {
+          container := pod_spec.initContainers[_]
+        }
+
+        violation contains {"msg": msg} if {
+          count(input.parameters.allowedImagePrefixes) > 0
+          container := containers[_]
+          not allowed_image(container.image)
+          msg := sprintf("Container %s image %s is not from an approved image prefix", [container.name, container.image])
+        }
+
+        allowed_image(image) if {
+          prefix := input.parameters.allowedImagePrefixes[_]
+          startswith(image, prefix)
         }

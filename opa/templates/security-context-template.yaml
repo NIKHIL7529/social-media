@@ -1,7 +1,7 @@
 apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
-  name: k8srequiredlimits
+  name: k8srequiredsecuritycontext
   labels:
     app.kubernetes.io/name: socialsphere
     app.kubernetes.io/component: policy
@@ -9,11 +9,11 @@ spec:
   crd:
     spec:
       names:
-        kind: K8sRequiredLimits
+        kind: K8sRequiredSecurityContext
   targets:
     - target: admission.k8s.gatekeeper.sh
       rego: |
-        package k8srequiredlimits
+        package k8srequiredsecuritycontext
 
         import rego.v1
 
@@ -42,24 +42,33 @@ spec:
 
         violation contains {"msg": msg} if {
           container := containers[_]
-          not container.resources.requests.cpu
-          msg := sprintf("Container %s must define CPU requests", [container.name])
+          container.securityContext.readOnlyRootFilesystem != true
+          msg := sprintf("Container %s must use a read-only root filesystem", [container.name])
         }
 
         violation contains {"msg": msg} if {
           container := containers[_]
-          not container.resources.requests.memory
-          msg := sprintf("Container %s must define memory requests", [container.name])
+          not drops_all_capabilities(container)
+          msg := sprintf("Container %s must drop all Linux capabilities", [container.name])
         }
 
-        violation contains {"msg": msg} if {
-          container := containers[_]
-          not container.resources.limits.cpu
-          msg := sprintf("Container %s must define CPU limits", [container.name])
+        violation contains {"msg": "Pods must not use host networking"} if {
+          pod_spec.hostNetwork == true
         }
 
-        violation contains {"msg": msg} if {
-          container := containers[_]
-          not container.resources.limits.memory
-          msg := sprintf("Container %s must define memory limits", [container.name])
+        violation contains {"msg": "Pods must not use host PID namespace"} if {
+          pod_spec.hostPID == true
+        }
+
+        violation contains {"msg": "Pods must not use host IPC namespace"} if {
+          pod_spec.hostIPC == true
+        }
+
+        violation contains {"msg": "Pods must not mount hostPath volumes"} if {
+          volume := pod_spec.volumes[_]
+          volume.hostPath
+        }
+
+        drops_all_capabilities(container) if {
+          container.securityContext.capabilities.drop[_] == "ALL"
         }

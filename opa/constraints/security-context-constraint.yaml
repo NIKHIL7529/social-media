@@ -1,7 +1,7 @@
 apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: K8sRequiredLimits
+kind: K8sRequiredSecurityContext
 metadata:
-  name: require-resource-requests-and-limits
+  name: require-hardened-security-context
   labels:
     app.kubernetes.io/name: socialsphere
     app.kubernetes.io/component: policy

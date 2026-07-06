@@ -2,8 +2,15 @@ apiVersion: constraints.gatekeeper.sh/v1beta1
 kind: K8sRequiredRunAsNonRoot
 metadata:
   name: require-run-as-non-root
+  labels:
+    app.kubernetes.io/name: socialsphere
+    app.kubernetes.io/component: policy
 spec:
   match:
     kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
       - apiGroups: ["apps"]
-        kinds: ["Deployment"]
+        kinds: ["Deployment", "DaemonSet", "StatefulSet"]
+      - apiGroups: ["batch"]
+        kinds: ["Job", "CronJob"]

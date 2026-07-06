@@ -2,6 +2,9 @@ apiVersion: templates.gatekeeper.sh/v1
 kind: ConstraintTemplate
 metadata:
   name: k8srequiredprobe
+  labels:
+    app.kubernetes.io/name: socialsphere
+    app.kubernetes.io/component: policy
 spec:
   crd:
     spec:
@@ -9,26 +12,42 @@ spec:
         kind: K8sRequiredProbe
   targets:
     - target: admission.k8s.gatekeeper.sh
-
       rego: |
         package k8srequiredprobe
 
-        violation[{"msg": msg}] {
-          container := input.review.object.spec.template.spec.containers[_]
-          not container.readinessProbe
+        import rego.v1
 
-          msg := sprintf(
-            "Container %v must define a readiness probe",
-            [container.name]
-          )
+        workload := input.review.object
+
+        pod_spec := workload.spec if {
+          workload.kind == "Pod"
         }
 
-        violation[{"msg": msg}] {
-          container := input.review.object.spec.template.spec.containers[_]
-          not container.livenessProbe
+        pod_spec := workload.spec.jobTemplate.spec.template.spec if {
+          workload.kind == "CronJob"
+        }
 
-          msg := sprintf(
-            "Container %v must define a liveness probe",
-            [container.name]
-          )
+        pod_spec := workload.spec.template.spec if {
+          workload.kind != "Pod"
+          workload.kind != "CronJob"
+        }
+
+        containers contains container if {
+          container := pod_spec.containers[_]
+        }
+
+        containers contains container if {
+          container := pod_spec.initContainers[_]
+        }
+
+        violation contains {"msg": msg} if {
+          container := containers[_]
+          not container.readinessProbe
+          msg := sprintf("Container %s must define a readiness probe", [container.name])
+        }
+
+        violation contains {"msg": msg} if {
+          container := containers[_]
+          not container.livenessProbe
+          msg := sprintf("Container %s must define a liveness probe", [container.name])
         }

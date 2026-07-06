@@ -5,23 +5,18 @@
       "spec": {
         "containers": [
           {
-            "name": "api",
-            "image": "socialsphere-api:0.1.0",
-            "ports": [
-              {
-                "containerPort": 8000
-              }
-            ],
+            "name": "web",
+            "image": "socialsphere-web:0.1.0",
             "readinessProbe": {
               "httpGet": {
-                "path": "/api/health",
-                "port": 8000
+                "path": "/",
+                "port": 3000
               }
             },
             "livenessProbe": {
               "httpGet": {
-                "path": "/api/health",
-                "port": 8000
+                "path": "/",
+                "port": 3000
               }
             },
             "resources": {
