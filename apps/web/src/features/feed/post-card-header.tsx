@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { Trash2, UserCircle } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { UserAvatar } from "@/components/user-avatar";
 
 import type { Post } from "@/types/social";
 
@@ -23,11 +23,7 @@ export function PostHeader({
   return (
     <header className="flex items-center justify-between gap-4 px-4 pb-3 pt-4 sm:px-5">
       <div className="flex min-w-0 items-center gap-3">
-        {post.user.photo ? (
-          <Image src={post.user.photo} alt={post.user.name} width={46} height={46} className="size-11 rounded-full object-cover" />
-        ) : (
-          <UserCircle className="size-11 flex-shrink-0 text-slate-400" />
-        )}
+        <UserAvatar name={post.user.name} photo={post.user.photo} />
         <p className="truncate font-bold text-ink">{post.user.name}</p>
       </div>
 

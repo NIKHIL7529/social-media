@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { UserCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { UseQueryResult } from "@tanstack/react-query";
 
 import type { User } from "@/types/social";
+import { UserAvatar } from "@/components/user-avatar";
 
 export function LikersDialog({
   onClose,
@@ -33,11 +33,7 @@ export function LikersDialog({
               onClick={() => onSelectUser(likedUser._id)}
               className="flex min-h-12 w-full items-center gap-3 rounded-md px-3 text-left hover:bg-accent-soft"
             >
-              {likedUser.photo ? (
-                <Image src={likedUser.photo} alt={likedUser.name} width={34} height={34} className="size-9 rounded-full object-cover" />
-              ) : (
-                <UserCircle className="size-9 text-slate-400" />
-              )}
+              <UserAvatar name={likedUser.name} photo={likedUser.photo} size={36} />
               <span className="font-bold text-ink">{likedUser.name}</span>
             </button>
           ))}

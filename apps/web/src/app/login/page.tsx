@@ -9,6 +9,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 import { authService } from "@/features/auth/auth-service";
 import { resetSessionForLogin } from "@/features/auth/session-cache";
+import { Brand } from "@/components/brand";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,8 +36,9 @@ export default function LoginPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-page px-4">
       <form onSubmit={submit} className="w-full max-w-sm rounded-lg border border-line bg-white p-6 shadow-card">
-        <h1 className="text-2xl font-extrabold text-ink">SocialSphere</h1>
-        <p className="mt-1 text-sm text-ink-muted">Login to continue.</p>
+        <Brand href="/posts" priority showTagline />
+        <h1 className="mt-8 text-2xl font-extrabold text-ink">Welcome back</h1>
+        <p className="mt-1 text-sm text-ink-muted">Sign in to continue to your sphere.</p>
         <label className="mt-6 block text-sm font-bold text-ink">
           Username or email
           <input value={name} onChange={(event) => setName(event.target.value)} className="mt-2 min-h-11 w-full rounded-md border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft" required />

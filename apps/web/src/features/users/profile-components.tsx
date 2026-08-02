@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { UserCircle } from "lucide-react";
+import { UserAvatar } from "@/components/user-avatar";
 
 import type { User } from "@/types/social";
 
@@ -10,11 +9,7 @@ export type SocialList = "followers" | "followings";
 export function ProfileHeader({ user }: { user: User }) {
   return (
     <div className="flex items-center gap-4">
-      {user.photo ? (
-        <Image src={user.photo} alt={user.name} width={88} height={88} className="size-20 rounded-full object-cover" />
-      ) : (
-        <UserCircle className="size-20 text-slate-400" />
-      )}
+      <UserAvatar name={user.name} photo={user.photo} size={80} />
       <div className="min-w-0">
         <h1 className="truncate text-2xl font-extrabold text-ink">{user.name}</h1>
         <p className="text-sm text-ink-muted">

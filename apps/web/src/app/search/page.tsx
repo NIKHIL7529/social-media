@@ -1,14 +1,14 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { Search, UserCircle } from "lucide-react";
+import { Search } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { AppShell } from "@/components/app-shell";
 import { jsonPost } from "@/lib/api";
 import type { User } from "@/types/social";
+import { UserAvatar } from "@/components/user-avatar";
 
 export default function SearchPage() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function SearchPage() {
               onClick={() => router.push(`/user/${user._id}`)}
               className="flex w-full items-center gap-3 rounded-lg border border-line bg-white p-4 text-left shadow-soft hover:bg-accent-soft"
             >
-              {user.photo ? <Image src={user.photo} alt={user.name} width={44} height={44} className="size-11 rounded-full object-cover" /> : <UserCircle className="size-11 text-slate-400" />}
+              <UserAvatar name={user.name} photo={user.photo} />
               <p className="font-bold text-ink">{user.name}</p>
             </button>
           ))}

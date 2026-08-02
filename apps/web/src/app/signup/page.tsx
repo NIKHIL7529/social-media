@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { SelectField, TextAreaField, TextField } from "@/components/form-controls";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { jsonPost } from "@/lib/api";
+import { Brand } from "@/components/brand";
 
 const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
 
@@ -42,7 +43,8 @@ export default function SignupPage() {
   return (
     <main className="grid min-h-screen place-items-center bg-page px-4 py-8">
       <form onSubmit={submit} className="w-full max-w-xl rounded-lg border border-line bg-white p-6 shadow-card">
-        <h1 className="text-2xl font-extrabold text-ink">Create account</h1>
+        <Brand href="/posts" priority showTagline />
+        <h1 className="mt-8 text-2xl font-extrabold text-ink">Create your account</h1>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <TextField label="Username" value={form.username} onChange={(username) => setForm({ ...form, username: username.toLowerCase() })} required />
           <TextField label="Email" type="email" value={form.email} onChange={(email) => setForm({ ...form, email })} required />

@@ -6,6 +6,7 @@ import { Bell, Bookmark, Home, LogIn, LogOut, MessageCircle, PlusCircle, Search,
 import { useQuery } from "@tanstack/react-query";
 
 import { authService } from "@/features/auth/auth-service";
+import { Brand } from "@/components/brand";
 import { useLogout } from "@/features/auth/use-logout";
 import { queryKeys } from "@/lib/query-keys";
 
@@ -40,9 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-30 flex h-[var(--nav-height)] items-center justify-between border-b border-line bg-white px-5 shadow-soft lg:px-8">
-        <Link href="/posts" className="text-xl font-extrabold tracking-normal text-ink">
-          SocialSphere
-        </Link>
+        <Brand href="/posts" priority />
         <nav className="flex items-center gap-2">
           {user ? (
             <>

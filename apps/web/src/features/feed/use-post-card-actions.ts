@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BRAND } from "@/config/brand";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
@@ -123,7 +124,7 @@ export function usePostCardActions(post: Post) {
         .then((data) => applyPostShare(queryClient, post._id, data.share))
         .catch(() => undefined);
       if (navigator.share) {
-        await navigator.share({ title: post.topic || "SocialSphere post", text: post.text || "View this post", url });
+        await navigator.share({ title: post.topic || `${BRAND.name} post`, text: post.text || "View this post", url });
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("Link copied");
