@@ -4,7 +4,6 @@ from app.core.database import get_database
 from app.core.time import utc_now
 from app.domains.chat.direct import resolve_conversation
 from app.domains.chat.read_keys import read_receipt_key
-from app.domains.notifications import create_notification
 from app.schemas.common import serialize_doc
 
 
@@ -37,14 +36,6 @@ async def send_message(receiver: list[str], message: str, conversation_id: str |
             }
         },
     )
-    for recipient in [name for name in conversation["users"] if name != sender]:
-        await create_notification(
-            recipient=recipient,
-            actor=sender,
-            notification_type="message",
-            entity_id=str(conversation["_id"]),
-            text=f"New message from {sender}",
-        )
     return {
         "status": 200,
         "statusMessage": "Message Added",

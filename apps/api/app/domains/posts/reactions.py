@@ -3,7 +3,6 @@ from pymongo import ReturnDocument
 
 from app.core.database import get_database
 from app.core.validation import object_id_or_400
-from app.domains.notifications import create_notification
 from app.schemas.common import serialize_doc
 
 
@@ -60,21 +59,12 @@ async def toggle_saved(post_id_value: str, current_user: dict) -> dict:
 async def toggle_liked(post_id_value: str, current_user: dict) -> dict:
     post_id = object_id_or_400(post_id_value, "Invalid post id")
     db = get_database()
-    if not await db.posts.find_one({"_id": post_id}, {"_id": 1}):
+    post = await db.posts.find_one({"_id": post_id}, {"_id": 1})
+    if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
     liked, delta = await _toggle_user_post_set(current_user["_id"], "liked", post_id)
     likes = await _update_post_counter(post_id, "likes", delta) if delta else (await db.posts.find_one({"_id": post_id}, {"likes": 1})).get("likes", 0)
-    if liked:
-        post = await db.posts.find_one({"_id": post_id}, {"user": 1})
-        owner = await db.users.find_one({"_id": post["user"]}, {"name": 1}) if post else None
-        await create_notification(
-            recipient=owner.get("name", "") if owner else "",
-            actor=current_user["name"],
-            notification_type="like",
-            entity_id=str(post_id),
-            text=f"{current_user['name']} liked your post",
-        )
     return {
         "status": 200,
         "message": "Post liked" if liked else "Post unliked",

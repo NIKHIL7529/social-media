@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, LogIn, LogOut, Shield, UserPlus, UserRound } from "lucide-react";
+import { LogIn, LogOut, UserPlus, UserRound } from "lucide-react";
 
 import { AppShell, useCurrentUser } from "@/components/app-shell";
 import { useLogout } from "@/features/auth/use-logout";
@@ -24,8 +24,6 @@ export default function SettingsPage() {
         <SettingRow icon={<UserRound />} title="Profile" description="Update public profile details and photo." action="Edit" onClick={() => router.push("/editProfile")} disabled={!user} />
         <SettingRow icon={<UserPlus />} title="Create new account" description={`Register a separate ${BRAND.name} profile.`} action="Signup" onClick={() => router.push("/signup")} />
         <SettingRow icon={<LogIn />} title="Switch profile" description="Login with another account on this device." action="Login" onClick={() => router.push("/login")} />
-        <SettingRow icon={<Shield />} title="Session security" description="Authentication uses an HTTP-only JWT cookie." action="Review" disabled />
-        <SettingRow icon={<Bell />} title="Notifications" description="Notification preferences are ready for push/email integration." action="Soon" disabled />
 
         <button
           onClick={logout}

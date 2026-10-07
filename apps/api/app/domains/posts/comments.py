@@ -4,7 +4,6 @@ from fastapi import HTTPException
 from app.core.database import get_database
 from app.core.time import utc_now
 from app.core.validation import object_id_or_400
-from app.domains.notifications import create_notification
 from app.schemas.common import serialize_doc
 
 
@@ -21,9 +20,6 @@ async def create_comment(post_id_value: str, text: str, current_user: dict) -> d
         "updatedAt": now,
     }
     db = get_database()
-    post = await db.posts.find_one({"_id": post_id}, {"user": 1})
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
     result = await db.posts.update_one(
         {"_id": post_id, "commentable": True},
         {"$inc": {"commentCount": 1}, "$set": {"updatedAt": now}},
@@ -31,14 +27,6 @@ async def create_comment(post_id_value: str, text: str, current_user: dict) -> d
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Post not found or comments disabled")
     await db.comments.insert_one(comment)
-    post_owner = await db.users.find_one({"_id": post["user"]}, {"name": 1})
-    await create_notification(
-        recipient=post_owner.get("name", "") if post_owner else "",
-        actor=current_user["name"],
-        notification_type="comment",
-        entity_id=str(post_id),
-        text=f"{current_user['name']} commented on your post",
-    )
     post = await db.posts.find_one({"_id": post_id}, {"commentCount": 1})
     return {
         "status": 200,

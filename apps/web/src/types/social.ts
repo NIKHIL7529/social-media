@@ -75,15 +75,3 @@ export type ChatMessage = {
   createdAt?: string;
   updatedAt?: string;
 };
-
-export type NotificationItem = {
-  _id: string;
-  recipient: string;
-  actor: string;
-  type: "like" | "comment" | "follow" | "message";
-  entityId: string;
-  text: string;
-  read: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-};

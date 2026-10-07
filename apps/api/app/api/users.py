@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Response
 
-from app.core.csrf import delete_csrf_cookie, set_csrf_cookie
 from app.core.security import (
     auth_cookie_options,
     create_access_token,
@@ -46,10 +45,9 @@ async def login(payload: LoginPayload, request: Request, response: Response) -> 
     user = await authenticate_user(payload.name, payload.password)
     response.set_cookie(
         "token",
-        create_access_token(user["_id"], user["name"], user.get("sessionVersion", 1)),
+        create_access_token(user["_id"], user["name"]),
         **auth_cookie_options(request),
     )
-    set_csrf_cookie(request, response)
     return {"status": 200, "message": "Login successful", "user": serialize_auth_user(user)}
 
 
@@ -57,15 +55,9 @@ async def login(payload: LoginPayload, request: Request, response: Response) -> 
 async def logout(
     request: Request,
     response: Response,
-    current_user: dict | None = Depends(get_optional_user),
 ) -> dict:
-    if current_user:
-        from app.core.database import get_database
-
-        await get_database().users.update_one({"_id": current_user["_id"]}, {"$inc": {"sessionVersion": 1}})
     cookie_options = auth_cookie_options(request)
     response.delete_cookie("token", path="/", secure=cookie_options["secure"], samesite=cookie_options["samesite"])
-    delete_csrf_cookie(request, response)
     return {"status": 200}
 
 
@@ -85,7 +77,7 @@ async def edit_profile(
     if username_changed:
         response.set_cookie(
             "token",
-            create_access_token(current_user["_id"], user["name"], user.get("sessionVersion", 1)),
+            create_access_token(user["_id"], user["name"]),
             **auth_cookie_options(request),
         )
     return {"status": 200, "message": "User info changed", "user": serialize_auth_user(user)}

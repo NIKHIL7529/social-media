@@ -12,5 +12,4 @@ export const queryKeys = {
   chatList: ["chat", "list"] as const,
   chatMessages: (chatId: string | null) => ["chat", "messages", chatId] as const,
   chatFollowings: ["chat", "followings"] as const,
-  notifications: ["notifications"] as const,
 };

@@ -4,14 +4,15 @@ FastAPI replacement for the original Express backend. Targets Python `3.13.1`.
 
 ## Features
 
-- JWT authentication using secure HTTP-only cookies, CSRF tokens, and session-version invalidation.
+- JWT authentication using HTTP-only cookies.
+- Case-insensitive unique usernames and emails, with whitespace rejected.
+- Strong passwords for signup and password changes; existing passwords remain valid for login.
 - Basic API rate limiting with tighter login/signup limits.
 - MongoDB persistence with Motor/PyMongo.
 - Cloudinary image uploads with size/type validation and best-effort cleanup.
 - Feed, posts, users, followers, saved posts, likes, liked-by, and persisted comments.
 - Direct and group chat REST contracts.
 - Authenticated WebSocket realtime layer for live messages, typing, and presence.
-- Persisted notifications for likes, comments, follows, and messages.
 - Graceful database-unavailable responses for local development.
 - Seed script for dummy users, posts, and chats.
 
@@ -35,7 +36,6 @@ app/domains/
   chat/     # identity, direct chat, listing, message commands/queries, read state, realtime
   groups/   # group creation and rename rules
   media/    # Cloudinary integration
-  notifications/ # persisted notification commands/queries
   posts/    # post lifecycle, comments, reactions/share, request schemas
   users/    # account/profile, public queries, follow graph, username rules, request schemas
 ```
@@ -108,7 +108,7 @@ python scripts\seed.py
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
 | `/api/user/login` | POST | Login and set auth cookie |
-| `/api/user/logout` | POST | Logout, invalidate session, and clear auth cookie |
+| `/api/user/logout` | POST | Clear auth cookie |
 | `/api/user/profile` | GET | Current user profile |
 | `/api/user/search` | POST | Search users |
 | `/api/user/follow` | POST | Follow or unfollow |
@@ -121,6 +121,4 @@ python scripts\seed.py
 | `/api/message/markRead` | POST | Mark chat read |
 | `/api/group/createGroup` | POST | Create group |
 | `/api/group/renameGroup` | POST | Rename group |
-| `/api/notifications` | GET | List notifications |
-| `/api/notifications/read` | POST | Mark notifications read |
 | `/ws/chat` | WebSocket | Live messages, typing, presence |

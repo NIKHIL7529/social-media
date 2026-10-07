@@ -18,7 +18,6 @@ type ApiOptions = RequestInit & {
 
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   let response: Response;
-  const csrfToken = typeof document !== "undefined" ? readCookie("csrf_token") : "";
 
   try {
     response = await fetch(`${API_URL}${path}`, {
@@ -26,11 +25,11 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
       credentials: "include",
       headers: {
         ...(options.body ? { "Content-Type": "application/json; charset=UTF-8" } : {}),
-        ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}),
         ...options.headers,
       },
     });
   } catch (error) {
+    if (options.signal?.aborted) throw error;
     throw new ApiError(
       `Unable to reach the API at ${API_URL}. Check that FastAPI is running and CORS allows this origin.`,
       0,
@@ -46,17 +45,13 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   }
 
   if (!response.ok) {
-    throw new ApiError(data.message || data.detail || "The request could not be completed.", status, data);
+    const detail = Array.isArray(data.detail)
+      ? data.detail.map((issue: { msg?: string }) => issue.msg).filter(Boolean).join("; ")
+      : data.detail;
+    throw new ApiError(data.message || detail || "The request could not be completed.", status, data);
   }
 
   return data as T;
-}
-
-function readCookie(name: string) {
-  const cookies = `; ${document.cookie}`;
-  const parts = cookies.split(`; ${name}=`);
-  if (parts.length < 2) return "";
-  return decodeURIComponent(parts.pop()?.split(";").shift() || "");
 }
 
 export function jsonPost<TResponse, TBody>(path: string, body: TBody): Promise<TResponse> {
