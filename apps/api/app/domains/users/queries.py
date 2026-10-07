@@ -3,7 +3,8 @@ from fastapi import HTTPException
 from app.core.database import get_database
 from app.core.validation import object_id_or_400
 from app.schemas.common import serialize_doc
-from app.domains.users.constants import PUBLIC_USER_PROJECTION
+from app.domains.users.constants import IDENTITY_COLLATION, PUBLIC_USER_PROJECTION
+from app.domains.users.identity import identity_query
 
 
 async def list_users() -> dict:
@@ -34,8 +35,9 @@ async def get_user_by_id(user_id_value: str | None) -> dict:
 
 async def get_user_by_name(user_name: str) -> dict:
     found = await get_database().users.find_one(
-        {"$or": [{"name": user_name}, {"username": user_name}]},
+        identity_query(user_name),
         PUBLIC_USER_PROJECTION,
+        collation=IDENTITY_COLLATION,
     )
     if not found:
         raise HTTPException(status_code=404, detail="User Not Found")

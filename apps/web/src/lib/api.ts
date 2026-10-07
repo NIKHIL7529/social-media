@@ -46,7 +46,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   if (!response.ok) {
     const detail = Array.isArray(data.detail)
-      ? data.detail.map((issue: { msg?: string }) => issue.msg).filter(Boolean).join("; ")
+      ? data.detail.map((issue: { msg?: string }) => issue.msg?.replace(/^Value error, /, "")).filter(Boolean).join("; ")
       : data.detail;
     throw new ApiError(data.message || detail || "The request could not be completed.", status, data);
   }

@@ -6,14 +6,14 @@ FastAPI replacement for the original Express backend. Targets Python `3.13.1`.
 
 - JWT authentication using HTTP-only cookies.
 - Case-insensitive unique usernames and emails, with whitespace rejected.
-- Strong passwords for signup and password changes; existing passwords remain valid for login.
+- Strong passwords of 8 to 40 characters for signup and password changes; passwords over 72 UTF-8 bytes are rejected.
 - Basic API rate limiting with tighter login/signup limits.
 - MongoDB persistence with Motor/PyMongo.
 - Cloudinary image uploads with size/type validation and best-effort cleanup.
 - Feed, posts, users, followers, saved posts, likes, liked-by, and persisted comments.
 - Direct and group chat REST contracts.
 - Authenticated WebSocket realtime layer for live messages, typing, and presence.
-- Graceful database-unavailable responses for local development.
+- Startup requires MongoDB; runtime database failures return 503.
 - Seed script for dummy users, posts, and chats.
 
 ## Key Directories
@@ -22,7 +22,6 @@ FastAPI replacement for the original Express backend. Targets Python `3.13.1`.
 app/api/       # FastAPI routers; HTTP/WebSocket boundary only
 app/core/      # config, database, security, validation, time
 app/domains/   # business modules grouped by domain
-app/models/    # database indexes and model setup
 app/schemas/   # serialization helpers
 scripts/       # seed and maintenance scripts
 ```
@@ -101,6 +100,56 @@ python -m compileall app scripts
 ```powershell
 python scripts\seed.py
 ```
+
+The seed script validates accounts with the signup schema, uses the same account builder
+and password hashing as signup. It does not create or update database indexes.
+It creates `nikhil`, `ananya`, and `rahul` with the development password `SocialSphere123!`.
+Running it again replaces records marked as seed data.
+
+## Manual Database Index Setup
+
+Manage indexes in MongoDB Atlas when setting up a database or changing its query
+requirements. The API and seed script never create, inspect, or modify indexes.
+MongoDB maintains existing index entries automatically when documents change.
+
+Before seeding or accepting signups:
+
+1. In Atlas, open your cluster's **Data Explorer** (or **Browse Collections**),
+   select the database configured in `DATABASE`, and create any missing collections below.
+2. Select a collection, open **Indexes**, and choose **Create Index**.
+3. Enter one key document from the table per index, preserving field order.
+   Set the listed options; leave other options at their defaults.
+4. Create the index and wait for its build to finish. Repeat for each row.
+
+| Collection | Index keys | Options |
+| :--- | :--- | :--- |
+| `users` | `{"name": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
+| `users` | `{"username": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
+| `users` | `{"email": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
+| `posts` | `{"createdAt": -1, "_id": -1}` | Default |
+| `posts` | `{"user": 1, "createdAt": -1}` | Default |
+| `posts` | `{"user": 1, "_id": -1}` | Default |
+| `comments` | `{"post": 1, "createdAt": -1}` | Default |
+| `comments` | `{"post": 1, "status": 1, "createdAt": 1}` | Default |
+| `comments` | `{"sender": 1, "createdAt": -1}` | Default |
+| `messages` | `{"users": 1, "updatedAt": -1}` | Default |
+| `messages` | `{"participantKey": 1}` | Unique; Sparse |
+| `groups` | `{"users": 1, "updatedAt": -1}` | Default |
+| `groups` | `{"chatId": 1}` | Default |
+| `chatmessages` | `{"conversation": 1, "createdAt": -1}` | Default |
+| `chatmessages` | `{"conversation": 1, "sender": 1, "type": 1, "createdAt": -1}` | Default |
+
+The three unique user indexes enforce account uniqueness under concurrent requests;
+application validation alone cannot guarantee it. Every new account supplies all
+three fields, so these indexes do not need Sparse. `participantKey` is Sparse
+because group conversations do not supply that field.
+
+For an existing index whose options must change, use the Indexes tab to drop that
+index and create its replacement while application writes are stopped. Keep the
+automatic `_id_` indexes. Deleting documents preserves indexes; dropping a
+collection or database requires recreating its indexes before use.
+
+Atlas UI reference: [Manage Atlas Indexes](https://www.mongodb.com/docs/atlas/atlas-ui/indexes/).
 
 
 ## API Overview

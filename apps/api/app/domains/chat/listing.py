@@ -1,24 +1,28 @@
+import asyncio
 from datetime import datetime, timezone
 
 from app.core.database import get_database
-from app.domains.chat.read_state import unread_count
+from app.domains.chat.read_state import unread_counts
 from app.schemas.common import serialize_doc
 
 
 async def list_chats(current_user: dict) -> dict:
     db = get_database()
     user_name = current_user["name"]
-    conversations = await db.messages.find(
-        {"users": user_name, "group": False, "lastMessage": {"$exists": True}},
-        {"users": 1, "updatedAt": 1, "lastMessage": 1, "readBy": 1},
-    ).sort("updatedAt", -1).to_list(length=500)
-    groups = await db.groups.find({"users": user_name}).sort("updatedAt", -1).to_list(length=500)
+    conversations, groups = await asyncio.gather(
+        db.messages.find(
+            {"users": user_name, "group": False, "lastMessage": {"$exists": True}},
+            {"users": 1, "updatedAt": 1, "lastMessage": 1, "readBy": 1},
+        ).sort("updatedAt", -1).to_list(length=500),
+        db.groups.find({"users": user_name}).sort("updatedAt", -1).to_list(length=500),
+    )
     group_chat_ids = [group["chatId"] for group in groups if group.get("chatId")]
     group_conversations = await db.messages.find(
         {"_id": {"$in": group_chat_ids}},
         {"updatedAt": 1, "lastMessage": 1, "readBy": 1},
-    ).to_list(length=len(group_chat_ids))
+    ).to_list(length=len(group_chat_ids)) if group_chat_ids else []
     group_conversation_map = {str(conversation["_id"]): conversation for conversation in group_conversations}
+    counts = await unread_counts([*conversations, *group_conversations], user_name)
 
     direct_chats = [
         {
@@ -27,7 +31,7 @@ async def list_chats(current_user: dict) -> dict:
             "updatedAt": conversation.get("updatedAt"),
             "lastMessage": conversation.get("lastMessage"),
             "group": False,
-            "unreadCount": await unread_count(conversation, user_name),
+            "unreadCount": counts.get(conversation["_id"], 0),
         }
         for conversation in conversations
     ]
@@ -40,7 +44,7 @@ async def list_chats(current_user: dict) -> dict:
                 **group,
                 "updatedAt": conversation.get("updatedAt") if conversation else group.get("updatedAt"),
                 "lastMessage": conversation.get("lastMessage") if conversation else None,
-                "unreadCount": await unread_count(conversation, user_name) if conversation else 0,
+                "unreadCount": counts.get(conversation["_id"], 0) if conversation else 0,
                 "group": True,
             }
         )

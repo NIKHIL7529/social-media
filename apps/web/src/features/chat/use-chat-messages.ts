@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
@@ -11,32 +11,36 @@ import { queryKeys } from "@/lib/query-keys";
 
 export function useChatMessages(chatId: string | null) {
   const queryClient = useQueryClient();
-  const [olderCursor, setOlderCursor] = useState<string | null>(null);
+  const loadingOlder = useRef(new Set<string>());
   const messagesQuery = useQuery({
     queryKey: queryKeys.chatMessages(chatId),
     queryFn: () => chatService.getMessages(chatId as string),
     enabled: Boolean(chatId),
   });
   const messages = messagesQuery.data?.messages.messages || [];
+  const latestMessage = messages[messages.length - 1];
+  const latestMessageId = latestMessage && (latestMessage._id || latestMessage.createdAt || latestMessage.updatedAt || latestMessage.message);
   const messageListRef = useMessageScroll({ dependency: `${chatId || ""}:${messages.length}` });
 
   useEffect(() => {
-    if (!chatId || !messages.length) return;
+    if (!chatId || !latestMessageId) return;
     chatService.markRead(chatId).catch(() => undefined);
     markChatReadInList(queryClient, chatId);
-  }, [chatId, messages.length, queryClient]);
+  }, [chatId, latestMessageId, queryClient]);
 
   async function loadOlder() {
-    if (!chatId || !messagesQuery.data?.pagination.hasMore) return;
+    if (!chatId || !messagesQuery.data?.pagination.hasMore || loadingOlder.current.has(chatId)) return;
+    loadingOlder.current.add(chatId);
     try {
       const page = await chatService.getMessages(chatId, {
-        before: olderCursor || messagesQuery.data.pagination.nextCursor,
+        before: messagesQuery.data.pagination.nextCursor,
         limit: 50,
       });
-      setOlderCursor(page.pagination.nextCursor);
-      prependMessagesToChat(queryClient, chatId, page, messages);
+      prependMessagesToChat(queryClient, chatId, page);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not load older messages");
+    } finally {
+      loadingOlder.current.delete(chatId);
     }
   }
 
@@ -45,6 +49,5 @@ export function useChatMessages(chatId: string | null) {
     messageListRef,
     messages,
     messagesQuery,
-    resetPagination: () => setOlderCursor(null),
   };
 }

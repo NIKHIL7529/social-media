@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useCurrentUser } from "@/components/app-shell";
 import { queryKeys } from "@/lib/query-keys";
 import { authService, type ChangePasswordPayload, type EditProfilePayload } from "@/features/auth/auth-service";
+import { passwordError, usernameError } from "@/features/auth/auth-validation";
 
 const emptyProfile: EditProfilePayload = {
   username: "",
@@ -54,6 +55,11 @@ export function useEditProfileForm() {
 
   async function submitProfile(event: FormEvent) {
     event.preventDefault();
+    const validationError = usernameError(form.username);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
     try {
       const data = await toast.promise(authService.editProfile(form), {
         loading: "Saving profile...",
@@ -74,6 +80,11 @@ export function useEditProfileForm() {
 
   async function submitPassword(event: FormEvent) {
     event.preventDefault();
+    const validationError = passwordError(passwords.newPassword);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
     try {
       await toast.promise(authService.changePassword(passwords), {
         loading: "Updating password...",

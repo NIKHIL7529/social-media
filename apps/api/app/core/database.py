@@ -37,12 +37,15 @@ async def connect_to_mongo() -> None:
     except PyMongoError as error:
         database_ready = False
         database_error = str(error)
-        print(f"MongoDB connection deferred: {database_error}")
+        raise
 
 
 async def close_mongo_connection() -> None:
-    if client:
+    global client, database_ready
+    if client is not None:
         client.close()
+        client = None
+    database_ready = False
 
 
 def get_database() -> AsyncIOMotorDatabase:

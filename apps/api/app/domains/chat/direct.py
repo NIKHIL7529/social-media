@@ -1,10 +1,13 @@
 from fastapi import HTTPException
 from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 
 from app.core.database import get_database
 from app.core.time import utc_now
 from app.domains.chat.identity import get_conversation_for_user, participant_key
 from app.domains.chat.read_keys import read_receipt_key
+from app.domains.users.constants import IDENTITY_COLLATION
+from app.domains.users.identity import identity_query
 from app.schemas.common import serialize_doc
 
 
@@ -26,26 +29,36 @@ async def resolve_conversation(sender: str, receiver: list[str], conversation_id
         return conversation
 
     created_at = utc_now()
-    return await db.messages.find_one_and_update(
-        {"participantKey": key},
-        {
-            "$setOnInsert": {
+    query = {"participantKey": key, "group": False, "users": {"$all": users, "$size": len(users)}}
+    try:
+        return await db.messages.find_one_and_update(
+            query,
+            {"$setOnInsert": {
                 "users": users,
                 "participantKey": key,
                 "group": False,
                 "messages": [],
                 "readBy": {read_receipt_key(sender): created_at},
                 "createdAt": created_at,
-            }
-        },
-        upsert=True,
-        return_document=ReturnDocument.AFTER,
-    )
+            }},
+            upsert=True,
+            return_document=ReturnDocument.AFTER,
+        )
+    except DuplicateKeyError as exc:
+        # Another send may have created this conversation while we were looking it up.
+        conversation = await db.messages.find_one(query)
+        if conversation:
+            return conversation
+        raise HTTPException(status_code=409, detail="Conversation is being updated. Please try again.") from exc
 
 
 async def get_direct_conversation(target_user_name: str, current_user: dict) -> dict:
     db = get_database()
-    target = await db.users.find_one({"$or": [{"name": target_user_name}, {"username": target_user_name}]}, {"name": 1})
+    target = await db.users.find_one(
+        identity_query(target_user_name),
+        {"name": 1},
+        collation=IDENTITY_COLLATION,
+    )
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
     if target["name"] == current_user["name"]:

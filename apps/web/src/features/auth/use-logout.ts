@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 import { authService } from "@/features/auth/auth-service";
-import { clearSessionCaches } from "@/features/auth/session-cache";
+import { clearAuthCaches } from "@/features/auth/auth-cache";
 
 export function useLogout() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export function useLogout() {
     } catch {
       // Logout should still clear local state if the API is unavailable.
     } finally {
-      clearSessionCaches(queryClient);
+      clearAuthCaches(queryClient);
       router.push("/login");
     }
   };

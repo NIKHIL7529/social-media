@@ -10,7 +10,6 @@ from app.api import groups, messages, posts, realtime, users
 from app.core.config import get_settings
 from app.core.database import close_mongo_connection, connect_to_mongo, get_database_status
 from app.core.rate_limit import RateLimitMiddleware
-from app.models.indexes import ensure_indexes
 from app.domains.media import configure_cloudinary
 
 started_at = monotonic()
@@ -19,11 +18,11 @@ started_at = monotonic()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_cloudinary()
-    await connect_to_mongo()
-    if get_database_status()["ready"]:
-        await ensure_indexes()
-    yield
-    await close_mongo_connection()
+    try:
+        await connect_to_mongo()
+        yield
+    finally:
+        await close_mongo_connection()
 
 
 settings = get_settings()

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { AppShell } from "@/components/app-shell";
 import { userService } from "@/features/users/user-service";
@@ -11,6 +11,7 @@ import { queryKeys } from "@/lib/query-keys";
 export default function UserByNamePage() {
   const { name } = useParams<{ name: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const userQuery = useQuery({
     queryKey: queryKeys.userByName(name),
     queryFn: () => userService.getByName(decodeURIComponent(name)),
@@ -19,9 +20,13 @@ export default function UserByNamePage() {
 
   useEffect(() => {
     if (userQuery.data?.user._id) {
+      const key = queryKeys.user(userQuery.data.user._id);
+      if ((queryClient.getQueryState(key)?.dataUpdatedAt || 0) < userQuery.dataUpdatedAt) {
+        queryClient.setQueryData(key, userQuery.data, { updatedAt: userQuery.dataUpdatedAt });
+      }
       router.replace(`/user/${userQuery.data.user._id}`);
     }
-  }, [router, userQuery.data?.user._id]);
+  }, [queryClient, router, userQuery.data, userQuery.dataUpdatedAt]);
 
   return (
     <AppShell>

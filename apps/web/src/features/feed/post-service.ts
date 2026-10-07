@@ -1,9 +1,10 @@
 import { apiFetch, jsonPost } from "@/lib/api";
-import type { FeedPage, Post, PostComment, User } from "@/types/social";
+import type { FeedPage, Post, PostComment } from "@/types/social";
+import { userService } from "@/features/users/user-service";
 
 export const postService = {
-  getFeed: ({ cursor, limit = 10 }: { cursor?: string | null; limit?: number }) =>
-    jsonPost<FeedPage, { cursor?: string | null; limit: number }>("/api/post", { cursor, limit }),
+  getFeed: ({ cursor, limit = 10, signal }: { cursor?: string | null; limit?: number; signal?: AbortSignal }) =>
+    apiFetch<FeedPage>("/api/post", { method: "POST", body: JSON.stringify({ cursor, limit }), signal }),
   like: (postId: string) =>
     jsonPost<{ status: number; message: string; liked: boolean; likes: number }, { _id: string }>("/api/post/liked", {
       _id: postId,
@@ -12,8 +13,7 @@ export const postService = {
     jsonPost<{ status: number; message: string; saved: boolean; savedCount: number }, { _id: string }>("/api/post/saved", { _id: postId }),
   remove: (postId: string) =>
     jsonPost<{ status: number; message: string }, { _id: string }>("/api/post/deletePost", { _id: postId }),
-  follow: (userName: string) =>
-    jsonPost<{ status: number; message: string; following: boolean; user: User }, { userName: string }>("/api/user/follow", { userName }),
+  follow: userService.follow,
   create: (post: { topic: string; text: string; photo: string; commentable: boolean }) =>
     jsonPost<{ status: number; message: string; post: Post }, typeof post>("/api/post/addPost", post),
   getMyPosts: () => apiFetch<{ status: number; post: Post[] }>("/api/post/signedUserPosts"),

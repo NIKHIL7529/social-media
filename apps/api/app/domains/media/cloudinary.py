@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 import cloudinary
 import cloudinary.uploader
 from fastapi import HTTPException
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import get_settings
 
@@ -27,7 +28,8 @@ async def upload_image(data_url: str, folder: str) -> str:
     if not data_url:
         return ""
     validate_data_url(data_url)
-    result = cloudinary.uploader.upload(
+    result = await run_in_threadpool(
+        cloudinary.uploader.upload,
         data_url,
         folder=folder,
         resource_type="image",
@@ -43,7 +45,7 @@ async def delete_image(image_url: str) -> None:
     if not public_id:
         return
     try:
-        cloudinary.uploader.destroy(public_id, resource_type="image")
+        await run_in_threadpool(cloudinary.uploader.destroy, public_id, resource_type="image")
     except Exception:
         return
 

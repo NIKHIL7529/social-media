@@ -4,6 +4,7 @@ import { AppShell } from "@/components/app-shell";
 import { SelectField, TextAreaField, TextField } from "@/components/form-controls";
 import { ImageUploadField } from "@/components/image-upload-field";
 import { useEditProfileForm } from "@/features/auth/use-edit-profile-form";
+import { USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH, PASSWORD_REQUIREMENTS } from "@/features/auth/auth-validation";
 
 const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
 
@@ -30,7 +31,7 @@ export default function EditProfilePage() {
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <TextField label="Username" value={profile.form.username} onChange={(username) => profile.updateProfileField("username", username)} required />
+                <TextField label="Username" value={profile.form.username} onChange={(username) => profile.updateProfileField("username", username)} minLength={USERNAME_MIN_LENGTH} maxLength={USERNAME_MAX_LENGTH} autoComplete="username" required />
                 <SelectField label="Gender" value={profile.form.gender} onChange={(gender) => profile.updateProfileField("gender", gender)} required>
                   <option value="" disabled>Select gender</option>
                   {genderOptions.map((option) => (
@@ -54,8 +55,9 @@ export default function EditProfilePage() {
             <h2 className="text-xl font-extrabold text-ink">Change password</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <TextField label="Current password" type="password" value={profile.passwords.currentPassword} onChange={(currentPassword) => profile.updatePasswordField("currentPassword", currentPassword)} required />
-              <TextField label="New password" type="password" value={profile.passwords.newPassword} onChange={(newPassword) => profile.updatePasswordField("newPassword", newPassword)} required />
+              <TextField label="New password" type="password" value={profile.passwords.newPassword} onChange={(newPassword) => profile.updatePasswordField("newPassword", newPassword)} minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} autoComplete="new-password" required />
             </div>
+            <p className="mt-3 text-sm text-ink-muted">{PASSWORD_REQUIREMENTS}</p>
             <button className="mt-5 min-h-11 rounded-md border border-line px-4 font-bold text-accent-deep">Update password</button>
           </form>
         )}

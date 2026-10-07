@@ -25,20 +25,23 @@ async def list_feed(cursor: str | None, limit: int) -> dict:
 
 async def list_posts_for_user(user_id_value: str) -> dict:
     user_id = object_id_or_400(user_id_value, "Invalid user id")
-    posts = await get_database().posts.find({"user": user_id}).sort("_id", -1).to_list(length=200)
-    hydrated = await hydrate_posts(posts)
+    hydrated = await _posts_for_user(user_id)
     return {"status": 200, "message": "User Posts", "post": serialize_doc(hydrated)}
 
 
 async def list_signed_user_posts(current_user: dict) -> dict:
-    posts = await get_database().posts.find({"user": current_user["_id"]}).sort("_id", -1).to_list(length=200)
-    hydrated = await hydrate_posts(posts)
+    hydrated = await _posts_for_user(current_user["_id"])
     return {"status": 200, "message": "Signed User Posts", "post": serialize_doc(hydrated)}
+
+
+async def _posts_for_user(user_id) -> list[dict]:
+    posts = await get_database().posts.find({"user": user_id}).sort("_id", -1).to_list(length=200)
+    return await hydrate_posts(posts)
 
 
 async def list_saved_posts(current_user: dict) -> dict:
     saved_ids = current_user.get("saved", [])
-    posts = await get_database().posts.find({"_id": {"$in": saved_ids}}).to_list(length=200)
+    posts = await get_database().posts.find({"_id": {"$in": saved_ids}}).to_list(length=200) if saved_ids else []
     hydrated = await hydrate_posts(posts)
     order = {str(post_id): index for index, post_id in enumerate(saved_ids)}
     hydrated.sort(key=lambda post: order.get(str(post["_id"]), len(order)))

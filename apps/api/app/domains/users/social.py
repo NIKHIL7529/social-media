@@ -1,14 +1,18 @@
 from fastapi import HTTPException
 
 from app.core.database import get_database
-from app.domains.notifications import create_notification
 from app.schemas.common import serialize_doc
-from app.domains.users.constants import PUBLIC_USER_PROJECTION
+from app.domains.users.constants import IDENTITY_COLLATION, PUBLIC_USER_PROJECTION
+from app.domains.users.identity import identity_query
 
 
 async def toggle_follow(target_user_name: str, current_user: dict) -> dict:
     db = get_database()
-    target = await db.users.find_one({"$or": [{"name": target_user_name}, {"username": target_user_name}]})
+    target = await db.users.find_one(
+        identity_query(target_user_name),
+        {"name": 1},
+        collation=IDENTITY_COLLATION,
+    )
     if not target:
         raise HTTPException(status_code=404, detail="User Not Found")
     if target["_id"] == current_user["_id"]:
@@ -31,14 +35,6 @@ async def toggle_follow(target_user_name: str, current_user: dict) -> dict:
 
     current_update = {"$addToSet": {"followings": target_name}} if following else {"$pull": {"followings": target_name}}
     await db.users.update_one({"_id": current_user["_id"]}, current_update)
-    if following:
-        await create_notification(
-            recipient=target_name,
-            actor=profile_name,
-            notification_type="follow",
-            entity_id=str(current_user["_id"]),
-            text=f"{profile_name} started following you",
-        )
 
     updated = await db.users.find_one({"_id": target["_id"]}, PUBLIC_USER_PROJECTION)
     return {

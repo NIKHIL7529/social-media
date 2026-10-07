@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 const inputClass =
   "mt-2 min-h-11 w-full rounded-md border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft";
@@ -11,17 +11,18 @@ export function TextField({
   required,
   type = "text",
   value,
+  ...inputProps
 }: {
   label: string;
   onChange: (value: string) => void;
   required?: boolean;
   type?: string;
   value: string;
-}) {
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">) {
   return (
     <label className="block text-sm font-bold text-ink">
       {label}
-      <input type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} className={inputClass} />
+      <input {...inputProps} type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} className={inputClass} />
     </label>
   );
 }

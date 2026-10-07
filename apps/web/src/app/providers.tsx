@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { clearSessionCaches } from "@/features/auth/session-cache";
+import { clearAuthCaches } from "@/features/auth/auth-cache";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -21,9 +21,9 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const clearUnauthorizedSession = () => clearSessionCaches(queryClient);
-    window.addEventListener("auth:unauthorized", clearUnauthorizedSession);
-    return () => window.removeEventListener("auth:unauthorized", clearUnauthorizedSession);
+    const clearUnauthorizedAuth = () => clearAuthCaches(queryClient);
+    window.addEventListener("auth:unauthorized", clearUnauthorizedAuth);
+    return () => window.removeEventListener("auth:unauthorized", clearUnauthorizedAuth);
   }, [queryClient]);
 
   return (

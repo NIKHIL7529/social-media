@@ -7,12 +7,12 @@ def participant_key(users: list[str]) -> str:
     return ":".join(sorted(set(users)))
 
 
-async def get_conversation_for_user(conversation_id: str, user_name: str) -> dict | None:
+async def get_conversation_for_user(conversation_id: str, user_name: str, projection: dict | None = None) -> dict | None:
     if not ObjectId.is_valid(conversation_id):
         return None
-    return await get_database().messages.find_one({"_id": ObjectId(conversation_id), "users": user_name})
+    return await get_database().messages.find_one({"_id": ObjectId(conversation_id), "users": user_name}, projection)
 
 
 async def get_conversation_users(conversation_id: str, user_name: str) -> list[str]:
-    conversation = await get_conversation_for_user(conversation_id, user_name)
+    conversation = await get_conversation_for_user(conversation_id, user_name, {"users": 1})
     return conversation.get("users", []) if conversation else []

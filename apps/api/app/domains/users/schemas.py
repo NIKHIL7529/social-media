@@ -1,48 +1,44 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from typing import Annotated
 
-from app.domains.users.rules import normalize_username
+from pydantic import AfterValidator, BaseModel, BeforeValidator, EmailStr, Field
+
+from app.domains.users.rules import normalize_email, normalize_login_identifier, validate_password, validate_username
+
+Username = Annotated[str, BeforeValidator(validate_username)]
+AccountEmail = Annotated[EmailStr, BeforeValidator(normalize_email)]
+StrongPassword = Annotated[str, AfterValidator(validate_password)]
 
 
 class SignupPayload(BaseModel):
-    username: str = Field(min_length=3, max_length=30)
-    email: EmailStr
+    username: Username
+    email: AccountEmail
     dob: str
     gender: str
-    password: str = Field(min_length=8)
+    password: StrongPassword
     city: str = ""
     country: str = ""
     description: str = ""
     photo: str = ""
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, value: str) -> str:
-        return normalize_username(value)
 
 
 class EditProfilePayload(BaseModel):
-    username: str = Field(min_length=3, max_length=30)
+    username: Username
     dob: str
     gender: str
     city: str = ""
     country: str = ""
     description: str = ""
     photo: str = ""
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, value: str) -> str:
-        return normalize_username(value)
 
 
 class ChangePasswordPayload(BaseModel):
     currentPassword: str = Field(min_length=1)
-    newPassword: str = Field(min_length=8)
+    newPassword: StrongPassword
 
 
 class LoginPayload(BaseModel):
-    name: str
-    password: str
+    name: Annotated[str, BeforeValidator(normalize_login_identifier), Field(min_length=1)]
+    password: str = Field(min_length=1)
 
 
 class SearchPayload(BaseModel):

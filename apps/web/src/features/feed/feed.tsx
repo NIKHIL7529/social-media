@@ -20,12 +20,13 @@ export function Feed() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching,
     isLoading,
     refetch,
   } = useInfiniteQuery({
     queryKey: queryKeys.feed,
     initialPageParam: null as string | null,
-    queryFn: ({ pageParam }) => postService.getFeed({ cursor: pageParam, limit: 10 }),
+    queryFn: ({ pageParam, signal }) => postService.getFeed({ cursor: pageParam, limit: 10, signal }),
     getNextPageParam: (lastPage) => lastPage.pagination.nextCursor,
   });
 
@@ -37,7 +38,7 @@ export function Feed() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetchingNextPage) {
+        if (entries[0].isIntersecting && !isFetching) {
           fetchNextPage();
         }
       },
@@ -45,7 +46,7 @@ export function Feed() {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [fetchNextPage, hasNextPage, isFetching]);
 
   return (
     <section className="mx-auto min-h-[calc(100vh-var(--nav-height))] w-full max-w-feed" aria-labelledby="feed-title">

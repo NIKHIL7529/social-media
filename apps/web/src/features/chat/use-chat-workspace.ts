@@ -47,7 +47,6 @@ export function useChatWorkspace() {
       const isActiveChat = message.chatId === resolvedActiveChatId;
       if (isActiveChat) {
         appendMessageToChat(queryClient, message.chatId, message);
-        chatService.markRead(message.chatId).catch(() => undefined);
       }
       upsertChatPreview(queryClient, {
         activeChat,
@@ -80,7 +79,7 @@ export function useChatWorkspace() {
           message: savedMessage,
         });
         setActiveChatId(nextChatId);
-        queryClient.invalidateQueries({ queryKey: queryKeys.chatList });
+        if (!resolvedActiveChatId) queryClient.invalidateQueries({ queryKey: queryKeys.chatList });
         if (!resolvedActiveChatId) replaceDraftWithChat(nextChatId);
       }
       setDraft("");
@@ -109,11 +108,6 @@ export function useChatWorkspace() {
     }
     sendMutation.mutate();
   }
-
-  const chooseChat = (chatId: string) => {
-    chatMessages.resetPagination();
-    selectChat(chatId);
-  };
 
   function updateDraft(value: string) {
     setDraft(value);
@@ -155,7 +149,7 @@ export function useChatWorkspace() {
     realtimeStatus: realtime.status,
     renameGroup,
     renamingGroup,
-    selectChat: chooseChat,
+    selectChat,
     send,
     sendPending: sendMutation.isPending,
     showGroupForm,

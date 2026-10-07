@@ -78,14 +78,18 @@ export function appendMessageToChat(queryClient: QueryClient, chatId: string, me
   });
 }
 
-export function prependMessagesToChat(queryClient: QueryClient, chatId: string, page: MessagesCache, currentMessages: ChatMessage[]) {
-  queryClient.setQueryData(queryKeys.chatMessages(chatId), {
-    ...page,
-    messages: {
-      ...page.messages,
-      messages: [...page.messages.messages, ...currentMessages],
-    },
-    pagination: page.pagination,
+export function prependMessagesToChat(queryClient: QueryClient, chatId: string, page: MessagesCache) {
+  queryClient.setQueryData<MessagesCache>(queryKeys.chatMessages(chatId), (current) => {
+    const currentMessages = current?.messages.messages || [];
+    const currentIds = new Set(currentMessages.map((message) => message._id).filter(Boolean));
+    return {
+      ...page,
+      messages: {
+        ...page.messages,
+        messages: [...page.messages.messages.filter((message) => !currentIds.has(message._id)), ...currentMessages],
+      },
+      pagination: page.pagination,
+    };
   });
 }
 

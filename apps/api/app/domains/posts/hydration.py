@@ -8,7 +8,7 @@ async def hydrate_posts(posts: list[dict]) -> list[dict]:
         return []
 
     db = get_database()
-    user_ids = [post["user"] for post in posts if ObjectId.is_valid(str(post.get("user")))]
+    user_ids = list({post["user"] for post in posts if ObjectId.is_valid(str(post.get("user")))})
     users = await db.users.find({"_id": {"$in": user_ids}}, {"password": 0, "email": 0}).to_list(length=len(user_ids))
     user_map = {str(user["_id"]): user for user in users}
 
