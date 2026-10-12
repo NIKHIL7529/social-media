@@ -13,16 +13,13 @@ export function useLogout() {
 
   return async function logout() {
     try {
-      await toast.promise(authService.logout(), {
-        loading: "Signing out...",
-        success: "Signed out",
-        error: "Signed out locally",
-      });
-    } catch {
-      // Logout should still clear local state if the API is unavailable.
-    } finally {
+      await authService.logout();
       clearAuthCaches(queryClient);
+      toast.success("Signed out");
       router.push("/login");
+    } catch (error) {
+      // The HTTP-only cookie can only be cleared by a successful server response.
+      toast.error(error instanceof Error ? error.message : "Unable to sign out. Please try again.");
     }
   };
 }

@@ -5,17 +5,18 @@ RUN npm ci
 
 FROM node:24.18.0-bookworm-slim AS builder
 WORKDIR /app
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
-ARG NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+ARG API_INTERNAL_URL=http://api:8000
+ENV API_INTERNAL_URL=$API_INTERNAL_URL
+ENV NEXT_BUILD_TARGET=standalone
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
 FROM node:24.18.0-bookworm-slim AS runner
 WORKDIR /app
+ARG API_INTERNAL_URL=http://api:8000
 ENV NODE_ENV=production \
+    API_INTERNAL_URL=$API_INTERNAL_URL \
     HOSTNAME=0.0.0.0 \
     PORT=3000
 RUN groupadd --gid 10001 appgroup && useradd --uid 10001 --gid 10001 --create-home --shell /usr/sbin/nologin appuser

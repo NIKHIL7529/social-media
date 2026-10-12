@@ -8,7 +8,7 @@ from app.schemas.common import serialize_doc
 
 async def list_chats(current_user: dict) -> dict:
     db = get_database()
-    user_name = current_user["name"]
+    user_name = current_user["username"]
     conversations, groups = await asyncio.gather(
         db.messages.find(
             {"users": user_name, "group": False, "lastMessage": {"$exists": True}},
@@ -58,5 +58,5 @@ async def list_chats(current_user: dict) -> dict:
 
 
 async def list_followings(current_user: dict) -> dict:
-    user = await get_database().users.find_one({"_id": current_user["_id"]}, {"followings": 1})
-    return {"status": 200, "message": "Followings", "followings": serialize_doc([user] if user else [])}
+    user = {"_id": current_user["_id"], "followings": current_user.get("followings", [])}
+    return {"status": 200, "message": "Followings", "followings": serialize_doc([user])}

@@ -31,7 +31,7 @@ export function useMessageScroll({ dependency }: UseMessageScrollOptions): RefOb
     updatePosition();
     container.addEventListener("scroll", updatePosition, { passive: true });
     return () => container.removeEventListener("scroll", updatePosition);
-  }, []);
+  }, [dependency]);
 
   return containerRef;
 }

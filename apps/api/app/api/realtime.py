@@ -15,7 +15,7 @@ async def chat_socket(websocket: WebSocket) -> None:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    user_name = user["name"]
+    user_name = user["username"]
     await realtime_manager.connect(websocket, user_name)
     await realtime_manager.broadcast_online_users()
 

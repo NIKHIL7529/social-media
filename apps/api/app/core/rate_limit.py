@@ -11,6 +11,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         self._requests: dict[str, deque[float]] = defaultdict(deque)
+        self._last_cleanup = monotonic()
 
     async def dispatch(self, request, call_next):
         if request.method == "OPTIONS" or request.url.path == "/api/health":
@@ -21,6 +22,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         max_requests = settings.auth_rate_limit_max_requests if request.url.path in {"/api/user/login", "/api/user/signup"} else settings.rate_limit_max_requests
         key = f"{self._client_ip(request)}:{request.url.path}"
         now = monotonic()
+        if now - self._last_cleanup >= window:
+            # Remove expired client/path entries so memory does not grow forever.
+            self._requests = defaultdict(deque, {
+                key: bucket for key, bucket in self._requests.items()
+                if bucket and now - bucket[-1] <= window
+            })
+            self._last_cleanup = now
         bucket = self._requests[key]
         while bucket and now - bucket[0] > window:
             bucket.popleft()

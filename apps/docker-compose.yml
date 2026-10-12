@@ -29,12 +29,10 @@ services:
     build:
       context: ./web
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
-        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+        API_INTERNAL_URL: http://api:8000
     container_name: socialsphere-web
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
-      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME:-}
+      API_INTERNAL_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:

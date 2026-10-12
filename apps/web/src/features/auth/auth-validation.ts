@@ -4,6 +4,15 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 40;
 export const PASSWORD_REQUIREMENTS = `Use ${PASSWORD_MIN_LENGTH} to ${PASSWORD_MAX_LENGTH} characters, with a capital letter, a lowercase letter, a number, and a symbol (such as ! or @).`;
 
+export function displayNameError(value: string): string | null {
+  const name = value.trim();
+  if (!name) return "Enter a name.";
+  if (name.length < 3 || name.length > 20 || !/^[\p{L} ]+$/u.test(name) || (name.match(/\p{L}/gu)?.length || 0) < 3) {
+    return "Name must contain 3 to 20 letters; spaces between words are allowed.";
+  }
+  return null;
+}
+
 export function usernameError(value: string): string | null {
   if (!value) return "Enter a username.";
   if (value.includes("@"))

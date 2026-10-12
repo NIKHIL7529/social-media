@@ -1,11 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import type { Post } from "@/types/social";
-import { CommentsPanel, LikersDialog, PostActions, PostContent, PostHeader } from "@/features/feed/post-card-components";
+import dynamic from "next/dynamic";
+import { PostActions } from "@/features/feed/post-card-actions";
+import { PostContent } from "@/features/feed/post-card-content";
+import { PostHeader } from "@/features/feed/post-card-header";
+import { ListSkeleton } from "@/components/skeletons";
 import { usePostCardActions } from "@/features/feed/use-post-card-actions";
+import { usePostSize } from "@/features/feed/use-post-size";
+
+const CommentsPanel = dynamic(() => import("@/features/feed/comments-panel").then(module => module.CommentsPanel), { loading: () => <ListSkeleton /> });
+const LikersDialog = dynamic(() => import("@/features/feed/post-likers-dialog").then(module => module.LikersDialog), { loading: () => <ListSkeleton /> });
 
 type Props = {
   post: Post;
@@ -14,17 +22,17 @@ type Props = {
 
 export function PostCard({ post, priority = false }: Props) {
   const actions = usePostCardActions(post);
-  const canReadMore = (post.text || "").length > 140;
-  const [expanded, setExpanded] = useState(!canReadMore);
-  const visibleText = useMemo(() => {
-    if (!post.text) return "";
-    return expanded ? post.text : `${post.text.slice(0, 140)}...`;
-  }, [expanded, post.text]);
+  const [expanded, setExpanded] = useState(false);
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>();
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const { cardRef, mediaRef, width } = usePostSize({ ratio: dimensions ? dimensions.width / dimensions.height : 4 / 3, expanded: expanded || actions.commentsOpen });
+  const visibleText = !post.text ? "" : expanded || post.text.length <= 140 ? post.text : `${post.text.slice(0, 140)}...`;
 
   if (actions.deleted) return null;
 
   return (
-    <article className="mb-5 overflow-hidden rounded-lg border border-line bg-white shadow-card">
+    <article ref={cardRef} style={{ inlineSize: width }} className="post-card mx-auto mb-6 min-w-0 max-w-full">
       <PostHeader
         following={actions.following}
         isMine={actions.isMine}
@@ -34,8 +42,23 @@ export function PostCard({ post, priority = false }: Props) {
         working={actions.isMine ? actions.deleteMutation.isPending : actions.followMutation.isPending}
       />
 
-      <div className="bg-slate-100">
-        <Image src={post.photo} alt={post.topic || "post"} width={960} height={720} priority={priority} className="aspect-[4/3] w-full object-cover" />
+      <div ref={mediaRef} className="post-media">
+        {imageFailed ? (
+          <p role="alert" className="break-words p-3 text-sm text-danger">This post&apos;s image could not be loaded.</p>
+        ) : (
+          <Image
+            src={post.photo}
+            alt={post.topic || "post"}
+            width={dimensions?.width ?? 960}
+            height={dimensions?.height ?? 720}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            sizes={width ? `${Math.ceil(width)}px` : "(min-width: 1280px) 65vw, 100vw"}
+            className="block h-auto w-full"
+            onLoad={event => { const image = event.currentTarget; setDimensions(current => current?.width === image.naturalWidth && current?.height === image.naturalHeight ? current : { width: image.naturalWidth, height: image.naturalHeight }); }}
+            onError={() => setImageFailed(true)}
+          />
+        )}
       </div>
 
       <PostContent
@@ -61,7 +84,6 @@ export function PostCard({ post, priority = false }: Props) {
       {actions.likersOpen && (
         <LikersDialog
           onClose={() => actions.setLikersOpen(false)}
-          onSelectUser={(userId) => actions.router.push(`/user/${userId}`)}
           query={actions.likersQuery}
         />
       )}
@@ -69,12 +91,12 @@ export function PostCard({ post, priority = false }: Props) {
       {actions.commentsOpen && (
         <CommentsPanel
           comment={actions.comment}
-          comments={actions.comments}
+          comments={actions.commentsQuery.data?.comments ?? []}
           loading={actions.commentsQuery.isLoading}
           mutation={actions.commentMutation}
           onAddComment={actions.addComment}
           onCommentChange={actions.setComment}
-          queryComments={actions.commentsQuery.data?.comments}
+          error={actions.commentsQuery.error}
         />
       )}
     </article>

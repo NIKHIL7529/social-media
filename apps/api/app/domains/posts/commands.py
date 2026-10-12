@@ -1,17 +1,29 @@
 from fastapi import HTTPException
+from pymongo.errors import PyMongoError
 
 from app.core.database import get_database
 from app.core.time import utc_now
 from app.core.validation import object_id_or_400
 from app.domains.media.cloudinary import delete_image, upload_image
-from app.domains.posts.hydration import hydrate_posts
 from app.schemas.common import serialize_doc
 
 
 async def create_post(payload: dict, current_user: dict) -> dict:
     image = await upload_image(payload["photo"], "postImages")
+    post = build_post_document(payload, current_user, image)
+    try:
+        result = await get_database().posts.insert_one(post)
+    except PyMongoError:
+        await delete_image(image)
+        raise
+    post["_id"] = result.inserted_id
+    post["user"] = {key: value for key, value in current_user.items() if key not in {"password", "email"}}
+    return {"status": 200, "message": "Post added", "post": serialize_doc(post)}
+
+
+def build_post_document(payload: dict, current_user: dict, image: str) -> dict:
     now = utc_now()
-    post = {
+    return {
         "topic": payload.get("topic", ""),
         "text": payload.get("text", ""),
         "photo": image,
@@ -24,10 +36,6 @@ async def create_post(payload: dict, current_user: dict) -> dict:
         "createdAt": now,
         "updatedAt": now,
     }
-    result = await get_database().posts.insert_one(post)
-    post["_id"] = result.inserted_id
-    hydrated = await hydrate_posts([post])
-    return {"status": 200, "message": "Post added", "post": serialize_doc(hydrated[0] if hydrated else post)}
 
 
 async def delete_post(post_id_value: str, current_user: dict) -> dict:

@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, Request, Response
+from app.schemas.common import serialize_doc
+from fastapi import APIRouter, Depends, Response
 
 from app.core.security import (
     auth_cookie_options,
     create_access_token,
     get_current_user,
     get_optional_user,
-    serialize_auth_user,
 )
 from app.domains.users import (
     authenticate_user,
@@ -41,35 +41,33 @@ async def signup(payload: SignupPayload) -> dict:
 
 
 @router.post("/login")
-async def login(payload: LoginPayload, request: Request, response: Response) -> dict:
+async def login(payload: LoginPayload, response: Response) -> dict:
     user = await authenticate_user(payload.name, payload.password)
     response.set_cookie(
         "token",
-        create_access_token(user["_id"], user["name"]),
-        **auth_cookie_options(request),
+        create_access_token(user["_id"], user["username"]),
+        **auth_cookie_options(),
     )
-    return {"status": 200, "message": "Login successful", "user": serialize_auth_user(user)}
+    return {"status": 200, "message": "Login successful", "user": serialize_doc(user)}
 
 
 @router.post("/logout")
 async def logout(
-    request: Request,
     response: Response,
 ) -> dict:
-    cookie_options = auth_cookie_options(request)
+    cookie_options = auth_cookie_options()
     response.delete_cookie("token", path="/", secure=cookie_options["secure"], samesite=cookie_options["samesite"])
     return {"status": 200}
 
 
 @router.get("/profile")
 async def profile(current_user: dict = Depends(get_current_user)) -> dict:
-    return {"status": 200, "message": "Profile data", "user": serialize_auth_user(current_user)}
+    return {"status": 200, "message": "Profile data", "user": serialize_doc(current_user)}
 
 
 @router.post("/editProfile")
 async def edit_profile(
     payload: EditProfilePayload,
-    request: Request,
     response: Response,
     current_user: dict = Depends(get_current_user),
 ) -> dict:
@@ -77,10 +75,10 @@ async def edit_profile(
     if username_changed:
         response.set_cookie(
             "token",
-            create_access_token(user["_id"], user["name"]),
-            **auth_cookie_options(request),
+            create_access_token(user["_id"], user["username"]),
+            **auth_cookie_options(),
         )
-    return {"status": 200, "message": "User info changed", "user": serialize_auth_user(user)}
+    return {"status": 200, "message": "User info changed", "user": serialize_doc(user)}
 
 
 @router.post("/changePassword")

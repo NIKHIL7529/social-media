@@ -15,7 +15,7 @@ export function applyFollow(queryClient: QueryClient, targetName: string, curren
   );
 
   const updateAuthor = (post: Post) =>
-    post.user.name === targetName
+    post.user.username === targetName
       ? {
           ...post,
           user: {
@@ -27,7 +27,7 @@ export function applyFollow(queryClient: QueryClient, targetName: string, curren
 
   mapPostsEverywhere(queryClient, updateAuthor);
   queryClient.setQueriesData<UserResponse>({ predicate: (query) => query.queryKey[0] === "user" && query.queryKey.length === 2 }, (data) => {
-    if (!data?.user || data.user.name !== targetName) return data;
+    if (!data?.user || data.user.username !== targetName) return data;
     return {
       ...data,
       user: targetUser || {

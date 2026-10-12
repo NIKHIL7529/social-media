@@ -13,7 +13,7 @@ type BrandProps = {
 export function Brand({ compact = false, href, priority = false, showTagline = false }: BrandProps) {
   const identity = (
     <span className="inline-flex items-center gap-3">
-      <Image src={BRAND.assets.mark} alt="" width={44} height={44} priority={priority} className="size-10 rounded-[13px] shadow-[0_6px_18px_rgba(15,118,110,0.22)] sm:size-11" />
+      <Image src={BRAND.assets.mark} alt="" width={44} height={44} priority={priority} unoptimized className="size-10 rounded-[13px] shadow-[0_6px_18px_rgba(15,118,110,0.22)] sm:size-11" />
       {!compact && (
         <span className="min-w-0 leading-none">
           <span className="block text-xl font-extrabold tracking-[-0.035em] text-ink">

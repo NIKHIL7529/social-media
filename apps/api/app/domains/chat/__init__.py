@@ -1,4 +1,3 @@
-from app.domains.chat.constants import MAX_PAGE_SIZE
 from app.domains.chat.direct import get_direct_conversation
 from app.domains.chat.identity import get_conversation_users
 from app.domains.chat.listing import list_chats, list_followings
@@ -10,7 +9,6 @@ from app.domains.chat.realtime_auth import authenticate_socket
 from app.domains.chat.schemas import DirectConversationPayload, MarkReadPayload, MessagesPayload, SendMessagePayload
 
 __all__ = [
-    "MAX_PAGE_SIZE",
     "authenticate_socket",
     "DirectConversationPayload",
     "get_direct_conversation",

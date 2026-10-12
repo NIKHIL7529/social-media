@@ -10,10 +10,10 @@ from app.schemas.common import serialize_doc
 
 async def create_group(name: str, users: list[str], current_user: dict) -> dict:
     db = get_database()
-    creator = current_user["name"]
+    creator = current_user["username"]
     requested_users = [user.strip() for user in users if user.strip()]
-    existing_users = await db.users.find({"name": {"$in": requested_users}}, {"name": 1}).to_list(length=len(requested_users))
-    existing_names = [user["name"] for user in existing_users]
+    existing_users = await db.users.find({"username": {"$in": requested_users}}, {"username": 1}).to_list(length=len(requested_users))
+    existing_names = [user["username"] for user in existing_users]
     unique_users = list(dict.fromkeys([*existing_names, creator]))
     if len(unique_users) < 2:
         raise HTTPException(status_code=400, detail="At least one member is required")
@@ -22,7 +22,6 @@ async def create_group(name: str, users: list[str], current_user: dict) -> dict:
     conversation = {
         "users": unique_users,
         "group": True,
-        "messages": [],
         "readBy": {read_receipt_key(user): now for user in unique_users},
         "lastMessage": {"message": "Created Group", "sender": creator, "createdAt": now},
         "createdAt": now,
@@ -58,7 +57,7 @@ async def create_group(name: str, users: list[str], current_user: dict) -> dict:
 async def rename_group(chat_id_value: str, name: str, current_user: dict) -> dict:
     chat_id = object_id_or_400(chat_id_value, "Chat id is required")
     group = await get_database().groups.find_one_and_update(
-        {"chatId": chat_id, "users": current_user["name"]},
+        {"chatId": chat_id, "users": current_user["username"]},
         {"$set": {"name": name.strip(), "updatedAt": utc_now()}},
         return_document=ReturnDocument.AFTER,
     )

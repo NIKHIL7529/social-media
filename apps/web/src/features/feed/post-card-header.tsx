@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import Link from "next/link";
 import { UserAvatar } from "@/components/user-avatar";
 
 import type { Post } from "@/types/social";
@@ -21,17 +22,17 @@ export function PostHeader({
   working: boolean;
 }) {
   return (
-    <header className="flex items-center justify-between gap-4 px-4 pb-3 pt-4 sm:px-5">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="post-header flex items-center justify-between gap-4 px-4 pb-3 pt-4 sm:px-5">
+      <Link href={`/user/${post.user._id}`} className="flex min-w-0 items-center gap-3 hover:text-accent">
         <UserAvatar name={post.user.name} photo={post.user.photo} />
         <p className="truncate font-bold text-ink">{post.user.name}</p>
-      </div>
+      </Link>
 
       {isMine ? (
         <button
           onClick={onDelete}
           disabled={working}
-          className="inline-flex min-h-9 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 font-bold text-red-700 disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex min-h-9 items-center gap-2 rounded-full border border-danger/20 bg-danger-soft px-3 font-bold text-danger disabled:cursor-wait disabled:opacity-60"
         >
           <Trash2 size={16} />
           {working ? "Deleting" : "Delete"}

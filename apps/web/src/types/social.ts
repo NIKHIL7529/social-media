@@ -1,7 +1,7 @@
 export type User = {
   _id: string;
   name: string;
-  username?: string;
+  username: string;
   email?: string;
   dob?: string;
   gender?: string;
@@ -23,10 +23,9 @@ export type Post = {
   likes: number;
   saved: number;
   share: number;
-  commentCount?: number;
+  commentCount: number;
   commentable: boolean;
   user: User;
-  comments?: PostComment[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -49,7 +48,7 @@ export type FeedPage = {
   };
 };
 
-export type LastMessage = {
+type LastMessage = {
   message: string;
   sender: string;
   createdAt?: string;

@@ -1,9 +1,10 @@
+from app.schemas.common import serialize_doc
 from fastapi import HTTPException
 from starlette.concurrency import run_in_threadpool
 from pymongo.errors import DuplicateKeyError
 
 from app.core.database import get_database
-from app.core.security import hash_password, serialize_auth_user
+from app.core.security import hash_password
 from app.core.time import utc_now
 from app.domains.media.cloudinary import delete_image, upload_image
 from app.domains.users.constants import IDENTITY_COLLATION
@@ -32,14 +33,14 @@ async def create_user(payload: dict) -> dict:
         raise HTTPException(status_code=400, detail="Username or email already exists") from exc
 
     user["_id"] = result.inserted_id
-    return {"status": 200, "user": serialize_auth_user(user)}
+    return {"status": 200, "user": serialize_doc(user)}
 
 
 async def build_user_document(payload: dict, photo: str = "") -> dict:
     """Build the same account fields for signup and seed data."""
     now = utc_now()
     return {
-        "name": payload["username"],
+        "name": payload["name"],
         "username": payload["username"],
         "email": str(payload["email"]),
         "dob": payload["dob"],

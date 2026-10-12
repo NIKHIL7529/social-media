@@ -22,12 +22,12 @@ export function MessageComposer({
         value={draft}
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}
-        className="min-h-11 min-w-0 flex-1 rounded-md border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
+        className="min-h-11 min-w-0 flex-1 rounded-xl border border-line px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
         placeholder="Message"
       />
       <button
         disabled={isSending}
-        className="grid size-11 place-items-center rounded-md bg-accent text-white disabled:cursor-wait disabled:opacity-60"
+        className="grid size-11 place-items-center rounded-xl bg-accent text-accent-contrast disabled:cursor-wait disabled:opacity-60"
         aria-label="Send message"
       >
         <Send size={19} />

@@ -1,3 +1,5 @@
+from re import escape
+
 from fastapi import HTTPException
 
 from app.core.database import get_database
@@ -13,12 +15,8 @@ async def list_users() -> dict:
 
 
 async def search_users(search_term: str, current_user: dict | None) -> dict:
-    query: dict = {
-        "$or": [
-            {"name": {"$regex": search_term, "$options": "i"}},
-            {"username": {"$regex": search_term, "$options": "i"}},
-        ]
-    }
+    search_term = escape(search_term.strip())
+    query: dict = {"$or": [{field: {"$regex": search_term, "$options": "i"}} for field in ("username", "name")]}
     if current_user:
         query = {"$and": [query, {"_id": {"$ne": current_user["_id"]}}]}
     users = await get_database().users.find(query, {"name": 1, "username": 1, "photo": 1}).to_list(length=50)

@@ -22,18 +22,11 @@ export function applyPostSave(queryClient: QueryClient, postId: string, saved: b
   queryClient.setQueryData<User | null>(queryKeys.authProfile, (user) =>
     user ? { ...user, saved: setListValue(user.saved, postId, saved) } : user,
   );
-  const updater = (post: Post) => ({ ...post, saved: savedCount });
-  updatePostEverywhere(queryClient, postId, updater);
+  updatePostEverywhere(queryClient, postId, (post) => ({ ...post, saved: savedCount }));
   if (saved) queryClient.invalidateQueries({ queryKey: queryKeys.savedPosts });
   queryClient.setQueryData<PostListResponse>(queryKeys.savedPosts, (data) => {
-    const updated = data
-      ? {
-          ...data,
-          post: data.post.map((post) => (post._id === postId ? updater(post) : post)),
-        }
-      : data;
-    if (!updated || saved) return updated;
-    return { ...updated, post: updated.post.filter((post) => post._id !== postId) };
+    if (!data || saved) return data;
+    return { ...data, post: data.post.filter((post) => post._id !== postId) };
   });
 }
 

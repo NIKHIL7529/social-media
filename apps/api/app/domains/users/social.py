@@ -10,7 +10,7 @@ async def toggle_follow(target_user_name: str, current_user: dict) -> dict:
     db = get_database()
     target = await db.users.find_one(
         identity_query(target_user_name),
-        {"name": 1},
+        {"username": 1},
         collation=IDENTITY_COLLATION,
     )
     if not target:
@@ -18,8 +18,8 @@ async def toggle_follow(target_user_name: str, current_user: dict) -> dict:
     if target["_id"] == current_user["_id"]:
         raise HTTPException(status_code=400, detail="Cannot follow yourself")
 
-    profile_name = current_user["name"]
-    target_name = target["name"]
+    profile_name = current_user["username"]
+    target_name = target["username"]
     removed = await db.users.update_one({"_id": target["_id"], "followers": profile_name}, {"$pull": {"followers": profile_name}})
     if removed.modified_count:
         following = False

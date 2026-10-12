@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 .env.*
 !.env.example
 *.log
+/next-env.d.ts

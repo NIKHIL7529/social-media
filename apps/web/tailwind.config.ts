@@ -6,20 +6,24 @@ const config: Config = {
     extend: {
       colors: {
         accent: {
-          DEFAULT: "#0f766e",
-          deep: "#0b5f59",
-          soft: "#e4f3f1",
+          DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
+          deep: "rgb(var(--color-accent) / <alpha-value>)",
+          soft: "rgb(var(--color-accent-soft) / <alpha-value>)",
+          contrast: "rgb(var(--color-accent-contrast) / <alpha-value>)",
+          hover: "rgb(var(--color-accent-hover) / <alpha-value>)",
         },
         ink: {
-          DEFAULT: "#172221",
-          muted: "#62706e",
+          DEFAULT: "rgb(var(--color-ink) / <alpha-value>)",
+          muted: "rgb(var(--color-ink-muted) / <alpha-value>)",
         },
-        line: "#d9e2e1",
-        page: "#f4f7f6",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        page: "rgb(var(--color-page) / <alpha-value>)",
+        surface: { DEFAULT: "rgb(var(--color-surface) / <alpha-value>)", raised: "rgb(var(--color-surface-raised) / <alpha-value>)" },
+        danger: { DEFAULT: "rgb(var(--color-danger) / <alpha-value>)", soft: "rgb(var(--color-danger-soft) / <alpha-value>)" },
       },
       boxShadow: {
-        card: "0 12px 30px rgba(23, 34, 33, 0.09)",
-        soft: "0 10px 28px rgba(23, 34, 33, 0.07)",
+        card: "var(--shadow-card)",
+        soft: "var(--shadow-soft)",
       },
       maxWidth: {
         feed: "720px",

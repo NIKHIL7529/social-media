@@ -1,173 +1,65 @@
 # SocialSphere API
 
-FastAPI replacement for the original Express backend. Targets Python `3.13.1`.
+FastAPI backend using native async PyMongo. Use Python 3.13.1 and follow the [shared development conventions](../README.md).
 
-## Features
+## Local setup
 
-- JWT authentication using HTTP-only cookies.
-- Case-insensitive unique usernames and emails, with whitespace rejected.
-- Strong passwords of 8 to 40 characters for signup and password changes; passwords over 72 UTF-8 bytes are rejected.
-- Basic API rate limiting with tighter login/signup limits.
-- MongoDB persistence with Motor/PyMongo.
-- Cloudinary image uploads with size/type validation and best-effort cleanup.
-- Feed, posts, users, followers, saved posts, likes, liked-by, and persisted comments.
-- Direct and group chat REST contracts.
-- Authenticated WebSocket realtime layer for live messages, typing, and presence.
-- Startup requires MongoDB; runtime database failures return 503.
-- Seed script for dummy users, posts, and chats.
-
-## Key Directories
-
-```bash
-app/api/       # FastAPI routers; HTTP/WebSocket boundary only
-app/core/      # config, database, security, validation, time
-app/domains/   # business modules grouped by domain
-app/schemas/   # serialization helpers
-scripts/       # seed and maintenance scripts
-```
-
-## Domain Modules
-
-The API is organized by business capability instead of one flat service layer.
-
-```bash
-app/domains/
-  chat/     # identity, direct chat, listing, message commands/queries, read state, realtime
-  groups/   # group creation and rename rules
-  media/    # Cloudinary integration
-  posts/    # post lifecycle, comments, reactions/share, request schemas
-  users/    # account/profile, public queries, follow graph, username rules, request schemas
-```
-
-Routers import each domain through its package boundary, for example `app.domains.posts`, not by reaching into unrelated modules. Keep new business behavior in its domain folder, put request DTOs in that domain's `schemas.py`, keep reusable policy in small rules/constants modules, and keep `app/api` handlers thin.
-
-## Environment
-
-Create `.env` from `.env.example`.
-
-```env
-DATABASE=mongodb://127.0.0.1:27017/SocialMediaDB
-SECRET_KEY=change-me
-FRONTEND_URL=http://localhost:3000
-FRONTEND_URLS=
-CORS_ORIGIN_REGEX=
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-ENVIRONMENT=development
-RATE_LIMIT_WINDOW_SECONDS=60
-RATE_LIMIT_MAX_REQUESTS=120
-AUTH_RATE_LIMIT_MAX_REQUESTS=20
-```
-
-For Render + Vercel production, set:
-
-```env
-ENVIRONMENT=production
-FRONTEND_URL=https://your-vercel-domain.vercel.app
-FRONTEND_URLS=https://your-custom-domain.com,https://your-preview-domain.vercel.app
-SECRET_KEY=a-long-stable-random-value
-```
-
-The API issues an HTTP-only JWT cookie. Cross-site Vercel-to-Render requests require the frontend origin to be allowed by CORS and the cookie to be sent as `Secure; SameSite=None`. The API enables that automatically for HTTPS frontend origins, but keeping `ENVIRONMENT=production` explicit on Render is still recommended. Do not change `SECRET_KEY` after users log in unless you want all existing sessions to expire.
-
-Realtime is intentionally single-instance and in-memory for this Mongo-only commit. When you later add Redis, the WebSocket manager can be swapped to a Pub/Sub adapter without changing the route contract.
-
-## Containers and Kubernetes
-
-The API image runs as UID `10001`, exposes port `8000`, and includes a `/api/health` container health check. Kubernetes config lives at the repository root in `k8s/`, `ingress.yaml`, `network-policy.yaml`, and `role.yaml`.
-
-Do not commit real Kubernetes secrets. Use `k8s/api-secret.example.yaml` as the shape for your cluster secret and keep real values outside git.
-
-## Run
+Run commands from `apps/api` with MongoDB available:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+```
+
+Edit `.env`: set `DATABASE` to the intended database, replace `SECRET_KEY`, and set `FRONTEND_URL` to the frontend origin. The example contains additional origins, DNS/timeouts, rate limits, and Cloudinary settings. Configure Cloudinary credentials for media uploads. Keep real credentials out of Git.
+
+```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
-## Checks
+HTTP documentation is available at `http://localhost:8000/docs` and `/redoc`. Health uses `/api/health`; chat realtime uses `/ws/chat`.
+
+After dependency changes, reinstall `requirements.txt` and restart the API. Check compilation with:
 
 ```powershell
-python -m unittest discover tests
 python -m compileall app scripts
 ```
 
-## Seed Data
+## Database indexes
+
+Connection startup creates query indexes defined in `app/core/indexes.py`; the database account needs index creation permission. Configure these unique indexes manually in Atlas or Compass before account or concurrent direct-chat creation:
+
+| Collection | Keys | Options |
+| --- | --- | --- |
+| `users` | `{"username": 1}` | Unique; collation `{"locale": "en", "strength": 2}` |
+| `users` | `{"email": 1}` | Unique; collation `{"locale": "en", "strength": 2}` |
+| `messages` | `{"participantKey": 1}` | Unique; Sparse |
+
+Select the database named in `DATABASE`, open each collection's Indexes tab, and create one index per row with the listed options. `participantKey` is sparse because group conversations omit it. Keep MongoDB's automatic `_id_` indexes. Clearing documents preserves indexes; dropping collections or the database requires recreating them.
+
+## Development seed
 
 ```powershell
 python scripts\seed.py
 ```
 
-The seed script validates accounts with the signup schema, uses the same account builder
-and password hashing as signup. It does not create or update database indexes.
-It creates `nikhil`, `ananya`, and `rahul` with the development password `SocialSphere123!`.
-Running it again replaces records marked as seed data.
+The seed removes unique display-name indexes so names can repeat; usernames and emails remain unique. Names default to `Anonymous` and accept 3?20 letters with spaces between words.
 
-## Manual Database Index Setup
+This clears **all documents** from `users`, `posts`, `comments`, `messages`, `groups`, and `chatmessages`, then creates current-schema accounts, posts, reactions, comments, and direct/group conversations. It uses application validation, password hashing, document builders, and domain commands.
 
-Manage indexes in MongoDB Atlas when setting up a database or changing its query
-requirements. The API and seed script never create, inspect, or modify indexes.
-MongoDB maintains existing index entries automatically when documents change.
+Login usernames: `nikhil`, `ananya`, `rahul`. Password for all three: `SocialSphere123!`.
 
-Before seeding or accepting signups:
+## Implementation conventions
 
-1. In Atlas, open your cluster's **Data Explorer** (or **Browse Collections**),
-   select the database configured in `DATABASE`, and create any missing collections below.
-2. Select a collection, open **Indexes**, and choose **Create Index**.
-3. Enter one key document from the table per index, preserving field order.
-   Set the listed options; leave other options at their defaults.
-4. Create the index and wait for its build to finish. Repeat for each row.
+- `app/api` contains thin HTTP/WebSocket handlers. `app/domains` owns users, posts, chat, groups, and media behavior, including domain request schemas. Import domains through their package boundaries.
+- `app/core` owns configuration, database lifecycle, security, validation, and time helpers. `app/schemas` contains serialization helpers; `scripts` contains seed tooling.
+- Application lifespan opens and closes one async database client. Await aggregation before consuming its cursor and close cursors when finished. Use UTC dates consistently.
+- Keep blocking bcrypt and Cloudinary SDK work in the thread pool. Reuse authenticated documents within a request; do not globally cache private account data or personalized responses.
+- Comments and chat messages have separate collections. Message pagination uses timestamp-and-ID cursors to distinguish simultaneous messages. Search treats input as literal text.
+- Surface database failures as actionable errors and log media cleanup failures. Startup requires a working database connection.
 
-| Collection | Index keys | Options |
-| :--- | :--- | :--- |
-| `users` | `{"name": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
-| `users` | `{"username": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
-| `users` | `{"email": 1}` | Unique; custom collation `{"locale": "en", "strength": 2}` |
-| `posts` | `{"createdAt": -1, "_id": -1}` | Default |
-| `posts` | `{"user": 1, "createdAt": -1}` | Default |
-| `posts` | `{"user": 1, "_id": -1}` | Default |
-| `comments` | `{"post": 1, "createdAt": -1}` | Default |
-| `comments` | `{"post": 1, "status": 1, "createdAt": 1}` | Default |
-| `comments` | `{"sender": 1, "createdAt": -1}` | Default |
-| `messages` | `{"users": 1, "updatedAt": -1}` | Default |
-| `messages` | `{"participantKey": 1}` | Unique; Sparse |
-| `groups` | `{"users": 1, "updatedAt": -1}` | Default |
-| `groups` | `{"chatId": 1}` | Default |
-| `chatmessages` | `{"conversation": 1, "createdAt": -1}` | Default |
-| `chatmessages` | `{"conversation": 1, "sender": 1, "type": 1, "createdAt": -1}` | Default |
+Authentication uses an HTTP-only JWT cookie. Configure permitted frontend origins explicitly for deployment. Realtime presence and connections are in memory, so the current WebSocket implementation is intended for a single API instance.
 
-The three unique user indexes enforce account uniqueness under concurrent requests;
-application validation alone cannot guarantee it. Every new account supplies all
-three fields, so these indexes do not need Sparse. `participantKey` is Sparse
-because group conversations do not supply that field.
-
-For an existing index whose options must change, use the Indexes tab to drop that
-index and create its replacement while application writes are stopped. Keep the
-automatic `_id_` indexes. Deleting documents preserves indexes; dropping a
-collection or database requires recreating its indexes before use.
-
-Atlas UI reference: [Manage Atlas Indexes](https://www.mongodb.com/docs/atlas/atlas-ui/indexes/).
-
-
-## API Overview
-
-| Endpoint | Method | Description |
-| :--- | :--- | :--- |
-| `/api/user/login` | POST | Login and set auth cookie |
-| `/api/user/logout` | POST | Clear auth cookie |
-| `/api/user/profile` | GET | Current user profile |
-| `/api/user/search` | POST | Search users |
-| `/api/user/follow` | POST | Follow or unfollow |
-| `/api/post` | POST | Cursor-paginated feed |
-| `/api/post/addPost` | POST | Create post |
-| `/api/post/comment` | POST | Persist comment |
-| `/api/post/likedBy` | POST | List post likers |
-| `/api/message/allChats` | GET | Chat list |
-| `/api/message/direct` | POST | Get or create direct chat |
-| `/api/message/markRead` | POST | Mark chat read |
-| `/api/group/createGroup` | POST | Create group |
-| `/api/group/renameGroup` | POST | Rename group |
-| `/ws/chat` | WebSocket | Live messages, typing, presence |
+References: [FastAPI async](https://fastapi.tiangolo.com/async/), [lifespan](https://fastapi.tiangolo.com/advanced/events/), and [PyMongo indexes](https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/).

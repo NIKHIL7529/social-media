@@ -1,11 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Camera } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { fileToDataUrl } from "@/lib/file-to-data-url";
+import { fileToDataUrl, IMAGE_ACCEPT } from "@/lib/file-to-data-url";
 
 export function ImageUploadField({
   aspectClass = "aspect-[4/3]",
@@ -28,25 +28,29 @@ export function ImageUploadField({
 }) {
   const errorId = useId();
   const [uploadError, setUploadError] = useState("");
+  const selection = useRef(0);
   const message = uploadError || error;
   return (
     <div>
-      <label className="block cursor-pointer overflow-hidden rounded-lg border border-dashed border-line bg-slate-50 focus-within:ring-2 focus-within:ring-accent">
+      <label className="block cursor-pointer overflow-hidden rounded-2xl border border-dashed border-line bg-surface-raised focus-within:ring-2 focus-within:ring-accent">
         <input
           aria-label={label}
           aria-invalid={Boolean(message)}
           aria-describedby={message ? errorId : undefined}
           required={required}
           type="file"
-          accept="image/*"
+          accept={IMAGE_ACCEPT}
           onChange={async (event) => {
             const input = event.currentTarget;
             const file = input.files?.[0];
             if (!file) return;
+            const selected = ++selection.current;
             setUploadError("");
             try {
-              onChange(await fileToDataUrl(file));
+              const dataUrl = await fileToDataUrl(file);
+              if (selected === selection.current) onChange(dataUrl);
             } catch (error) {
+              if (selected !== selection.current) return;
               input.value = "";
               const message = error instanceof Error ? error.message : "Could not read image. Please choose another photo.";
               setUploadError(message);
@@ -60,7 +64,7 @@ export function ImageUploadField({
             <Image src={preview} alt={label} fill className="object-cover" unoptimized />
           ) : (
             <div className="flex flex-col items-center gap-3 text-ink-muted">
-              <span className="grid size-14 place-items-center rounded-full bg-white text-accent-deep shadow-soft">
+              <span className="grid size-14 place-items-center rounded-full bg-surface text-accent-deep shadow-soft">
                 <Camera />
               </span>
               <span className="font-bold">{emptyText}</span>
@@ -69,7 +73,7 @@ export function ImageUploadField({
           )}
         </div>
       </label>
-      {message && <span id={errorId} role="alert" className="mt-2 block text-xs font-medium leading-relaxed text-red-700">{message}</span>}
+      {message && <span id={errorId} role="alert" className="mt-2 block text-xs font-medium leading-relaxed text-danger">{message}</span>}
     </div>
   );
 }

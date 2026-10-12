@@ -10,39 +10,39 @@ export class ApiError extends Error {
   }
 }
 
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 type ApiOptions = RequestInit & {
   skipUnauthorizedEvent?: boolean;
 };
 
-export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
+export async function requestApi<T>(baseUrl: string, path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
+  const { headers: suppliedHeaders, ...requestOptions } = options;
+  const headers = new Headers(suppliedHeaders);
+  if (typeof options.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json; charset=UTF-8");
 
   try {
-    response = await fetch(`${API_URL}${path}`, {
-      ...options,
+    response = await fetch(`${baseUrl}${path}`, {
+      cache: "no-store",
+      ...requestOptions,
       credentials: "include",
-      headers: {
-        ...(options.body ? { "Content-Type": "application/json; charset=UTF-8" } : {}),
-        ...options.headers,
-      },
+      headers,
     });
   } catch (error) {
     if (options.signal?.aborted) throw error;
     throw new ApiError(
-      `Unable to reach the API at ${API_URL}. Check that FastAPI is running and CORS allows this origin.`,
+      `Unable to reach the API. Check that FastAPI is running and the API URL is configured correctly.`,
       0,
       error,
     );
   }
 
-  const data = await response.json().catch(() => ({}));
-  const status = response.status || data.status;
+  const status = response.status;
 
-  if (status === 401 && !options.skipUnauthorizedEvent && typeof window !== "undefined") {
-    window.dispatchEvent(new Event("auth:unauthorized"));
-  }
+  const data = await response.json().catch(() => {
+    throw new ApiError(`The API returned an invalid response (HTTP ${status}). Please try again.`, status, null);
+  });
+  if (!data || typeof data !== "object" || Array.isArray(data)) throw new ApiError(`The API returned an invalid response (HTTP ${status}).`, status, data);
 
   if (!response.ok) {
     const detail = Array.isArray(data.detail)
@@ -54,9 +54,22 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   return data as T;
 }
 
-export function jsonPost<TResponse, TBody>(path: string, body: TBody): Promise<TResponse> {
+export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  const { skipUnauthorizedEvent, ...requestOptions } = options;
+  try {
+    return await requestApi<T>("", path, requestOptions);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401 && !skipUnauthorizedEvent) {
+      window.dispatchEvent(new Event("auth:unauthorized"));
+    }
+    throw error;
+  }
+}
+
+export function jsonPost<TResponse, TBody>(path: string, body: TBody, signal?: AbortSignal): Promise<TResponse> {
   return apiFetch<TResponse>(path, {
     method: "POST",
     body: JSON.stringify(body),
+    signal,
   });
 }

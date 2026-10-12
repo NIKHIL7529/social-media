@@ -40,14 +40,24 @@ async def _update_post_counter(post_id, field: str, delta: int) -> int:
     return post.get(field, 0)
 
 
-async def toggle_saved(post_id_value: str, current_user: dict) -> dict:
+async def _toggle_reaction(post_id_value: str, current_user: dict, user_field: str, counter_field: str) -> tuple[bool, int]:
     post_id = object_id_or_400(post_id_value, "Invalid post id")
     db = get_database()
     if not await db.posts.find_one({"_id": post_id}, {"_id": 1}):
         raise HTTPException(status_code=404, detail="Post not found")
+    active, delta = await _toggle_user_post_set(current_user["_id"], user_field, post_id)
+    if delta:
+        count = await _update_post_counter(post_id, counter_field, delta)
+    else:
+        post = await db.posts.find_one({"_id": post_id}, {counter_field: 1})
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+        count = post.get(counter_field, 0)
+    return active, count
 
-    saved, delta = await _toggle_user_post_set(current_user["_id"], "saved", post_id)
-    saved_count = await _update_post_counter(post_id, "saved", delta) if delta else (await db.posts.find_one({"_id": post_id}, {"saved": 1})).get("saved", 0)
+
+async def toggle_saved(post_id_value: str, current_user: dict) -> dict:
+    saved, saved_count = await _toggle_reaction(post_id_value, current_user, "saved", "saved")
     return {
         "status": 200,
         "message": "Post saved" if saved else "Post unsaved",
@@ -57,14 +67,7 @@ async def toggle_saved(post_id_value: str, current_user: dict) -> dict:
 
 
 async def toggle_liked(post_id_value: str, current_user: dict) -> dict:
-    post_id = object_id_or_400(post_id_value, "Invalid post id")
-    db = get_database()
-    post = await db.posts.find_one({"_id": post_id}, {"_id": 1})
-    if not post:
-        raise HTTPException(status_code=404, detail="Post not found")
-
-    liked, delta = await _toggle_user_post_set(current_user["_id"], "liked", post_id)
-    likes = await _update_post_counter(post_id, "likes", delta) if delta else (await db.posts.find_one({"_id": post_id}, {"likes": 1})).get("likes", 0)
+    liked, likes = await _toggle_reaction(post_id_value, current_user, "liked", "likes")
     return {
         "status": 200,
         "message": "Post liked" if liked else "Post unliked",

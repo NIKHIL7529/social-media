@@ -5,9 +5,9 @@ import { useEffect, useRef } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { Plus, RefreshCw } from "lucide-react";
 
-import { useCurrentUser } from "@/components/app-shell";
+import { useCurrentUser } from "@/features/auth/use-current-user";
 import { queryKeys } from "@/lib/query-keys";
-import { PostCard } from "./post-card";
+import { PostList } from "./post-list";
 import { postService } from "./post-service";
 import { FeedSkeleton } from "./feed-skeleton";
 
@@ -20,6 +20,7 @@ export function Feed() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
     isFetching,
     isLoading,
     refetch,
@@ -38,7 +39,7 @@ export function Feed() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isFetching) {
+        if (entries[0].isIntersecting && !isFetching && !error) {
           fetchNextPage();
         }
       },
@@ -46,10 +47,10 @@ export function Feed() {
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetching]);
+  }, [fetchNextPage, hasNextPage, isFetching, error]);
 
   return (
-    <section className="mx-auto min-h-[calc(100vh-var(--nav-height))] w-full max-w-feed" aria-labelledby="feed-title">
+    <section className="mx-auto w-full min-w-0" aria-labelledby="feed-title">
       <header className="mb-4 flex items-end justify-between gap-4 border-b border-line pb-4">
         <div>
           <span className="text-xs font-extrabold uppercase text-accent">Community</span>
@@ -58,7 +59,7 @@ export function Feed() {
           </h1>
         </div>
         {user && (
-          <Link href="/addPost" className="inline-flex min-h-10 items-center gap-2 rounded-md bg-accent px-3 font-bold text-white">
+          <Link href="/addPost" className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-3 font-bold text-accent-contrast">
             <Plus size={18} />
             New post
           </Link>
@@ -72,11 +73,11 @@ export function Feed() {
         </>
       )}
 
-      {!isLoading && error && posts.length === 0 && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+      {!isLoading && error && !isFetchNextPageError && (
+        <div role="alert" className="mb-5 rounded-2xl border border-danger/30 bg-surface px-6 py-6">
           <h2 className="text-lg font-extrabold">Feed unavailable</h2>
-          <p className="mt-2 text-ink-muted">{error instanceof Error ? error.message : "Unable to load the feed."}</p>
-          <button onClick={() => refetch()} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-md bg-accent px-4 font-bold text-white">
+          <p className="mt-2 break-words text-danger">{error instanceof Error ? error.message : "Unable to load posts."}</p>
+          <button onClick={() => refetch()} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-4 font-bold text-accent-contrast">
             <RefreshCw size={17} />
             Try again
           </button>
@@ -84,19 +85,25 @@ export function Feed() {
       )}
 
       {!isLoading && !error && posts.length === 0 && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+        <div className="rounded-2xl border border-dashed border-line bg-surface px-6 py-12 text-center">
           <h2 className="text-lg font-extrabold">No posts yet</h2>
           <p className="mt-2 text-ink-muted">Start the conversation by publishing the first post.</p>
         </div>
       )}
 
-      {posts.map((post, index) => (
-        <PostCard key={post._id} post={post} priority={index === 0} />
-      ))}
+      <PostList posts={posts} />
 
       <div ref={sentinelRef} className="h-4" />
+      {isFetchNextPageError && (
+        <div role="alert" className="mb-5 rounded-2xl border border-danger/30 bg-surface p-5">
+          <p className="break-words text-danger">{error instanceof Error ? error.message : "Unable to load more posts."}</p>
+          <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-4 font-bold text-accent-contrast disabled:opacity-60">
+            <RefreshCw size={17} /> Try again
+          </button>
+        </div>
+      )}
       {isFetchingNextPage && <FeedSkeleton />}
-      {!isLoading && !hasNextPage && posts.length > 0 && <p className="my-4 text-center text-sm text-ink-muted">You are all caught up.</p>}
+      {!isLoading && !error && !hasNextPage && posts.length > 0 && <p className="my-4 text-center text-sm text-ink-muted">You are all caught up.</p>}
     </section>
   );
 }

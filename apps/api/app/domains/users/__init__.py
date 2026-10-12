@@ -13,7 +13,6 @@ from app.domains.users.account import create_user
 from app.domains.users.authentication import authenticate_user
 from app.domains.users.password import update_password
 from app.domains.users.profile import update_profile
-from app.domains.users.rules import normalize_username
 from app.domains.users.social import toggle_follow
 
 __all__ = [
@@ -26,7 +25,6 @@ __all__ = [
     "get_user_by_name",
     "list_users",
     "LoginPayload",
-    "normalize_username",
     "SearchPayload",
     "search_users",
     "SignupPayload",

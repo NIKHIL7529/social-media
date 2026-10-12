@@ -1,12 +1,12 @@
 import { ApiError } from "@/lib/api";
-import { emailError, passwordError, usernameError } from "./auth-validation";
+import { displayNameError, emailError, passwordError, usernameError } from "./auth-validation";
 
 export type FieldErrors = Partial<Record<string, string>>;
 export const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
 
-export function signupErrors(form: { username: string; email: string; password: string; dob: string; gender: string }, step: number): FieldErrors {
+export function signupErrors(form: { name: string; username: string; email: string; password: string; dob: string; gender: string }, step: number): FieldErrors {
   const errors: FieldErrors = {};
-  const checks = { username: usernameError(form.username), email: emailError(form.email), password: passwordError(form.password) };
+  const checks = { name: displayNameError(form.name), username: usernameError(form.username), email: emailError(form.email), password: passwordError(form.password) };
   for (const [field, message] of Object.entries(checks)) if (message) errors[field] = message;
   if (step > 0) {
     const date = new Date(`${form.dob}T00:00:00Z`);
@@ -44,7 +44,5 @@ export function serverFieldErrors(error: unknown, allowed: string[]): FieldError
 }
 
 export function submissionError(error: unknown, fallback: string): string {
-  if (error instanceof ApiError && error.status === 0) return "Unable to connect. Please try again.";
-  if (error instanceof ApiError && error.status >= 500) return "Something went wrong. Please try again.";
   return error instanceof Error ? error.message : fallback;
 }

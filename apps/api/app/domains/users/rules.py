@@ -13,6 +13,17 @@ PASSWORD_REQUIREMENTS = f"Use {PASSWORD_MIN_LENGTH} to {PASSWORD_MAX_LENGTH} cha
 PASSWORD_ENCODING_MESSAGE = "This password contains too many special characters. Try fewer emojis or accented letters."
 
 
+def validate_display_name(value: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError("Enter a name using 3 to 20 letters.")
+    value = value.strip()
+    if not 3 <= len(value) <= 20 or not all(character.isalpha() or character == " " for character in value):
+        raise ValueError("Name must contain 3 to 20 letters; spaces between words are allowed.")
+    if sum(character.isalpha() for character in value) < 3:
+        raise ValueError("Name must contain at least 3 letters.")
+    return value
+
+
 def normalize_username(value: str) -> str:
     normalized = value.strip().lower()
     if not normalized.replace("_", "").replace(".", "").isalnum():
@@ -27,6 +38,8 @@ def without_whitespace(value: str) -> str:
 
 
 def validate_username(value: str) -> str:
+    if not isinstance(value, str):
+        raise ValueError(USERNAME_ALLOWED_MESSAGE)
     if not USERNAME_MIN_LENGTH <= len(value) <= USERNAME_MAX_LENGTH:
         raise ValueError(USERNAME_LENGTH_MESSAGE)
     return normalize_username(without_whitespace(value))

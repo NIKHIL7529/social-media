@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
+import { getApiOrigin } from "./src/lib/api-origin";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: process.env.NEXT_BUILD_TARGET === "standalone" ? "standalone" : undefined,
+  devIndicators: false,
+  experimental: { proxyClientMaxBodySize: "20mb" },
+  async rewrites() {
+    const origin = getApiOrigin();
+    return [
+      { source: "/api/:path*", destination: `${origin}/api/:path*` },
+      { source: "/ws/:path*", destination: `${origin}/ws/:path*` },
+    ];
+  },
   images: {
     loader: "custom",
     loaderFile: "./src/lib/cloudinary-loader.ts",

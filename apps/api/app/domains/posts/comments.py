@@ -13,7 +13,7 @@ async def create_comment(post_id_value: str, text: str, current_user: dict) -> d
     comment = {
         "_id": ObjectId(),
         "post": post_id,
-        "sender": current_user["name"],
+        "sender": current_user["username"],
         "comment": text.strip(),
         "status": "visible",
         "createdAt": now,
@@ -47,7 +47,4 @@ async def list_comments(post_id_value: str) -> dict:
         {"post": post_id, "status": "visible"},
         {"post": 0},
     ).sort("createdAt", 1).limit(200).to_list(length=200)
-    if not comment_docs:
-        legacy = await db.posts.find_one({"_id": post_id}, {"comments": 1})
-        comment_docs = legacy.get("comments", []) if legacy else []
     return {"status": 200, "comments": serialize_doc(comment_docs)}

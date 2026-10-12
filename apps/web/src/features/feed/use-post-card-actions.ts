@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import { useCurrentUser } from "@/components/app-shell";
+import { useCurrentUser } from "@/features/auth/use-current-user";
 import { ApiError } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { Post, PostComment } from "@/types/social";
 import { applyPostComment, applyPostLike, applyPostSave, applyPostShare, removePostFromCaches } from "@/features/feed/post-cache";
 import { postService } from "@/features/feed/post-service";
 import { applyFollow } from "@/features/users/follow-cache";
+import { userService } from "@/features/users/user-service";
 
 export function usePostCardActions(post: Post) {
   const router = useRouter();
@@ -22,12 +23,11 @@ export function usePostCardActions(post: Post) {
   const [likersOpen, setLikersOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const [comment, setComment] = useState("");
-  const [comments, setComments] = useState<PostComment[]>(post.comments || []);
 
-  const isMine = user?.name === post.user.name;
+  const isMine = user?.username === post.user.username;
   const liked = Boolean(user?.liked?.includes(post._id));
   const saved = Boolean(user?.saved?.includes(post._id));
-  const following = Boolean(user?.followings?.includes(post.user.name));
+  const following = Boolean(user?.followings?.includes(post.user.username));
 
   function requireAuth() {
     toast("Sign in to continue");
@@ -55,9 +55,9 @@ export function usePostCardActions(post: Post) {
   });
 
   const followMutation = useMutation({
-    mutationFn: () => postService.follow(post.user.name),
+    mutationFn: () => userService.follow(post.user.username),
     onSuccess: (data) => {
-      if (user?.name) applyFollow(queryClient, post.user.name, user.name, data.following, data.user);
+      if (user?.username) applyFollow(queryClient, post.user.username, user.username, data.following, data.user);
     },
     onError: handleMutationError,
   });
@@ -74,22 +74,21 @@ export function usePostCardActions(post: Post) {
 
   const likersQuery = useQuery({
     queryKey: queryKeys.postLikedBy(post._id),
-    queryFn: () => postService.likedBy(post._id),
+    queryFn: ({ signal }) => postService.likedBy(post._id, signal),
     enabled: likersOpen,
   });
 
   const commentsQuery = useQuery({
     queryKey: queryKeys.postComments(post._id),
-    queryFn: () => postService.getComments(post._id),
+    queryFn: ({ signal }) => postService.getComments(post._id, signal),
     enabled: commentsOpen,
   });
 
   const commentMutation = useMutation({
     mutationFn: () => postService.comment(post._id, comment.trim()),
     onSuccess: (data) => {
-      setComments((items) => [...items, data.comment]);
       queryClient.setQueryData<{ status: number; comments: PostComment[] }>(queryKeys.postComments(post._id), (current) =>
-        current ? { ...current, comments: [...current.comments, data.comment] } : current,
+        ({ status: current?.status ?? data.status, comments: [...(current?.comments ?? []), data.comment] }),
       );
       setComment("");
       applyPostComment(queryClient, post._id, data.commentCount);
@@ -114,7 +113,7 @@ export function usePostCardActions(post: Post) {
       requireAuth();
       return;
     }
-    if (comment.trim()) commentMutation.mutate();
+    if (comment.trim() && !commentMutation.isPending) commentMutation.mutate();
   }
 
   async function sharePost() {
@@ -122,7 +121,7 @@ export function usePostCardActions(post: Post) {
     try {
       postService.share(post._id)
         .then((data) => applyPostShare(queryClient, post._id, data.share))
-        .catch(() => undefined);
+        .catch(handleMutationError);
       if (navigator.share) {
         await navigator.share({ title: post.topic || `${BRAND.name} post`, text: post.text || "View this post", url });
       } else {
@@ -138,7 +137,6 @@ export function usePostCardActions(post: Post) {
     addComment,
     comment,
     commentMutation,
-    comments,
     commentsOpen,
     commentsQuery,
     deleteMutation,
@@ -151,7 +149,6 @@ export function usePostCardActions(post: Post) {
     likersOpen,
     likersQuery,
     requireAuth,
-    router,
     saved,
     saveMutation,
     setComment,

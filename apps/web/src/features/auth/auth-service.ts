@@ -2,6 +2,7 @@ import { apiFetch, jsonPost } from "@/lib/api";
 import type { User } from "@/types/social";
 
 export type EditProfilePayload = {
+  name: string;
   username: string;
   dob: string;
   gender: string;
@@ -17,7 +18,7 @@ export type ChangePasswordPayload = {
 };
 
 export const authService = {
-  getProfile: () => apiFetch<{ status: number; user: User }>("/api/user/profile", { skipUnauthorizedEvent: true }),
+  getProfile: (signal?: AbortSignal) => apiFetch<{ status: number; user: User }>("/api/user/profile", { skipUnauthorizedEvent: true, signal }),
   login: (credentials: { name: string; password: string }) =>
     jsonPost<{ status: number; message: string; user: User }, typeof credentials>("/api/user/login", credentials),
   logout: () => apiFetch<{ status: number }>("/api/user/logout", { method: "POST" }),

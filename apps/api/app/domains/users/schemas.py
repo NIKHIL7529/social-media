@@ -2,7 +2,7 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, BeforeValidator, EmailStr, Field
 
-from app.domains.users.rules import normalize_email, normalize_login_identifier, validate_password, validate_username
+from app.domains.users.rules import normalize_email, normalize_login_identifier, validate_password, validate_username, validate_display_name
 
 Username = Annotated[str, BeforeValidator(validate_username)]
 AccountEmail = Annotated[EmailStr, BeforeValidator(normalize_email)]
@@ -10,6 +10,7 @@ StrongPassword = Annotated[str, AfterValidator(validate_password)]
 
 
 class SignupPayload(BaseModel):
+    name: Annotated[str, BeforeValidator(validate_display_name)] = "Anonymous"
     username: Username
     email: AccountEmail
     dob: str
@@ -22,6 +23,7 @@ class SignupPayload(BaseModel):
 
 
 class EditProfilePayload(BaseModel):
+    name: Annotated[str, BeforeValidator(validate_display_name)]
     username: Username
     dob: str
     gender: str

@@ -7,15 +7,11 @@ import type { chatService } from "@/features/chat/chat-service";
 type ChatListCache = { status: number; chats: Chat[]; user: string };
 type MessagesCache = Awaited<ReturnType<typeof chatService.getMessages>>;
 
-function messageTimestamp(message: ChatMessage) {
-  return message.updatedAt || message.createdAt;
-}
-
 function lastMessage(message: ChatMessage) {
   return {
     message: message.message,
     sender: message.sender,
-    createdAt: message.createdAt || message.updatedAt,
+    createdAt: message.createdAt,
   };
 }
 
@@ -113,7 +109,7 @@ export function upsertChatPreview(
         users: options.message.sender === options.currentUserName ? options.activeChat?.users || [] : [options.message.sender],
         group: false,
         lastMessage: lastMessage(options.message),
-        updatedAt: messageTimestamp(options.message),
+        updatedAt: options.message.createdAt,
         unreadCount: options.incrementUnread ? 1 : 0,
       };
       return { ...current, chats: [newChat, ...current.chats] };
@@ -127,7 +123,7 @@ export function upsertChatPreview(
             ? {
                 ...chat,
                 lastMessage: lastMessage(options.message),
-                updatedAt: messageTimestamp(options.message),
+                updatedAt: options.message.createdAt,
                 unreadCount: options.incrementUnread ? (chat.unreadCount || 0) + 1 : 0,
               }
             : chat,

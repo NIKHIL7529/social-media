@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-import { API_URL } from "@/lib/api";
 import type { Chat, ChatMessage } from "@/types/social";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected" | "error";
@@ -14,7 +13,6 @@ type OnlineUser = {
 
 type UseChatRealtimeOptions = {
   enabled: boolean;
-  activeChatId: string | null;
   onMessage: (message: ChatMessage & { chatId: string }) => void;
   onGroup: (chat: Chat) => void;
   onOnlineUsers: (users: OnlineUser[]) => void;
@@ -22,10 +20,8 @@ type UseChatRealtimeOptions = {
 };
 
 function wsUrl() {
-  const url = new URL(API_URL);
+  const url = new URL("/ws/chat", window.location.origin);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
-  url.pathname = "/ws/chat";
-  url.search = "";
   return url.toString();
 }
 
@@ -69,7 +65,7 @@ export function useChatRealtime({
     }
   }, []);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(function connectSocket() {
     if (!enabled || socketRef.current?.readyState === WebSocket.OPEN || socketRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
@@ -81,11 +77,13 @@ export function useChatRealtime({
     setStatus("connecting");
 
     socket.onopen = () => {
+      if (socketRef.current !== socket) return;
       reconnectAttemptRef.current = 0;
       setStatus("connected");
     };
 
     socket.onmessage = (event) => {
+      if (socketRef.current !== socket) return;
       const payload = JSON.parse(event.data);
       if (payload.type === "online_users") {
         handlersRef.current.onOnlineUsers(payload.users || []);
@@ -106,10 +104,12 @@ export function useChatRealtime({
     };
 
     socket.onerror = () => {
+      if (socketRef.current !== socket) return;
       setStatus("error");
     };
 
     socket.onclose = (event) => {
+      if (socketRef.current !== socket) return;
       socketRef.current = null;
       setStatus("disconnected");
       if (intentionalCloseRef.current) {
@@ -122,7 +122,7 @@ export function useChatRealtime({
       if (!enabled) return;
       const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current, 15000);
       reconnectAttemptRef.current += 1;
-      reconnectTimerRef.current = window.setTimeout(connect, delay);
+      reconnectTimerRef.current = window.setTimeout(connectSocket, delay);
     };
   }, [cleanupReconnect, enabled]);
 

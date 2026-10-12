@@ -1,4 +1,5 @@
 import base64
+import logging
 from urllib.parse import urlparse
 
 import cloudinary
@@ -47,7 +48,7 @@ async def delete_image(image_url: str) -> None:
     try:
         await run_in_threadpool(cloudinary.uploader.destroy, public_id, resource_type="image")
     except Exception:
-        return
+        logging.getLogger(__name__).exception("Unable to delete Cloudinary image %s", public_id)
 
 
 def validate_data_url(data_url: str) -> None:
@@ -72,8 +73,7 @@ def cloudinary_public_id(image_url: str) -> str:
     if not image_url or not settings.cloudinary_cloud_name:
         return ""
     parsed = urlparse(image_url)
-    expected_host = f"res.cloudinary.com"
-    if expected_host not in parsed.netloc or f"/{settings.cloudinary_cloud_name}/" not in parsed.path:
+    if parsed.hostname != "res.cloudinary.com" or not parsed.path.startswith(f"/{settings.cloudinary_cloud_name}/image/upload/"):
         return ""
 
     marker = "/upload/"

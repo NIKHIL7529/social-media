@@ -24,10 +24,6 @@ async def resolve_conversation(sender: str, receiver: list[str], conversation_id
 
     db = get_database()
     key = participant_key(users)
-    conversation = await db.messages.find_one({"group": False, "users": {"$all": users, "$size": len(users)}})
-    if conversation:
-        return conversation
-
     created_at = utc_now()
     query = {"participantKey": key, "group": False, "users": {"$all": users, "$size": len(users)}}
     try:
@@ -37,9 +33,9 @@ async def resolve_conversation(sender: str, receiver: list[str], conversation_id
                 "users": users,
                 "participantKey": key,
                 "group": False,
-                "messages": [],
                 "readBy": {read_receipt_key(sender): created_at},
                 "createdAt": created_at,
+                "updatedAt": created_at,
             }},
             upsert=True,
             return_document=ReturnDocument.AFTER,
@@ -56,15 +52,15 @@ async def get_direct_conversation(target_user_name: str, current_user: dict) -> 
     db = get_database()
     target = await db.users.find_one(
         identity_query(target_user_name),
-        {"name": 1},
+        {"username": 1},
         collation=IDENTITY_COLLATION,
     )
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
-    if target["name"] == current_user["name"]:
+    if target["username"] == current_user["username"]:
         raise HTTPException(status_code=400, detail="Cannot start a chat with yourself")
 
-    users = [current_user["name"], target["name"]]
+    users = [current_user["username"], target["username"]]
     conversation = await db.messages.find_one(
         {"participantKey": participant_key(users), "group": False, "users": {"$all": users, "$size": len(users)}},
     )
@@ -73,7 +69,7 @@ async def get_direct_conversation(target_user_name: str, current_user: dict) -> 
             "status": 200,
             "message": "Direct conversation draft",
             "chat": None,
-            "recipient": serialize_doc({"name": target["name"]}),
+            "recipient": serialize_doc({"username": target["username"]}),
         }
 
     return {
@@ -82,7 +78,7 @@ async def get_direct_conversation(target_user_name: str, current_user: dict) -> 
         "chat": serialize_doc(
             {
                 "chatId": conversation["_id"],
-                "users": [name for name in conversation["users"] if name != current_user["name"]],
+                "users": [name for name in conversation["users"] if name != current_user["username"]],
                 "updatedAt": conversation.get("updatedAt"),
                 "lastMessage": conversation.get("lastMessage"),
                 "group": False,

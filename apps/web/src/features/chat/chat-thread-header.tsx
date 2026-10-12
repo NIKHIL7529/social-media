@@ -2,6 +2,7 @@
 
 import { FormEvent } from "react";
 import { ArrowLeft, Pencil } from "lucide-react";
+import Link from "next/link";
 
 import { chatLabel } from "@/features/chat/chat-label";
 import { PresenceDot } from "@/features/chat/chat-presence-ui";
@@ -12,7 +13,6 @@ export function ChatThreadHeader({
   groupNameDraft,
   isOnline,
   isRenaming,
-  onBack,
   onRename,
   onRenameChange,
   onToggleRename,
@@ -22,7 +22,6 @@ export function ChatThreadHeader({
   groupNameDraft: string;
   isOnline: boolean;
   isRenaming: boolean;
-  onBack: () => void;
   onRename: (event: FormEvent) => void;
   onRenameChange: (value: string) => void;
   onToggleRename: () => void;
@@ -32,15 +31,14 @@ export function ChatThreadHeader({
     <header className="border-b border-line p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="grid size-9 flex-shrink-0 place-items-center rounded-md text-ink-muted hover:bg-accent-soft lg:hidden"
+          <Link
+            href="/chat"
+            className="grid size-9 flex-shrink-0 place-items-center rounded-xl text-ink-muted hover:bg-accent-soft lg:hidden"
             aria-label="Back to conversations"
             title="Back"
           >
             <ArrowLeft size={19} />
-          </button>
+          </Link>
           <h2 className="flex min-w-0 items-center gap-2 font-extrabold text-ink">
             {!activeChat.group && <PresenceDot online={isOnline} />}
             <span className="truncate">{chatLabel(activeChat)}</span>
@@ -50,7 +48,7 @@ export function ChatThreadHeader({
           <button
             type="button"
             onClick={onToggleRename}
-            className="grid size-9 place-items-center rounded-md text-accent-deep hover:bg-accent-soft"
+            className="grid size-9 place-items-center rounded-xl text-accent-deep hover:bg-accent-soft"
             aria-label="Rename group"
             title="Rename group"
           >
@@ -67,10 +65,10 @@ export function ChatThreadHeader({
           <input
             value={groupNameDraft}
             onChange={(event) => onRenameChange(event.target.value)}
-            className="min-h-10 min-w-0 flex-1 rounded-md border border-line px-3 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
+            className="min-h-10 min-w-0 flex-1 rounded-xl border border-line px-3 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
             placeholder="Group name optional"
           />
-          <button className="min-h-10 rounded-md bg-accent px-3 text-sm font-bold text-white">Save</button>
+          <button className="min-h-10 rounded-xl bg-accent px-3 text-sm font-bold text-accent-contrast">Save</button>
         </form>
       )}
     </header>

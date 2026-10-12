@@ -25,7 +25,7 @@ export function PostActions({
   liking: boolean;
 }) {
   return (
-    <footer className="relative flex flex-wrap items-center gap-1 px-3 py-3">
+    <footer className="post-actions relative flex flex-wrap items-center gap-1 px-3 py-3">
       <IconButton active={liked} label={liked ? "Unlike post" : "Like post"} disabled={liking} onClick={onLike}>
         <ThumbsUp />
       </IconButton>
@@ -40,7 +40,7 @@ export function PostActions({
       </IconButton>
       <button
         onClick={onShowLikers}
-        className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-md px-2 text-sm font-bold text-ink-muted hover:bg-accent-soft hover:text-accent-deep"
+        className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-xl px-2 text-sm font-bold text-ink-muted hover:bg-accent-soft hover:text-accent-deep"
         aria-label="View people who liked this post"
       >
         <Heart size={16} />
@@ -69,7 +69,7 @@ function IconButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className={`grid size-10 place-items-center rounded-md disabled:cursor-wait disabled:opacity-60 ${
+      className={`grid size-10 place-items-center rounded-xl disabled:cursor-wait disabled:opacity-60 ${
         active ? "bg-accent-soft text-accent-deep" : "text-ink hover:bg-accent-soft"
       }`}
     >

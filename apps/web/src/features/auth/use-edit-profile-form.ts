@@ -1,24 +1,14 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
-import { useCurrentUser } from "@/components/app-shell";
+import { useCurrentUser } from "@/features/auth/use-current-user";
 import { queryKeys } from "@/lib/query-keys";
 import { authService, type ChangePasswordPayload, type EditProfilePayload } from "@/features/auth/auth-service";
-import { passwordError, usernameError } from "@/features/auth/auth-validation";
-
-const emptyProfile: EditProfilePayload = {
-  username: "",
-  dob: "",
-  gender: "",
-  city: "",
-  country: "",
-  description: "",
-  photo: "",
-};
+import { displayNameError, passwordError, usernameError } from "@/features/auth/auth-validation";
 
 const emptyPasswords: ChangePasswordPayload = {
   currentPassword: "",
@@ -28,25 +18,28 @@ const emptyPasswords: ChangePasswordPayload = {
 export function useEditProfileForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: user, isLoading } = useCurrentUser();
-  const [form, setForm] = useState<EditProfilePayload>(emptyProfile);
+  const { data: user, isLoading, error } = useCurrentUser();
+  const [draft, setDraft] = useState<Partial<EditProfilePayload>>({});
   const [passwords, setPasswords] = useState<ChangePasswordPayload>(emptyPasswords);
+  const [profilePending, setProfilePending] = useState(false);
+  const [passwordPending, setPasswordPending] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
 
-  useEffect(() => {
-    if (!user) return;
-    setForm({
-      username: user.username || user.name || "",
-      dob: user.dob || "",
-      gender: user.gender || "",
-      city: user.city || "",
-      country: user.country || "",
-      description: user.description || "",
+  const form: EditProfilePayload = {
+      name: user?.name || "Anonymous",
+      username: user?.username || "",
+      dob: user?.dob || "",
+      gender: user?.gender || "",
+      city: user?.city || "",
+      country: user?.country || "",
+      description: user?.description || "",
       photo: "",
-    });
-  }, [user]);
+      ...draft,
+  };
 
   function updateProfileField<Key extends keyof EditProfilePayload>(key: Key, value: EditProfilePayload[Key]) {
-    setForm((current) => ({ ...current, [key]: key === "username" ? String(value).toLowerCase() : value }));
+    setDraft((current) => ({ ...current, [key]: key === "username" ? String(value).toLowerCase() : value }));
   }
 
   function updatePasswordField<Key extends keyof ChangePasswordPayload>(key: Key, value: ChangePasswordPayload[Key]) {
@@ -55,11 +48,14 @@ export function useEditProfileForm() {
 
   async function submitProfile(event: FormEvent) {
     event.preventDefault();
-    const validationError = usernameError(form.username);
+    if (profilePending) return;
+    const validationError = displayNameError(form.name) || usernameError(form.username);
     if (validationError) {
-      toast.error(validationError);
+      setProfileError(validationError);
       return;
     }
+    setProfileError("");
+    setProfilePending(true);
     try {
       const data = await toast.promise(authService.editProfile(form), {
         loading: "Saving profile...",
@@ -67,24 +63,30 @@ export function useEditProfileForm() {
         error: (error) => error.message || "Could not update profile",
       });
       queryClient.setQueryData(queryKeys.authProfile, data.user);
+      setDraft({});
       queryClient.invalidateQueries({ queryKey: queryKeys.feed });
       queryClient.invalidateQueries({ queryKey: queryKeys.profilePosts });
       queryClient.invalidateQueries({ queryKey: queryKeys.savedPosts });
       queryClient.invalidateQueries({ queryKey: queryKeys.chatList });
       queryClient.invalidateQueries({ queryKey: ["user"] });
       router.push("/profile");
-    } catch {
-      // toast.promise already renders the actionable error.
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : "Could not update profile.");
+    } finally {
+      setProfilePending(false);
     }
   }
 
   async function submitPassword(event: FormEvent) {
     event.preventDefault();
+    if (passwordPending) return;
     const validationError = passwordError(passwords.newPassword);
     if (validationError) {
-      toast.error(validationError);
+      setPasswordErrorMessage(validationError);
       return;
     }
+    setPasswordErrorMessage("");
+    setPasswordPending(true);
     try {
       await toast.promise(authService.changePassword(passwords), {
         loading: "Updating password...",
@@ -92,15 +94,22 @@ export function useEditProfileForm() {
         error: (error) => error.message || "Could not update password",
       });
       setPasswords(emptyPasswords);
-    } catch {
-      // toast.promise already renders the actionable error.
+    } catch (error) {
+      setPasswordErrorMessage(error instanceof Error ? error.message : "Could not update password.");
+    } finally {
+      setPasswordPending(false);
     }
   }
 
   return {
     form,
     isLoading,
+    error,
     passwords,
+    profilePending,
+    passwordPending,
+    profileError,
+    passwordErrorMessage,
     previewPhoto: form.photo || user?.photo || "",
     submitPassword,
     submitProfile,

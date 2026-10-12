@@ -9,7 +9,7 @@ from app.schemas.common import serialize_doc
 
 async def send_message(receiver: list[str], message: str, conversation_id: str | None, current_user: dict) -> dict:
     db = get_database()
-    sender = current_user["name"]
+    sender = current_user["username"]
     text = message.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Message is required")

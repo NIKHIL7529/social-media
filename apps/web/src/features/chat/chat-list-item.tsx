@@ -1,4 +1,4 @@
-import { MessageCircle, Users } from "lucide-react";
+import Link from "next/link";
 
 import { chatLabel } from "@/features/chat/chat-label";
 import { PresenceDot } from "@/features/chat/chat-presence-ui";
@@ -9,29 +9,24 @@ export function ChatListItem({
   active,
   chat,
   online,
-  onSelect,
 }: {
   active: boolean;
   chat: Chat;
   online: boolean;
-  onSelect: () => void;
 }) {
   return (
-    <button
-      onClick={onSelect}
+    <Link
+      href={`/chat/${chat.chatId}`}
       className={`flex w-full items-start gap-3 border-b border-line p-4 text-left hover:bg-accent-soft ${
         active ? "bg-accent-soft" : ""
       }`}
     >
-      <span className="grid size-10 flex-shrink-0 place-items-center rounded-full bg-slate-100 text-accent-deep">
-        {chat.group ? <Users size={19} /> : <MessageCircle size={19} />}
-      </span>
-      <span className="min-w-0">
+      <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2 truncate font-bold text-ink">
           {!chat.group && <PresenceDot online={online} />}
           {chatLabel(chat)}
           {Boolean(chat.unreadCount) && (
-            <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-extrabold text-white">
+            <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-extrabold text-accent-contrast">
               {chat.unreadCount}
             </span>
           )}
@@ -41,6 +36,6 @@ export function ChatListItem({
           {chat.lastMessage?.createdAt ? ` - ${relativeTime(chat.lastMessage.createdAt)}` : ""}
         </span>
       </span>
-    </button>
+    </Link>
   );
 }

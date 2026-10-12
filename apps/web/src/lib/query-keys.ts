@@ -6,6 +6,7 @@ export const queryKeys = {
   user: (id: string) => ["user", id] as const,
   userByName: (name: string) => ["user", "name", name] as const,
   userPosts: (id: string) => ["user", id, "posts"] as const,
+  searchUsers: (name: string | null, viewerId?: string) => ["search-users", viewerId || "guest", name] as const,
   postLikedBy: (postId: string) => ["post", postId, "likedBy"] as const,
   postComments: (postId: string) => ["post", postId, "comments"] as const,
   postRoot: (postId: string) => ["post", postId] as const,

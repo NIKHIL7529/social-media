@@ -12,6 +12,7 @@ export function ProfileHeader({ user }: { user: User }) {
       <UserAvatar name={user.name} photo={user.photo} size={80} />
       <div className="min-w-0">
         <h1 className="truncate text-2xl font-extrabold text-ink">{user.name}</h1>
+        <p className="truncate text-sm text-ink-muted">@{user.username}</p>
         <p className="text-sm text-ink-muted">
           {user.city || "No city set"}
           {user.country ? ` - ${user.country}` : ""}
@@ -33,7 +34,7 @@ export function ProfileStats({
   posts: number;
 }) {
   return (
-    <div className="mt-5 grid grid-cols-3 overflow-hidden rounded-lg border border-line text-center">
+    <div className="mt-5 grid grid-cols-3 overflow-hidden rounded-2xl border border-line text-center">
       <ProfileStat label="Followers" value={followers} onClick={() => onSelectList("followers")} />
       <ProfileStat label="Following" value={followings} onClick={() => onSelectList("followings")} />
       <ProfileStat label="Posts" value={posts} />
@@ -71,7 +72,7 @@ function ProfileStat({ label, value, onClick }: { label: string; value: number; 
 
 function ProfileInfo({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="rounded-md bg-slate-50 p-3">
+    <div className="rounded-xl bg-surface-raised p-3">
       <p className="font-bold text-ink">{label}</p>
       <p className="mt-1 text-ink-muted">{value || "Not set"}</p>
     </div>

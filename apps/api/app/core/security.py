@@ -3,12 +3,11 @@ from typing import Annotated
 
 from bson import ObjectId
 import bcrypt
-from fastapi import Cookie, Depends, HTTPException, Request, status
+from fastapi import Cookie, HTTPException, status
 from jose import JWTError, jwt
 
 from app.core.config import get_settings
 from app.core.database import get_database
-from app.schemas.common import serialize_doc
 
 MAX_BCRYPT_BYTES = 72
 
@@ -72,22 +71,12 @@ async def get_optional_user(token: Annotated[str | None, Cookie()] = None) -> di
         return None
 
 
-def serialize_auth_user(user: dict, include_email: bool = True) -> dict:
-    blocked = {"password"}
-    if not include_email:
-        blocked.add("email")
-    safe_user = {key: value for key, value in user.items() if key not in blocked}
-    if "username" not in safe_user and safe_user.get("name"):
-        safe_user["username"] = safe_user["name"]
-    return serialize_doc(safe_user)
-
-
-def auth_cookie_options(request: Request) -> dict:
+def auth_cookie_options() -> dict:
     settings = get_settings()
     return {
         "httponly": True,
         "secure": settings.cookie_secure,
-        "samesite": "none" if settings.cookie_secure else "lax",
+        "samesite": "lax",
         "path": "/",
         "max_age": 60 * 60 * 60,
     }

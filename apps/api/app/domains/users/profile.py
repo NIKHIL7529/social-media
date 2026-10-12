@@ -11,7 +11,7 @@ from app.domains.users.identity import identity_query
 
 async def update_profile(payload: dict, current_user: dict) -> tuple[dict, bool]:
     db = get_database()
-    previous_username = current_user.get("username") or current_user["name"]
+    previous_username = current_user["username"]
     next_username = payload["username"]
     existing = await db.users.find_one(
         {
@@ -27,7 +27,7 @@ async def update_profile(payload: dict, current_user: dict) -> tuple[dict, bool]
     has_new_photo = bool(payload.get("photo"))
     image = await upload_image(payload.get("photo", ""), "images") if has_new_photo else current_user.get("photo", "")
     update = {
-        "name": next_username,
+        "name": payload["name"],
         "username": next_username,
         "dob": payload["dob"],
         "gender": payload["gender"],
