@@ -7,7 +7,7 @@ Next.js App Router frontend using React, Tailwind CSS, and TanStack Query. Follo
 Use Node.js 24.18.0 or newer and npm 11 or newer. Run commands from `apps/web`. Create `.env.local`:
 
 ```env
-API_INTERNAL_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ```powershell
@@ -26,7 +26,9 @@ npm run start
 
 Local builds use `next build` and `next start`. Docker sets `NEXT_BUILD_TARGET=standalone`, copies the generated server, public assets, and static chunks, and runs `node server.js`.
 
-Browser requests use same-origin `/api` and `/ws` paths. Next.js rewrites forward them to `API_INTERNAL_URL`; server prefetches use the same origin directly. Set this absolute FastAPI origin before building and at runtime. The Docker build and runtime default to `http://api:8000`. This keeps the HTTP-only session cookie on the web application's hostname. Self-hosted Next.js supports the chat WebSocket upgrade; a reverse proxy can also forward `/ws` directly to FastAPI on the same web origin. The proxy body limit accommodates the 10MB upload limit after base64 encoding.
+Browser HTTP requests use same-origin `/api` paths, rewritten to FastAPI. Set `NEXT_PUBLIC_API_URL` to your Render API origin in Vercel's Production environment before deploying, then redeploy after changes. Server prefetches use that origin too; `API_INTERNAL_URL` is an optional server-only address for a private network. Cookie authentication stays on the web application's hostname.
+
+Live chat connects directly to Render's `/ws/chat` endpoint using a 60-second, purpose-limited ticket obtained through the authenticated HTTP proxy. The main session cookie stays HTTP-only. Deploy the API and web changes together. On Render, set `FRONTEND_URL` to the Vercel site and use `ENVIRONMENT=production`. No Docker setup is required for this deployment.
 
 ## Rendering and data
 

@@ -5,11 +5,12 @@ from app.domains.chat.message_commands import send_message
 from app.domains.chat.read_state import mark_read
 from app.domains.chat.message_queries import list_messages
 from app.domains.chat.realtime import realtime_manager
-from app.domains.chat.realtime_auth import authenticate_socket
+from app.domains.chat.realtime_auth import authenticate_socket, create_socket_ticket
 from app.domains.chat.schemas import DirectConversationPayload, MarkReadPayload, MessagesPayload, SendMessagePayload
 
 __all__ = [
     "authenticate_socket",
+    "create_socket_ticket",
     "DirectConversationPayload",
     "get_direct_conversation",
     "get_conversation_users",

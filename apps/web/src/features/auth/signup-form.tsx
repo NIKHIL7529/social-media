@@ -89,21 +89,17 @@ export default function SignupForm() {
 
   return (
     <>
-      <div className="auth-mobile-heading lg:hidden">
-        <h1>{step === 0 ? <>Create <span>your account</span></> : step === 1 ? <>Tell us <span>about you</span></> : <>Make your <span>sphere yours</span></>}</h1>
-        <p>{step === 0 ? "Be part of a community that feels like home." : step === 1 ? "A little about the person behind the profile." : "Add your own touch with a photo and a few words."}</p>
-      </div>
       <form ref={formRef} noValidate onSubmit={submit} className="auth-card">
         <h1 ref={heading} tabIndex={-1} className="text-2xl font-extrabold tracking-tight text-ink outline-none sm:text-3xl">{SIGNUP_TITLES[step]}</h1>
         <fieldset disabled={submitting} className="mt-7 min-w-0">
           <legend className="sr-only">{step === 0 ? "Your account details" : SIGNUP_TITLES[step]}</legend>
-          <div className="signup-fields grid min-w-0 gap-4">
+          <div data-signup-step={step} className="signup-fields grid min-w-0 gap-4">
             {step === 0 && <>
               <TextField label="Name" error={errors.name} leadingIcon={<UserRound size={21} />} value={form.name} onChange={(name) => updateField("name", name)} minLength={3} maxLength={20} autoComplete="name" required />
               <TextField label="Username" error={errors.username} leadingIcon={<UserRound size={21} />} placeholder="Enter your username" value={form.username} onChange={(username) => updateField("username", username.toLowerCase())} minLength={USERNAME_MIN_LENGTH} maxLength={USERNAME_MAX_LENGTH} autoComplete="username" autoCapitalize="none" spellCheck={false} required />
               <TextField label="Email" error={errors.email} leadingIcon={<Mail size={21} />} placeholder="Enter your email" type="email" value={form.email} onChange={(email) => updateField("email", email)} autoComplete="email" required />
               <TextField label="Password" error={errors.password} leadingIcon={<LockKeyhole size={21} />} placeholder="Create a password" type="password" value={form.password} onChange={(password) => updateField("password", password)} minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} autoComplete="new-password" required />
-              <p className="text-xs leading-relaxed text-ink-muted">{PASSWORD_REQUIREMENTS}</p>
+              <p className="auth-help col-span-full text-xs leading-relaxed text-ink-muted">{PASSWORD_REQUIREMENTS}</p>
             </>}
             {step === 1 && <>
               <TextField label="Date of birth" error={errors.dob} type="date" value={form.dob} onChange={(dob) => updateField("dob", dob)} autoComplete="bday" required />

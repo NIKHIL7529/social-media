@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
+import { chatService } from "@/features/chat/chat-service";
+import { ApiError } from "@/lib/api";
 import type { Chat, ChatMessage } from "@/types/social";
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected" | "error";
@@ -19,8 +21,11 @@ type UseChatRealtimeOptions = {
   onTyping: (event: { chatId: string; user: string; isTyping: boolean }) => void;
 };
 
-function wsUrl() {
-  const url = new URL("/ws/chat", window.location.origin);
+function wsUrl(ticket: string) {
+  const origin = process.env.NEXT_PUBLIC_API_URL;
+  if (!origin) throw new Error("Set NEXT_PUBLIC_API_URL to the FastAPI origin to connect live chat.");
+  const url = new URL("/ws/chat", origin);
+  url.searchParams.set("ticket", ticket);
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   return url.toString();
 }
@@ -33,6 +38,7 @@ export function useChatRealtime({
   onTyping,
 }: UseChatRealtimeOptions) {
   const socketRef = useRef<WebSocket | null>(null);
+  const ticketRequest = useRef<AbortController | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
   const initialConnectTimerRef = useRef<number | null>(null);
   const reconnectAttemptRef = useRef(0);
@@ -65,14 +71,32 @@ export function useChatRealtime({
     }
   }, []);
 
-  const connect = useCallback(function connectSocket() {
-    if (!enabled || socketRef.current?.readyState === WebSocket.OPEN || socketRef.current?.readyState === WebSocket.CONNECTING) {
+  const connect = useCallback(async function connectSocket() {
+    if (!enabled || ticketRequest.current || socketRef.current?.readyState === WebSocket.OPEN || socketRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
     cleanupReconnect();
     intentionalCloseRef.current = false;
-    const socket = new WebSocket(wsUrl());
+    setStatus("connecting");
+    const controller = new AbortController();
+    ticketRequest.current = controller;
+    let socket: WebSocket;
+    try {
+      const { ticket } = await chatService.getSocketTicket(controller.signal);
+      if (controller.signal.aborted) return;
+      socket = new WebSocket(wsUrl(ticket));
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setStatus("error");
+      if (error instanceof ApiError && error.status === 401) return;
+      toast.error(error instanceof Error ? error.message : "Unable to connect live chat.");
+      const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current++, 15000);
+      reconnectTimerRef.current = window.setTimeout(connectSocket, delay);
+      return;
+    } finally {
+      if (ticketRequest.current === controller) ticketRequest.current = null;
+    }
     socketRef.current = socket;
     setStatus("connecting");
 
@@ -132,6 +156,8 @@ export function useChatRealtime({
     }
     return () => {
       cleanupReconnect();
+      ticketRequest.current?.abort();
+      ticketRequest.current = null;
       intentionalCloseRef.current = true;
       socketRef.current?.close();
       socketRef.current = null;

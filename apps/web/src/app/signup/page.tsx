@@ -6,5 +6,5 @@ import SignupForm from "@/features/auth/signup-form";
 export const metadata: Metadata = { title: "signup" };
 
 export default function Page() {
-  return <AuthLayout signup hideMobileHeading><SignupForm /></AuthLayout>;
+  return <AuthLayout signup><SignupForm /></AuthLayout>;
 }

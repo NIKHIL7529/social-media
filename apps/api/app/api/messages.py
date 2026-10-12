@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from app.core.security import get_current_user
 from app.domains.chat import (
     DirectConversationPayload,
+    create_socket_ticket,
     get_direct_conversation,
     list_chats,
     list_followings,
@@ -15,6 +16,11 @@ from app.domains.chat import (
 )
 
 router = APIRouter()
+
+
+@router.post("/socketTicket")
+async def socket_ticket(current_user: dict = Depends(get_current_user)) -> dict:
+    return {"status": 200, "ticket": create_socket_ticket(current_user)}
 
 
 @router.get("/allChats")

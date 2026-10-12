@@ -4,10 +4,9 @@ import { ImageIcon, MessageCircle, Users } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { ThemeControl } from "@/components/theme-control";
 
-export function AuthLayout({ children, signup = false, hideMobileHeading = false }: {
+export function AuthLayout({ children, signup = false }: {
   children: ReactNode;
   signup?: boolean;
-  hideMobileHeading?: boolean;
 }) {
   return (
     <main className="auth-background auth-viewport w-full px-4 py-5 sm:px-8 lg:px-12 lg:py-8">
@@ -45,10 +44,6 @@ export function AuthLayout({ children, signup = false, hideMobileHeading = false
           </section>
           </div>
           <div className="auth-form-slot flex h-full min-h-0 min-w-0 flex-col justify-center gap-6 lg:gap-0">
-            {!hideMobileHeading && <div className="auth-mobile-heading lg:hidden">
-              <h1>Welcome <span>back</span></h1>
-              <p>Log in and reconnect with your people.</p>
-            </div>}
             {children}
           </div>
         </div>

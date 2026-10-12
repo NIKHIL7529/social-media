@@ -124,8 +124,8 @@
   }
 @layer components {
   .auth-background { background: radial-gradient(ellipse at 80% 20%, rgb(var(--color-glow) / .12), transparent 55%), radial-gradient(ellipse at 10% 80%, rgb(var(--color-glow) / .15), transparent 50%), rgb(var(--color-page)); }
-  .auth-viewport { height: 100dvh; overflow: hidden; }
-  .auth-card { @apply relative mx-auto flex w-full min-h-0 min-w-0 max-h-full max-w-lg flex-col overflow-y-auto rounded-[32px] border p-6 sm:p-8 xl:p-10;
+  .auth-viewport { min-height: 100svh; height: 100dvh; }
+  .auth-card { @apply relative mx-auto flex w-full min-h-0 min-w-0 max-w-lg flex-col rounded-[32px] border p-6 sm:p-8 xl:p-10;
     background: linear-gradient(135deg, rgb(var(--color-surface) / .55), transparent 45%, rgb(var(--color-glow) / .06)), rgb(var(--color-surface) / .78);
     border-color: rgb(var(--color-surface) / .65);
     -webkit-backdrop-filter: blur(24px);
@@ -137,10 +137,7 @@
   .auth-card input, .auth-card select { @apply h-12; }
   .auth-card textarea { @apply resize-none; }
   .auth-submit { @apply action-primary w-full min-h-12 text-base; }
-  .auth-mobile-heading { @apply shrink-0 w-full max-w-lg px-2 text-center; }
-  .auth-mobile-heading h1 { @apply text-3xl font-extrabold leading-tight tracking-tight text-ink; }
-  .auth-mobile-heading h1 span { @apply text-accent; }
-  .auth-mobile-heading p { @apply mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ink-muted; }
+
 }
 @media (min-width: 1024px) { .auth-background { background-image: linear-gradient(90deg,#07171426,#07171414),url('/loginBG.png'); background-size: cover; background-position: center; } .auth-form-slot { grid-column: 2; } }
 @media (min-width: 1024px) {
@@ -149,10 +146,50 @@
   .auth-intro .text-accent-deep, .auth-brand .text-accent { color: #08786c; }
   .auth-intro .bg-accent-soft { background: #def2eb; }
 }
-@media (max-width: 1023px) { .auth-viewport { padding: max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom)); } .auth-content { padding-top: 12px; } .auth-card > h1, .auth-card > h2, .auth-card > p { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .auth-card > fieldset, .auth-card > .auth-login-fields { margin-top: 0; } }
-@media (max-height: 740px) { .auth-viewport { padding-top: 12px; padding-bottom: 12px; } .auth-content { padding-top: 12px; } .auth-form-slot { gap: 16px; } .auth-card { padding: 20px; } .auth-card > * + * { margin-top: 16px; } .signup-fields, .auth-login-fields { gap: 12px; } .signup-photo { max-width: 120px; } .auth-intro h1 { font-size: 44px; } }
-@media (max-height: 580px) { .auth-content { padding-top: 0; } .auth-mobile-heading p { display: none; } .auth-mobile-heading h1, .auth-card h1, .auth-card h2 { font-size: 24px; } .auth-form-slot { gap: 10px; } .auth-card { padding: 14px 18px; } .auth-card > * + * { margin-top: 10px; } .signup-fields, .auth-login-fields { gap: 8px; } .auth-card input, .auth-card select { height: 44px; } .auth-card textarea { height: 64px; min-height: 64px; } .signup-photo { max-width: 96px; } .auth-intro section > div, .auth-intro section > p:last-child { display: none; } }
-@media (max-height: 500px) and (min-width: 480px) { .signup-fields, .auth-login-fields { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: center; } }
+/* Fit auth controls to the available screen instead of clipping or scrolling a card. */
+.auth-card { flex: 0 0 auto; }
+.auth-card > fieldset { flex: 0 0 auto; }
+.auth-card [role="alert"] { overflow-wrap: anywhere; }
+.auth-card:has([role="alert"]) .signup-fields { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+@media (max-width: 1023px) {
+  .auth-viewport { padding: max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom)); }
+  .auth-content { padding-top: 12px; }
+  .auth-form-slot { gap: 0; }
+}
+@media (max-height: 800px) {
+  .auth-viewport { padding: max(8px,env(safe-area-inset-top)) 12px max(8px,env(safe-area-inset-bottom)); }
+  .auth-content { padding-top: 8px; }
+  .auth-card { padding: 16px; border-radius: 24px; }
+  .signup-fields, .auth-login-fields { gap: 10px; }
+  .auth-card input, .auth-card select { height: 44px; }
+  .auth-card textarea { height: 80px; min-height: 80px; }
+  .auth-card h1, .auth-card h2 { font-size: 24px; line-height: 1.2; }
+  .auth-card > * + * { margin-top: 12px; }
+  .signup-fields { grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; }
+  .signup-fields[data-signup-step="2"] { align-items: center; }
+  .signup-photo { max-width: 104px; }
+  .auth-card label { font-size: 12px; }
+  .auth-card label > span[role="alert"] { margin-top: 4px; font-size: 11px; }
+  .auth-card input, .auth-card select { font-size: 16px; border-radius: 12px; }
+  .auth-card input:where([autocomplete="name"],[autocomplete="username"],[autocomplete="email"],[autocomplete="new-password"]) { padding-left: 10px !important; }
+  .signup-fields label > span > span[aria-hidden="true"] { display: none; }
+  .auth-card .auth-submit, .auth-card button:has(svg) { min-height: 40px; }
+  .auth-intro h1 { font-size: 32px; }
+  .auth-intro section > p { margin-top: 12px; font-size: 14px; }
+  .auth-intro section > div { margin-top: 16px; }
+}
+@media (max-height: 420px) {
+  .auth-card { padding: 12px; }
+  .auth-card > * + * { margin-top: 8px; }
+  .auth-card h1, .auth-card h2 { font-size: 20px; }
+  .signup-fields, .auth-login-fields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 10px; }
+  .auth-card input, .auth-card select { height: 36px; min-height: 36px; }
+  .auth-card textarea { height: 60px; min-height: 60px; }
+  .auth-card .auth-submit, .auth-card button:has(svg) { min-height: 36px; }
+  .auth-card > p, .auth-help { font-size: 11px; line-height: 1.3; }
+  .signup-photo { max-width: 80px; }
+  .auth-intro h1 { font-size: 26px; }
+}
 .settings-shell { height: 100dvh; padding: calc(var(--nav-height) + 24px) 20px calc(var(--bottom-nav-height) + 20px); }
 .settings-page { max-width: 980px; height: 100%; margin: auto; display: flex; flex-direction: column; min-height: 0; }
 .settings-page > header { margin-bottom: 24px; flex-shrink: 0; }

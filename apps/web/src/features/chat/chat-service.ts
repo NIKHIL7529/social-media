@@ -2,6 +2,7 @@ import { apiFetch, jsonPost } from "@/lib/api";
 import type { Chat, ChatMessage } from "@/types/social";
 
 export const chatService = {
+  getSocketTicket: (signal?: AbortSignal) => apiFetch<{ status: number; ticket: string }>("/api/message/socketTicket", { method: "POST", signal }),
   getChats: (signal?: AbortSignal) => apiFetch<{ status: number; chats: Chat[]; user: string }>("/api/message/allChats", { signal }),
   getMessages: (conversationId: string, options: { before?: string | null; limit?: number } = {}, signal?: AbortSignal) =>
     jsonPost<

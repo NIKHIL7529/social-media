@@ -34,7 +34,7 @@ def create_access_token(user_id: ObjectId, name: str) -> str:
     settings = get_settings()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=60)
     return jwt.encode(
-        {"id": str(user_id), "name": name, "exp": expires_at},
+        {"id": str(user_id), "name": name, "purpose": "session", "exp": expires_at},
         settings.secret_key,
         algorithm="HS256",
     )
@@ -51,7 +51,7 @@ async def get_current_user(token: Annotated[str | None, Cookie()] = None) -> dic
     try:
         payload = jwt.decode(token, get_settings().secret_key, algorithms=["HS256"])
         user_id = payload.get("id")
-        if not user_id or not ObjectId.is_valid(user_id):
+        if payload.get("purpose") != "session" or not user_id or not ObjectId.is_valid(user_id):
             raise credentials_error
     except JWTError as exc:
         raise credentials_error from exc

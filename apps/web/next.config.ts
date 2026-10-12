@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
     const origin = getApiOrigin();
     return [
       { source: "/api/:path*", destination: `${origin}/api/:path*` },
-      { source: "/ws/:path*", destination: `${origin}/ws/:path*` },
     ];
   },
   images: {
