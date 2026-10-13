@@ -90,7 +90,9 @@ export function useChatRealtime({
       if (controller.signal.aborted) return;
       setStatus("error");
       if (error instanceof ApiError && error.status === 401) return;
-      toast.error(error instanceof Error ? error.message : "Unable to connect live chat.");
+      const message = error instanceof Error ? error.message : "Unable to connect live chat.";
+      toast.error(error instanceof ApiError && error.status > 0 ? `Live chat request failed (HTTP ${error.status}): ${message}` : message);
+      if (error instanceof ApiError && error.status >= 400 && error.status < 500 && error.status !== 429) return;
       const delay = Math.min(1000 * 2 ** reconnectAttemptRef.current++, 15000);
       reconnectTimerRef.current = window.setTimeout(connectSocket, delay);
       return;
