@@ -56,7 +56,7 @@ export default function CreatePostScreen() {
       <section className="mx-auto w-full max-w-feed">
         <form
           onSubmit={submit}
-          className="rounded-2xl border border-line bg-surface p-5 shadow-card"
+          className="surface-card p-5 sm:p-6"
         >
           <h1 className="text-2xl font-extrabold text-ink">New post</h1>
           <div className="mt-5">
@@ -85,7 +85,7 @@ export default function CreatePostScreen() {
             Allow comments
           </label>
           {formError && <p role="alert" className="mt-4 break-words text-sm text-danger">{formError}</p>}
-          <button disabled={submitting} className="mt-6 min-h-11 w-full rounded-xl bg-accent font-bold text-accent-contrast disabled:cursor-wait disabled:opacity-60">
+          <button disabled={submitting} className="mt-6 min-h-11 w-full rounded bg-accent font-bold text-accent-contrast disabled:cursor-wait disabled:opacity-60">
             {submitting ? "Publishing…" : "Publish"}
           </button>
         </form>

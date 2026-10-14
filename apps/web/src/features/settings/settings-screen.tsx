@@ -15,7 +15,7 @@ export default function SettingsScreen() {
   return (
       <section className="settings-page" aria-labelledby="settings-title">
         <header className="flex items-center gap-3">
-          <Link href="/posts" aria-label="Back to home" className="grid size-9 shrink-0 place-items-center rounded-xl hover:bg-surface-raised lg:hidden">
+          <Link href="/posts" aria-label="Back to home" className="grid size-9 shrink-0 place-items-center rounded hover:bg-surface-raised lg:hidden">
             <ArrowLeft size={22} />
           </Link>
           <div>

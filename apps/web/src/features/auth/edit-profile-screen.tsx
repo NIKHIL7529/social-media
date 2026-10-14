@@ -15,7 +15,7 @@ export default function EditProfileScreen() {
 
   return (
       <section className="mx-auto w-full max-w-feed space-y-5">
-        <form onSubmit={profile.submitProfile} className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <form onSubmit={profile.submitProfile} className="surface-card p-5 sm:p-6">
           <h1 className="text-2xl font-extrabold text-ink">Edit profile</h1>
           {profile.isLoading && <div className="mt-4"><EditProfileSkeleton /></div>}
           {profile.user && (
@@ -47,13 +47,13 @@ export default function EditProfileScreen() {
                 <TextAreaField label="Description" value={profile.form.description} onChange={(description) => profile.updateProfileField("description", description)} />
               </div>
               {profile.profileError && <p role="alert" className="mt-4 break-words text-sm text-danger">{profile.profileError}</p>}
-              <button disabled={profile.profilePending} className="mt-6 min-h-11 w-full rounded-xl bg-accent font-bold text-accent-contrast disabled:cursor-wait disabled:opacity-60">{profile.profilePending ? "Saving…" : "Save profile"}</button>
+              <button disabled={profile.profilePending} className="mt-6 min-h-11 w-full rounded bg-accent font-bold text-accent-contrast disabled:cursor-wait disabled:opacity-60">{profile.profilePending ? "Saving…" : "Save profile"}</button>
             </>
           )}
         </form>
 
         {profile.user && (
-          <form onSubmit={profile.submitPassword} className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+          <form onSubmit={profile.submitPassword} className="surface-card p-5 sm:p-6">
             <h2 className="text-xl font-extrabold text-ink">Change password</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <TextField label="Current password" type="password" value={profile.passwords.currentPassword} onChange={(currentPassword) => profile.updatePasswordField("currentPassword", currentPassword)} required />
@@ -61,7 +61,7 @@ export default function EditProfileScreen() {
             </div>
             <p className="mt-3 text-sm text-ink-muted">{PASSWORD_REQUIREMENTS}</p>
             {profile.passwordErrorMessage && <p role="alert" className="mt-3 break-words text-sm text-danger">{profile.passwordErrorMessage}</p>}
-            <button disabled={profile.passwordPending} className="mt-5 min-h-11 rounded-xl border border-line px-4 font-bold text-accent-deep disabled:cursor-wait disabled:opacity-60">{profile.passwordPending ? "Updating…" : "Update password"}</button>
+            <button disabled={profile.passwordPending} className="mt-5 min-h-11 rounded border border-line px-4 font-bold text-accent-deep disabled:cursor-wait disabled:opacity-60">{profile.passwordPending ? "Updating…" : "Update password"}</button>
           </form>
         )}
       </section>

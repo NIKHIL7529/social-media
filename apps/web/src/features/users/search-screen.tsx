@@ -19,7 +19,7 @@ export default function SearchScreen() {
   const search = useQuery({
     queryKey: queryKeys.searchUsers(submittedName, viewer?._id),
     queryFn: ({ signal }) => userService.search(submittedName || "", signal),
-    enabled: submittedName !== null && !loadingViewer,
+    enabled: Boolean(submittedName) && !loadingViewer,
   });
   const searching = search.isFetching;
   const users = search.data?.search_users || [];
@@ -28,16 +28,18 @@ export default function SearchScreen() {
     event.preventDefault();
     if (searching) return;
     const term = name.trim();
+    setName(term);
+    if (!term) return;
     if (submittedName === term) void search.refetch();
     else setSubmittedName(term);
   }
 
   return (
       <section className="mx-auto w-full max-w-feed">
-        <header className="mb-6"><p className="text-xs font-bold uppercase tracking-widest text-accent">Discover</p><h1 className="mt-2 text-3xl font-extrabold">Find your people</h1><p className="mt-2 text-sm text-ink-muted">Search for someone and explore their moments.</p></header>
+        <header className="page-banner mb-6"><p className="text-xs font-bold uppercase tracking-widest text-accent">Discover</p><h1 className="mt-2 text-3xl font-extrabold">Find your people</h1><p className="mt-2 text-sm text-ink-muted">Search for someone and explore their moments.</p></header>
         <form onSubmit={submit} className="flex gap-2">
-          <input aria-label="Search users" value={name} onChange={(event) => setName(event.target.value)} className="min-h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft" placeholder="Search users" />
-          <button disabled={searching} aria-label="Search" className="grid size-11 place-items-center rounded-xl bg-accent text-accent-contrast disabled:opacity-60">
+          <input aria-label="Search users" value={name} onChange={(event) => setName(event.target.value)} className="min-h-11 min-w-0 flex-1 rounded border border-line bg-surface px-3 outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft" placeholder="Search users" />
+          <button disabled={searching || !name.trim()} aria-label="Search" className="grid size-11 place-items-center rounded bg-accent text-accent-contrast disabled:opacity-60">
             <Search size={19} />
           </button>
         </form>
@@ -49,7 +51,7 @@ export default function SearchScreen() {
             <Link
               key={user._id}
               href={`/user/${user._id}`}
-              className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-4 text-left shadow-soft hover:bg-accent-soft"
+              className="surface-card flex w-full items-center gap-3 p-4 text-left hover:bg-accent-soft"
             >
               <UserAvatar name={user.name} photo={user.photo} />
               <p className="font-bold text-ink">{user.name}</p>

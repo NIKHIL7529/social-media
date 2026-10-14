@@ -1,4 +1,4 @@
-import { Bookmark, BookmarkCheck, Heart, MessageCircle, Share2, ThumbsUp } from "lucide-react";
+import { Bookmark, BookmarkCheck, Heart, MessageCircle, Share2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function PostActions({
@@ -27,7 +27,7 @@ export function PostActions({
   return (
     <footer className="post-actions relative flex flex-wrap items-center gap-1 px-3 py-3">
       <IconButton active={liked} label={liked ? "Unlike post" : "Like post"} disabled={liking} onClick={onLike}>
-        <ThumbsUp />
+        <Heart fill={liked ? "currentColor" : "none"} />
       </IconButton>
       <IconButton label="Comment on post" onClick={onComment}>
         <MessageCircle />
@@ -40,7 +40,7 @@ export function PostActions({
       </IconButton>
       <button
         onClick={onShowLikers}
-        className="ml-auto inline-flex min-h-9 items-center gap-2 rounded-xl px-2 text-sm font-bold text-ink-muted hover:bg-accent-soft hover:text-accent-deep"
+        className="ml-auto inline-flex min-h-9 items-center gap-2 rounded px-2 text-sm font-bold text-ink-muted hover:bg-accent-soft hover:text-accent-deep"
         aria-label="View people who liked this post"
       >
         <Heart size={16} />
@@ -66,10 +66,11 @@ function IconButton({
   return (
     <button
       aria-label={label}
+      aria-pressed={active}
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className={`grid size-10 place-items-center rounded-xl disabled:cursor-wait disabled:opacity-60 ${
+      className={`grid size-10 place-items-center rounded disabled:cursor-wait disabled:opacity-60 ${
         active ? "bg-accent-soft text-accent-deep" : "text-ink hover:bg-accent-soft"
       }`}
     >

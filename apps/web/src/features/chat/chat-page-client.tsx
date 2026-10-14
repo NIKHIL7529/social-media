@@ -25,16 +25,16 @@ export function ChatPageClient() {
   return (
     <section className="grid min-h-0 w-full min-w-0 flex-1 overflow-hidden bg-surface lg:grid-cols-[minmax(240px,320px)_minmax(0,1fr)]">
       <aside className={`${chat.activeChat ? "hidden" : "flex"} min-h-0 min-w-0 flex-col border-line lg:flex lg:border-r`}>
-        <div className="flex items-center justify-between border-b border-line p-4">
-          <div>
-            <h1 className="text-xl font-extrabold text-ink">Messages</h1>
-            <p className="text-sm text-ink-muted">
+        <div className="chat-header-bar justify-between">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-extrabold leading-6 text-ink">Messages</h1>
+            <p className="truncate text-sm leading-5 text-ink-muted">
               {chat.chats.length} conversations · {chat.realtimeStatus}
             </p>
           </div>
           <button
             onClick={chat.toggleGroupForm}
-            className="grid size-10 place-items-center rounded-xl text-accent-deep hover:bg-accent-soft"
+            className="grid size-10 shrink-0 place-items-center rounded text-accent-deep hover:bg-accent-soft"
             aria-label="Create group"
             title="Create group"
           >
@@ -75,7 +75,7 @@ export function ChatPageClient() {
               {chat.messagesQuery.isLoading && <ListSkeleton />}
               {chat.messagesQuery.error && <p role="alert" className="break-words text-sm text-danger">{chat.messagesQuery.error.message}</p>}
               {chat.messagesQuery.data?.pagination.hasMore && (
-                <button onClick={chat.loadOlder} className="mx-auto block rounded-xl border border-line bg-surface px-3 py-2 text-sm font-bold text-accent-deep">
+                <button onClick={chat.loadOlder} className="mx-auto block rounded border border-line bg-surface px-3 py-2 text-sm font-bold text-accent-deep">
                   Load older
                 </button>
               )}

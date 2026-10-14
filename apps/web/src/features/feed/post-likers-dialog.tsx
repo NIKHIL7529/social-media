@@ -26,7 +26,7 @@ export function LikersDialog({
               key={likedUser._id}
               href={`/user/${likedUser._id}`}
               onClick={onClose}
-              className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left hover:bg-accent-soft"
+              className="flex min-h-12 w-full items-center gap-3 rounded px-3 text-left hover:bg-accent-soft"
             >
               <UserAvatar name={likedUser.name} photo={likedUser.photo} size={36} />
               <span className="font-bold text-ink">{likedUser.name}</span>

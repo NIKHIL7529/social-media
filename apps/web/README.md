@@ -50,7 +50,7 @@ Desktop branding and navigation live in the sidebar; smaller screens use the hea
 
 Feeds, saved posts, and profile posts use `PostList` in one column. Image ratio and available viewport determine post width; headers, actions, and comments share that width. Preserve image proportions without cropping or fixed post widths. The first image loads eagerly; subsequent images load lazily. Expanded content can grow vertically.
 
-Use restrained, theme-aware surfaces. Reserve translucent blur for sticky navigation and overlays, with glossy authentication forms. Respect reduced-motion preferences and responsive layouts.
+Use the shared cosmic palette: violet/pink/orange gradients for branding, deeper contrast-safe gradients for primary actions, and cyan highlights. Light mode uses lavender and white surfaces; dark mode uses an OLED-black canvas with violet surfaces. Reserve translucent blur for sticky navigation and overlays, with glossy authentication forms. The auth backdrop and orbit illustration are CSS/SVG-based. Keep feeds and auth fields in one column, and respect reduced-motion preferences.
 
 Cold development compilation differs from production navigation performance; assess warm navigation and production behavior separately. Do not bypass lint or type checking to pass a build.
 

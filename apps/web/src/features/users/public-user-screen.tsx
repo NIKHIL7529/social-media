@@ -16,7 +16,7 @@ export default function PublicUserScreen({ id }: { id: string }) {
 
   return (
       <section className="mx-auto w-full min-w-0">
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <div className="profile-panel surface-card p-5 sm:p-6">
           {profile.userQuery.isLoading && <ProfileSkeleton />}
           <QueryError error={profile.userQuery.error} onRetry={() => profile.userQuery.refetch()} retrying={profile.userQuery.isFetching} />
           {!profile.userQuery.isLoading && !profile.userQuery.error && !profile.user && <p className="text-ink-muted">User not found.</p>}
@@ -32,7 +32,7 @@ export default function PublicUserScreen({ id }: { id: string }) {
               />
               <div className="mt-5 flex flex-wrap gap-2">
                 {profile.isCurrentUser ? (
-                  <Link href="/editProfile" className="inline-flex min-h-10 items-center rounded-xl bg-accent px-4 font-bold text-accent-contrast">
+                  <Link href="/editProfile" className="inline-flex min-h-10 items-center rounded bg-accent px-4 font-bold text-accent-contrast">
                     Edit profile
                   </Link>
                 ) : (
@@ -40,14 +40,14 @@ export default function PublicUserScreen({ id }: { id: string }) {
                     <button
                       onClick={profile.follow}
                       disabled={!profile.currentUser || profile.followPending}
-                      className="min-h-10 rounded-xl bg-accent px-4 font-bold text-accent-contrast disabled:cursor-not-allowed disabled:opacity-60"
+                      className="min-h-10 rounded bg-accent px-4 font-bold text-accent-contrast disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {profile.isFollowing ? "Following" : "Follow"}
                     </button>
                     <button
                       onClick={profile.startChat}
                       disabled={!profile.currentUser || profile.chatPending}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-line px-4 font-bold text-accent-deep disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex min-h-10 items-center gap-2 rounded border border-line px-4 font-bold text-accent-deep disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <MessageCircle size={18} />
                       Message
@@ -65,7 +65,7 @@ export default function PublicUserScreen({ id }: { id: string }) {
             {profile.postsQuery.isLoading && <FeedSkeleton />}
             <QueryError error={profile.postsQuery.error} onRetry={() => profile.postsQuery.refetch()} retrying={profile.postsQuery.isFetching} />
             <PostList posts={profile.posts} />
-            {!profile.postsQuery.isLoading && !profile.postsQuery.error && profile.posts.length === 0 && <p className="rounded-2xl border border-line bg-surface p-5 text-ink-muted">No posts yet.</p>}
+            {!profile.postsQuery.isLoading && !profile.postsQuery.error && profile.posts.length === 0 && <p className="rounded border border-line bg-surface p-5 text-ink-muted">No posts yet.</p>}
           </div>
         )}
 

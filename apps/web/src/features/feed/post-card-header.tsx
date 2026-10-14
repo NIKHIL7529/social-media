@@ -32,7 +32,7 @@ export function PostHeader({
         <button
           onClick={onDelete}
           disabled={working}
-          className="inline-flex min-h-9 items-center gap-2 rounded-full border border-danger/20 bg-danger-soft px-3 font-bold text-danger disabled:cursor-wait disabled:opacity-60"
+          className="inline-flex min-h-9 items-center gap-2 rounded border border-danger/20 bg-danger-soft px-3 font-bold text-danger disabled:cursor-wait disabled:opacity-60"
         >
           <Trash2 size={16} />
           {working ? "Deleting" : "Delete"}
@@ -41,7 +41,7 @@ export function PostHeader({
         <button
           onClick={onFollow}
           disabled={working}
-          className="min-h-9 rounded-full border border-accent-soft bg-accent-soft px-4 font-bold text-accent-deep disabled:cursor-wait disabled:opacity-60"
+          className="min-h-9 rounded border border-accent-soft bg-accent-soft px-4 font-bold text-accent-deep disabled:cursor-wait disabled:opacity-60"
         >
           {following ? "Following" : "Follow"}
         </button>

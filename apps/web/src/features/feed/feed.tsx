@@ -51,15 +51,15 @@ export function Feed() {
 
   return (
     <section className="mx-auto w-full min-w-0" aria-labelledby="feed-title">
-      <header className="mb-4 flex items-end justify-between gap-4 border-b border-line pb-4">
+      <header className="page-banner mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <span className="text-xs font-extrabold uppercase text-accent">Community</span>
+          <span className="text-xs font-extrabold uppercase text-accent">Your daily orbit</span>
           <h1 id="feed-title" className="mt-1 text-2xl font-extrabold leading-tight tracking-normal text-ink sm:text-[1.65rem]">
-            Latest posts
+            Your daily scroll
           </h1>
         </div>
         {user && (
-          <Link href="/addPost" className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-3 font-bold text-accent-contrast">
+          <Link href="/addPost" className="action-primary shrink-0">
             <Plus size={18} />
             New post
           </Link>
@@ -74,10 +74,10 @@ export function Feed() {
       )}
 
       {!isLoading && error && !isFetchNextPageError && (
-        <div role="alert" className="mb-5 rounded-2xl border border-danger/30 bg-surface px-6 py-6">
+        <div role="alert" className="mb-5 rounded border border-danger/30 bg-surface px-6 py-6">
           <h2 className="text-lg font-extrabold">Feed unavailable</h2>
           <p className="mt-2 break-words text-danger">{error instanceof Error ? error.message : "Unable to load posts."}</p>
-          <button onClick={() => refetch()} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-4 font-bold text-accent-contrast">
+          <button onClick={() => refetch()} className="mt-5 inline-flex min-h-10 items-center gap-2 rounded bg-accent px-4 font-bold text-accent-contrast">
             <RefreshCw size={17} />
             Try again
           </button>
@@ -85,7 +85,7 @@ export function Feed() {
       )}
 
       {!isLoading && !error && posts.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-line bg-surface px-6 py-12 text-center">
+        <div className="rounded border border-dashed border-line bg-surface px-6 py-12 text-center">
           <h2 className="text-lg font-extrabold">No posts yet</h2>
           <p className="mt-2 text-ink-muted">Start the conversation by publishing the first post.</p>
         </div>
@@ -95,9 +95,9 @@ export function Feed() {
 
       <div ref={sentinelRef} className="h-4" />
       {isFetchNextPageError && (
-        <div role="alert" className="mb-5 rounded-2xl border border-danger/30 bg-surface p-5">
+        <div role="alert" className="mb-5 rounded border border-danger/30 bg-surface p-5">
           <p className="break-words text-danger">{error instanceof Error ? error.message : "Unable to load more posts."}</p>
-          <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl bg-accent px-4 font-bold text-accent-contrast disabled:opacity-60">
+          <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="mt-3 inline-flex min-h-10 items-center gap-2 rounded bg-accent px-4 font-bold text-accent-contrast disabled:opacity-60">
             <RefreshCw size={17} /> Try again
           </button>
         </div>

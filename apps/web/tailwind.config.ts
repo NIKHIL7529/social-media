@@ -4,6 +4,7 @@ const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      borderRadius: { DEFAULT: "var(--radius-ui)" },
       colors: {
         accent: {
           DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
@@ -17,6 +18,7 @@ const config: Config = {
           muted: "rgb(var(--color-ink-muted) / <alpha-value>)",
         },
         line: "rgb(var(--color-line) / <alpha-value>)",
+        cyan: "rgb(var(--color-cyan) / <alpha-value>)",
         page: "rgb(var(--color-page) / <alpha-value>)",
         surface: { DEFAULT: "rgb(var(--color-surface) / <alpha-value>)", raised: "rgb(var(--color-surface-raised) / <alpha-value>)" },
         danger: { DEFAULT: "rgb(var(--color-danger) / <alpha-value>)", soft: "rgb(var(--color-danger-soft) / <alpha-value>)" },

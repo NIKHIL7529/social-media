@@ -19,7 +19,7 @@ export function UserListDialog({ title, users, onClose }: Props) {
               key={name}
               href={`/user/name/${encodeURIComponent(name)}`}
               onClick={onClose}
-              className="flex min-h-11 w-full items-center rounded-xl px-3 text-left font-bold text-ink hover:bg-accent-soft"
+              className="flex min-h-11 w-full items-center rounded px-3 text-left font-bold text-ink hover:bg-accent-soft"
             >
               {name}
             </Link>

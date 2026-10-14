@@ -4,7 +4,7 @@ import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react
 import { Eye, EyeOff } from "lucide-react";
 
 const inputClass =
-  "mt-2 block min-h-11 w-full rounded-xl border border-line px-3 font-normal placeholder:font-normal outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft";
+  "mt-2 block min-h-11 w-full rounded border border-line px-3 font-normal placeholder:font-normal outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft";
 
 export function TextField({
   label,

@@ -15,7 +15,10 @@ async def list_users() -> dict:
 
 
 async def search_users(search_term: str, current_user: dict | None) -> dict:
-    search_term = escape(search_term.strip())
+    search_term = search_term.strip()
+    if not search_term:
+        raise HTTPException(status_code=400, detail="Enter a name or username to search")
+    search_term = escape(search_term)
     query: dict = {"$or": [{field: {"$regex": search_term, "$options": "i"}} for field in ("username", "name")]}
     if current_user:
         query = {"$and": [query, {"_id": {"$ne": current_user["_id"]}}]}

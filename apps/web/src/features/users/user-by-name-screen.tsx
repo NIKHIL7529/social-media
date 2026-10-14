@@ -28,7 +28,7 @@ export default function UserByNameScreen({ name }: { name: string }) {
   }, [queryClient, router, userQuery.data, userQuery.dataUpdatedAt]);
 
   return (
-      <section className="mx-auto w-full max-w-feed rounded-2xl border border-line bg-surface p-5 shadow-card">
+      <section className="mx-auto w-full max-w-feed rounded border border-line bg-surface p-5 shadow-card">
         {userQuery.isLoading && <ProfileSkeleton />}
         {userQuery.error && <p role="alert" className="break-words text-danger">{userQuery.error.message}</p>}
       </section>

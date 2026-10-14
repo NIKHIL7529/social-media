@@ -29,7 +29,7 @@ export default function ProfileScreen() {
 
   return (
       <section className="mx-auto w-full min-w-0">
-        <div className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <div className="profile-panel surface-card p-5 sm:p-6">
           {isLoading && <ProfileSkeleton />}
           {user && (
             <>
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
             <QueryError error={postsQuery.error} onRetry={() => postsQuery.refetch()} retrying={postsQuery.isFetching} />
             <PostList posts={posts} />
             {!postsQuery.isLoading && !postsQuery.error && posts.length === 0 && (
-              <p className="rounded-2xl border border-line bg-surface p-5 text-ink-muted">You have not created any posts yet.</p>
+              <p className="rounded border border-line bg-surface p-5 text-ink-muted">You have not created any posts yet.</p>
             )}
           </div>
         )}

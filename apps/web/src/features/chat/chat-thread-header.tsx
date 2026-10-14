@@ -28,27 +28,33 @@ export function ChatThreadHeader({
   typing: string;
 }) {
   return (
-    <header className="border-b border-line p-4">
-      <div className="flex items-center justify-between gap-3">
+    <header className="shrink-0">
+      <div className="chat-header-bar justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             href="/chat"
-            className="grid size-9 flex-shrink-0 place-items-center rounded-xl text-ink-muted hover:bg-accent-soft lg:hidden"
+            className="grid size-9 flex-shrink-0 place-items-center rounded text-ink-muted hover:bg-accent-soft lg:hidden"
             aria-label="Back to conversations"
             title="Back"
           >
             <ArrowLeft size={19} />
           </Link>
-          <h2 className="flex min-w-0 items-center gap-2 font-extrabold text-ink">
-            {!activeChat.group && <PresenceDot online={isOnline} />}
-            <span className="truncate">{chatLabel(activeChat)}</span>
-          </h2>
+          <div className="min-w-0">
+            <h2 className="truncate font-extrabold leading-6 text-ink">{chatLabel(activeChat)}</h2>
+            <p className="flex items-center gap-2 text-sm leading-5 text-ink-muted">
+              {!activeChat.group && <PresenceDot online={isOnline} />}
+              <span className="truncate">
+                {activeChat.group ? "Group chat" : isOnline ? "Online" : "Offline"}
+                {typing ? ` - ${typing}` : ""}
+              </span>
+            </p>
+          </div>
         </div>
         {activeChat.group && activeChat.chatId !== "new" && (
           <button
             type="button"
             onClick={onToggleRename}
-            className="grid size-9 place-items-center rounded-xl text-accent-deep hover:bg-accent-soft"
+            className="grid size-9 place-items-center rounded text-accent-deep hover:bg-accent-soft"
             aria-label="Rename group"
             title="Rename group"
           >
@@ -56,19 +62,15 @@ export function ChatThreadHeader({
           </button>
         )}
       </div>
-      <p className="text-sm text-ink-muted">
-        {activeChat.group ? "Group chat" : isOnline ? "Online" : "Offline"}
-        {typing ? ` - ${typing}` : ""}
-      </p>
       {isRenaming && activeChat.group && (
-        <form onSubmit={onRename} className="mt-3 flex gap-2">
+        <form onSubmit={onRename} className="flex gap-2 border-b border-line px-4 pb-4">
           <input
             value={groupNameDraft}
             onChange={(event) => onRenameChange(event.target.value)}
-            className="min-h-10 min-w-0 flex-1 rounded-xl border border-line px-3 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
+            className="min-h-10 min-w-0 flex-1 rounded border border-line px-3 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent-soft"
             placeholder="Group name optional"
           />
-          <button className="min-h-10 rounded-xl bg-accent px-3 text-sm font-bold text-accent-contrast">Save</button>
+          <button className="min-h-10 rounded bg-accent px-3 text-sm font-bold text-accent-contrast">Save</button>
         </form>
       )}
     </header>

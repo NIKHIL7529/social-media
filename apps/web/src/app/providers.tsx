@@ -29,6 +29,25 @@ export function Providers({ children }: { children: ReactNode }) {
             background: "rgb(var(--color-surface-raised))",
             color: "rgb(var(--color-ink))",
             boxShadow: "var(--shadow-soft)",
+            borderRadius: "var(--radius-ui)",
+            borderLeft: "3px solid rgb(var(--color-accent))",
+          },
+          iconTheme: {
+            primary: "rgb(var(--color-accent))",
+            secondary: "rgb(var(--color-surface-raised))",
+          },
+          success: {
+            iconTheme: {
+              primary: "rgb(var(--color-accent))",
+              secondary: "rgb(var(--color-accent-contrast))",
+            },
+          },
+          error: {
+            style: { borderLeft: "3px solid rgb(var(--color-danger))" },
+            iconTheme: {
+              primary: "rgb(var(--color-danger))",
+              secondary: "rgb(var(--color-surface))",
+            },
           },
         }}
       />

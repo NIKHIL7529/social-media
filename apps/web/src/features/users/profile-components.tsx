@@ -8,7 +8,7 @@ export type SocialList = "followers" | "followings";
 
 export function ProfileHeader({ user }: { user: User }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="profile-header flex items-center gap-4">
       <UserAvatar name={user.name} photo={user.photo} size={80} />
       <div className="min-w-0">
         <h1 className="truncate text-2xl font-extrabold text-ink">{user.name}</h1>
@@ -34,7 +34,7 @@ export function ProfileStats({
   posts: number;
 }) {
   return (
-    <div className="mt-5 grid grid-cols-3 overflow-hidden rounded-2xl border border-line text-center">
+    <div className="profile-stats mt-5 grid grid-cols-3 overflow-hidden rounded border border-line text-center">
       <ProfileStat label="Followers" value={followers} onClick={() => onSelectList("followers")} />
       <ProfileStat label="Following" value={followings} onClick={() => onSelectList("followings")} />
       <ProfileStat label="Posts" value={posts} />
@@ -72,7 +72,7 @@ function ProfileStat({ label, value, onClick }: { label: string; value: number; 
 
 function ProfileInfo({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="rounded-xl bg-surface-raised p-3">
+    <div className="rounded bg-surface-raised p-3">
       <p className="font-bold text-ink">{label}</p>
       <p className="mt-1 text-ink-muted">{value || "Not set"}</p>
     </div>

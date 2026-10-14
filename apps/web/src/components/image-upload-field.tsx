@@ -32,7 +32,7 @@ export function ImageUploadField({
   const message = uploadError || error;
   return (
     <div>
-      <label className="block cursor-pointer overflow-hidden rounded-2xl border border-dashed border-line bg-surface-raised focus-within:ring-2 focus-within:ring-accent">
+      <label className="block cursor-pointer overflow-hidden rounded border border-dashed border-line bg-surface-raised focus-within:ring-2 focus-within:ring-accent">
         <input
           aria-label={label}
           aria-invalid={Boolean(message)}
@@ -64,7 +64,7 @@ export function ImageUploadField({
             <Image src={preview} alt={label} fill className="object-cover" unoptimized />
           ) : (
             <div className="flex flex-col items-center gap-3 text-ink-muted">
-              <span className="grid size-14 place-items-center rounded-full bg-surface text-accent-deep shadow-soft">
+              <span className="grid size-14 place-items-center rounded bg-surface text-accent-deep shadow-soft">
                 <Camera />
               </span>
               <span className="font-bold">{emptyText}</span>

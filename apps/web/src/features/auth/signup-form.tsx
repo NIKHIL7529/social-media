@@ -120,7 +120,7 @@ export default function SignupForm() {
         </fieldset>
         {formError && <div role="alert" className="mt-4 text-sm font-medium text-danger">{formError}</div>}
         <div className="mt-7 flex items-center gap-3">
-          {step > 0 && <button type="button" disabled={submitting} onClick={() => goToStep(step - 1)} className="flex min-h-12 items-center gap-2 rounded-xl px-3 text-sm font-bold text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50"><ArrowLeft size={18} aria-hidden="true" /> Back</button>}
+          {step > 0 && <button type="button" disabled={submitting} onClick={() => goToStep(step - 1)} className="flex min-h-12 items-center gap-2 rounded px-3 text-sm font-bold text-accent-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-50"><ArrowLeft size={18} aria-hidden="true" /> Back</button>}
           <button type="submit" disabled={submitting} className="auth-submit flex-1">
             {submitting ? "Creating account..." : step === 2 ? "Create account" : "Continue"}<ArrowRight size={20} aria-hidden="true" />
           </button>
