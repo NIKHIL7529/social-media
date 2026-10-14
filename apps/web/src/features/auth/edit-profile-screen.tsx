@@ -9,7 +9,7 @@ import { USERNAME_MIN_LENGTH, USERNAME_MAX_LENGTH, PASSWORD_MIN_LENGTH, PASSWORD
 
 import { genderOptions } from "@/features/auth/form-errors";
 
-export default function EditProfileScreen() {
+export default function EditProfileScreen({ maxBirthDate }: { maxBirthDate: string }) {
   const profile = useEditProfileForm();
   if (!profile.isLoading && !profile.error && !profile.user) return <LoginRequired message="to edit your profile." />;
 
@@ -39,7 +39,7 @@ export default function EditProfileScreen() {
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </SelectField>
-                <TextField label="Date of birth" type="date" value={profile.form.dob} onChange={(dob) => profile.updateProfileField("dob", dob)} required />
+                <TextField label="Date of birth" type="date" max={maxBirthDate} value={profile.form.dob} onChange={(dob) => profile.updateProfileField("dob", dob)} required />
                 <TextField label="City" value={profile.form.city} onChange={(city) => profile.updateProfileField("city", city)} />
                 <TextField label="Country" value={profile.form.country} onChange={(country) => profile.updateProfileField("country", country)} />
               </div>

@@ -70,7 +70,7 @@ export default function CreatePostScreen() {
             />
           </div>
           <div className="mt-5">
-            <TextField label="Topic" value={topic} onChange={setTopic} />
+            <TextField label="Title" value={topic} onChange={setTopic} />
           </div>
           <div className="mt-4 [&_textarea]:min-h-32">
             <TextAreaField label="Text" value={text} onChange={setText} />

@@ -1,4 +1,20 @@
 export const USERNAME_MIN_LENGTH = 3;
+export const MINIMUM_AGE = 18;
+
+export function latestAdultBirthDate(now = new Date()): string {
+  const year = now.getUTCFullYear() - MINIMUM_AGE;
+  const month = now.getUTCMonth();
+  const day = Math.min(now.getUTCDate(), new Date(Date.UTC(year, month + 1, 0)).getUTCDate());
+  return new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10);
+}
+
+export function birthDateError(value: string): string | null {
+  if (!value) return "Enter your date of birth.";
+  const date = new Date(`${value}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) return "Enter a valid date of birth.";
+  if (value > new Date().toISOString().slice(0, 10)) return "Date of birth cannot be in the future.";
+  return value > latestAdultBirthDate() ? `You must be at least ${MINIMUM_AGE} years old to use SocialSphere.` : null;
+}
 export const USERNAME_MAX_LENGTH = 30;
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 40;

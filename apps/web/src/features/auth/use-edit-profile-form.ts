@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { useCurrentUser } from "@/features/auth/use-current-user";
 import { queryKeys } from "@/lib/query-keys";
 import { authService, type ChangePasswordPayload, type EditProfilePayload } from "@/features/auth/auth-service";
-import { displayNameError, passwordError, usernameError } from "@/features/auth/auth-validation";
+import { birthDateError, displayNameError, passwordError, usernameError } from "@/features/auth/auth-validation";
 
 const emptyPasswords: ChangePasswordPayload = {
   currentPassword: "",
@@ -49,7 +49,7 @@ export function useEditProfileForm() {
   async function submitProfile(event: FormEvent) {
     event.preventDefault();
     if (profilePending) return;
-    const validationError = displayNameError(form.name) || usernameError(form.username);
+    const validationError = displayNameError(form.name) || usernameError(form.username) || birthDateError(form.dob);
     if (validationError) {
       setProfileError(validationError);
       return;

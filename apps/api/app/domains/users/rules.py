@@ -1,6 +1,29 @@
+from calendar import monthrange
+from datetime import date
+
 from email_validator import validate_email
 
 from app.core.security import MAX_BCRYPT_BYTES
+from app.core.time import utc_now
+
+MINIMUM_AGE = 18
+
+
+def validate_birth_date(value: str) -> str:
+    try:
+        born = date.fromisoformat(value)
+    except (TypeError, ValueError):
+        raise ValueError("Enter a valid date of birth.") from None
+    if born.isoformat() != value:
+        raise ValueError("Enter a valid date of birth.")
+    today = utc_now().date()
+    if born > today:
+        raise ValueError("Date of birth cannot be in the future.")
+    year = today.year - MINIMUM_AGE
+    cutoff = date(year, today.month, min(today.day, monthrange(year, today.month)[1]))
+    if born > cutoff:
+        raise ValueError(f"You must be at least {MINIMUM_AGE} years old to use SocialSphere.")
+    return value
 
 USERNAME_MIN_LENGTH = 3
 USERNAME_MAX_LENGTH = 30

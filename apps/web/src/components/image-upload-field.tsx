@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useId, useRef, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, UserRound } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { fileToDataUrl, IMAGE_ACCEPT } from "@/lib/file-to-data-url";
@@ -15,6 +15,7 @@ export function ImageUploadField({
   label,
   onChange,
   preview,
+  profile = false,
   required,
 }: {
   aspectClass?: string;
@@ -24,6 +25,7 @@ export function ImageUploadField({
   label: string;
   onChange: (dataUrl: string) => void;
   preview: string;
+  profile?: boolean;
   required?: boolean;
 }) {
   const errorId = useId();
@@ -32,7 +34,7 @@ export function ImageUploadField({
   const message = uploadError || error;
   return (
     <div>
-      <label className="block cursor-pointer overflow-hidden rounded border border-dashed border-line bg-surface-raised focus-within:ring-2 focus-within:ring-accent">
+      <label className={profile ? "profile-photo-picker relative mx-auto block cursor-pointer rounded-full focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-4 focus-within:ring-offset-surface" : "block cursor-pointer overflow-hidden rounded border border-dashed border-line bg-surface-raised hover:border-accent focus-within:ring-2 focus-within:ring-accent"}>
         <input
           aria-label={label}
           aria-invalid={Boolean(message)}
@@ -59,7 +61,16 @@ export function ImageUploadField({
           }}
           className="sr-only"
         />
-        <div className={`relative grid ${aspectClass} place-items-center`}>
+        {profile ? (
+          <>
+            <span className="relative grid size-full place-items-center overflow-hidden rounded-full border-2 border-accent/25 bg-accent-soft text-accent shadow-soft">
+              {preview ? <Image src={preview} alt={label} fill sizes="128px" className="object-cover" unoptimized /> : <UserRound size={44} strokeWidth={1.5} aria-hidden="true" />}
+            </span>
+            <span className="absolute bottom-0 right-0 grid size-9 place-items-center rounded-full border-[3px] border-surface bg-accent text-accent-contrast shadow-soft">
+              <Camera size={18} aria-hidden="true" />
+            </span>
+          </>
+        ) : <div className={`relative grid ${aspectClass} place-items-center`}>
           {preview ? (
             <Image src={preview} alt={label} fill className="object-cover" unoptimized />
           ) : (
@@ -71,7 +82,7 @@ export function ImageUploadField({
               {helperText && <span className="text-sm">{helperText}</span>}
             </div>
           )}
-        </div>
+        </div>}
       </label>
       {message && <span id={errorId} role="alert" className="mt-2 block text-xs font-medium leading-relaxed text-danger">{message}</span>}
     </div>

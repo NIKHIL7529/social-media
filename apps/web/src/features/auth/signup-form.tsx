@@ -15,7 +15,7 @@ import { genderOptions, signupErrors, serverFieldErrors, submissionError, type F
 
 const SIGNUP_TITLES = ["Create your account", "Tell us about you", "Make your sphere yours"] as const;
 
-export default function SignupForm() {
+export default function SignupForm({ maxBirthDate }: { maxBirthDate: string }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -102,7 +102,7 @@ export default function SignupForm() {
               <p className="auth-help text-xs leading-relaxed text-ink-muted">{PASSWORD_REQUIREMENTS}</p>
             </>}
             {step === 1 && <>
-              <TextField label="Date of birth" error={errors.dob} type="date" value={form.dob} onChange={(dob) => updateField("dob", dob)} autoComplete="bday" required />
+              <TextField label="Date of birth" error={errors.dob} type="date" max={maxBirthDate} value={form.dob} onChange={(dob) => updateField("dob", dob)} autoComplete="bday" required />
               <SelectField label="Gender" error={errors.gender} value={form.gender} onChange={(gender) => updateField("gender", gender)} required>
                 <option value="" disabled>Select gender</option>
                 {genderOptions.map((option) => <option key={option}>{option}</option>)}
@@ -111,8 +111,8 @@ export default function SignupForm() {
               <TextField label="Country" error={errors.country} value={form.country} onChange={(country) => updateField("country", country)} autoComplete="country-name" />
             </>}
             {step === 2 && <>
-              <div className="signup-photo mx-auto w-full max-w-[200px]">
-                <ImageUploadField label="Profile photo preview" error={errors.photo} emptyText="Choose profile photo" aspectClass="aspect-square" preview={form.photo} onChange={(photo) => updateField("photo", photo)} />
+              <div>
+                <ImageUploadField profile label="Choose or change profile photo" error={errors.photo} emptyText="Choose profile photo" preview={form.photo} onChange={(photo) => updateField("photo", photo)} />
               </div>
               <TextAreaField label="Description" error={errors.description} value={form.description} onChange={(description) => updateField("description", description)} />
             </>}

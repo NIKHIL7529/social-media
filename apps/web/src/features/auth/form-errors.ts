@@ -1,5 +1,5 @@
 import { ApiError } from "@/lib/api";
-import { displayNameError, emailError, passwordError, usernameError } from "./auth-validation";
+import { birthDateError, displayNameError, emailError, passwordError, usernameError } from "./auth-validation";
 
 export type FieldErrors = Partial<Record<string, string>>;
 export const genderOptions = ["Female", "Male", "Non-binary", "Prefer not to say"];
@@ -9,9 +9,8 @@ export function signupErrors(form: { name: string; username: string; email: stri
   const checks = { name: displayNameError(form.name), username: usernameError(form.username), email: emailError(form.email), password: passwordError(form.password) };
   for (const [field, message] of Object.entries(checks)) if (message) errors[field] = message;
   if (step > 0) {
-    const date = new Date(`${form.dob}T00:00:00Z`);
-    if (!form.dob) errors.dob = "Enter your date of birth.";
-    else if (!/^\d{4}-\d{2}-\d{2}$/.test(form.dob) || !Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== form.dob) errors.dob = "Enter a valid date of birth.";
+    const dobError = birthDateError(form.dob);
+    if (dobError) errors.dob = dobError;
     if (!genderOptions.includes(form.gender)) errors.gender = "Select a gender option.";
   }
   return errors;
