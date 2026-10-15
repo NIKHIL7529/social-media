@@ -14,12 +14,17 @@ export function usePostSize({ ratio, expanded }: { ratio: number; expanded: bool
     const container = card?.parentElement;
     if (!card || !media || !container) return;
     const measure = () => {
+      const desktop = window.matchMedia("(min-width: 1024px)").matches;
+      const availableWidth = container.clientWidth;
+      if (!desktop) {
+        sizing.current = { viewport: "", width: availableWidth };
+        setWidth(availableWidth);
+        return;
+      }
       const styles = getComputedStyle(document.documentElement);
       const navigation = parseFloat(styles.getPropertyValue("--nav-height")) || 0;
-      const tabs = window.matchMedia("(min-width: 1024px)").matches ? 0 : parseFloat(styles.getPropertyValue("--bottom-nav-height")) || 74;
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const availableWidth = container.clientWidth;
-      const viewport = `${availableWidth}:${viewportHeight}:${navigation}:${tabs}:${ratio}`;
+      const viewport = `${availableWidth}:${viewportHeight}:${navigation}:${ratio}`;
       const contentHeight = Array.from(card.children)
         .filter(child => child !== media && child.tagName !== "DIALOG")
         .reduce((height, child) => height + child.getBoundingClientRect().height, 0);
@@ -28,7 +33,7 @@ export function usePostSize({ ratio, expanded }: { ratio: number; expanded: bool
         sizing.current.width = availableWidth;
       }
       // Shrink monotonically as wrapping changes. This avoids resize loops at container breakpoints.
-      if (!expanded) sizing.current.width = Math.min(sizing.current.width, Math.max(96, viewportHeight - navigation - tabs - contentHeight - 32) * ratio);
+      if (!expanded) sizing.current.width = Math.min(sizing.current.width, Math.max(96, viewportHeight - navigation - contentHeight - 32) * ratio);
       setWidth(sizing.current.width);
     };
     const observer = new ResizeObserver(measure);

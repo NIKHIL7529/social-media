@@ -51,6 +51,6 @@ Light appearance uses white/lavender surfaces. Dark appearance uses charcoal sur
 
 Desktop navigation lives in the sidebar; smaller screens use a header and bottom tabs. Appearance and logout controls belong to Settings. The desktop activity rail stays centered and has no internal scrolling.
 
-Use `PostList` for single-column posts. Image proportions and available viewport height determine post width, shared by headers, actions, and comments. Preserve proportions; expanded content may grow vertically.
+Use `PostList` for single-column posts. On small screens, home-feed posts extend to the screen edges and images use their natural aspect ratio to determine height. Desktop post width fits the available viewport height. Headers, actions, and comments share the image width; expanded content may grow vertically.
 
 Authentication uses a CSS/SVG backdrop and glossy forms with single-column fields. Fit controls to the available screen without hiding content. The signup photo picker is circular and scales down on short screens. Respect reduced-motion preferences.

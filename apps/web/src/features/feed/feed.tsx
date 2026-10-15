@@ -50,7 +50,7 @@ export function Feed() {
   }, [fetchNextPage, hasNextPage, isFetching, error]);
 
   return (
-    <section className="mx-auto w-full min-w-0" aria-labelledby="feed-title">
+    <section className="home-feed mx-auto w-full min-w-0" aria-labelledby="feed-title">
       <header className="page-banner mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <span className="text-xs font-extrabold uppercase text-accent">Your daily orbit</span>

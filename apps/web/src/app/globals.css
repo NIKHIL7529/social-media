@@ -111,6 +111,11 @@
     .post-actions > button:last-child { width: auto; min-height: 32px; font-size: 12px; gap: 4px; }
   }
   .post-card { container-type: inline-size; }
+  @media (max-width: 1023px) {
+    .home-feed .feed-grid { margin-inline: -16px; width: calc(100% + 32px); }
+    .post-card { inline-size: 100%; }
+    .home-feed .post-header, .home-feed .post-actions, .home-feed .post-media img { border-radius: 0; }
+  }
   .post-header, .post-content, .post-actions { background: rgb(var(--color-surface)); }
   @container (max-width: 360px) {
     .post-header { padding: 8px; gap: 6px; }
