@@ -1,10 +1,10 @@
 # SocialSphere API
 
-FastAPI backend using native async PyMongo. Use Python 3.13.1 and follow the [shared development conventions](../README.md).
+FastAPI backend using Python 3.13 and native async PyMongo. Dependencies are listed in `requirements.txt`.
 
 ## Local setup
 
-Run commands from `apps/api` with MongoDB available:
+Run from `apps/api`, with MongoDB available:
 
 ```powershell
 python -m venv .venv
@@ -13,31 +13,60 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edit `.env`: set `DATABASE` to the intended database, replace `SECRET_KEY`, and set `FRONTEND_URL` to the frontend origin. The example contains additional origins, DNS/timeouts, rate limits, and Cloudinary settings. Configure Cloudinary credentials for media uploads. Keep real credentials out of Git.
+Configure `.env`:
+
+| Variable                                                               | Purpose                                                 |
+| ---------------------------------------------------------------------- | ------------------------------------------------------- |
+| `DATABASE`                                                             | MongoDB URI including the database name                 |
+| `SECRET_KEY`                                                           | Secret for signing session and socket tokens            |
+| `FRONTEND_URL`                                                         | Web application's origin                                |
+| `FRONTEND_URLS`                                                        | Additional comma-separated permitted origins, if needed |
+| `ENVIRONMENT`                                                          | `development` locally; `production` on Render           |
+| `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Image upload credentials                                |
+
+The example also documents optional CORS, development DNS overrides, connection timeouts, and rate limits. Keep credentials out of Git.
 
 ```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
-HTTP documentation is available at `http://localhost:8000/docs` and `/redoc`. Health uses `/api/health`; chat realtime uses `/ws/chat`.
+API documentation: `http://localhost:8000/docs` and `/redoc`. Readiness details: `/api/health`. Startup requires a working database connection and permission to create query indexes.
 
-After dependency changes, reinstall `requirements.txt` and restart the API. Check compilation with:
+## Render deployment
 
-```powershell
-python -m compileall app scripts
+Set the service root to `apps/api`, install `requirements.txt`, and start with:
+
+```sh
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
+
+Configure the variables above in Render, with `ENVIRONMENT=production` and `FRONTEND_URL` set to the Vercel origin. Configure Atlas network access for the API service. This deployment does not require Docker.
+
+## Authentication and realtime
+
+Sessions use an HTTP-only JWT cookie. Production cookies are secure; browser HTTP requests are proxied through the frontend origin. Permitted frontend origins are configured explicitly.
+
+Chat obtains a 60-second, purpose-limited ticket from authenticated `POST /api/message/socketTicket`, then connects to `/ws/chat` using the ticket. A socket ticket cannot authenticate ordinary HTTP endpoints. Deploy corresponding frontend and API changes together.
+
+Presence, connections, and rate-limit counters are held in process memory. Run one API process/instance with the current implementation; multiple workers or replicas do not share that state.
+
+## Account rules
+
+Display names default to `Anonymous`, accept 3-20 letters with spaces, and may repeat. Usernames and emails are unique. Search trims surrounding whitespace, rejects blank input, and treats the remaining text literally.
+
+Signup and profile updates require a valid birth date at least 18 years before the current UTC date. Login also checks eligibility. Future birth dates are rejected. These checks use shared backend validation rather than relying on the browser calendar.
 
 ## Database indexes
 
-Connection startup creates query indexes defined in `app/core/indexes.py`; the database account needs index creation permission. Configure these unique indexes manually in Atlas or Compass before account or concurrent direct-chat creation:
+Startup creates non-unique query indexes from `app/core/indexes.py`. Create the following identity/conversation indexes separately in Atlas or Compass:
 
-| Collection | Keys | Options |
-| --- | --- | --- |
-| `users` | `{"username": 1}` | Unique; collation `{"locale": "en", "strength": 2}` |
-| `users` | `{"email": 1}` | Unique; collation `{"locale": "en", "strength": 2}` |
-| `messages` | `{"participantKey": 1}` | Unique; Sparse |
+| Collection | Keys                    | Options                                             |
+| ---------- | ----------------------- | --------------------------------------------------- |
+| `users`    | `{"username": 1}`       | Unique; collation `{"locale": "en", "strength": 2}` |
+| `users`    | `{"email": 1}`          | Unique; same collation as the username index        |
+| `messages` | `{"participantKey": 1}` | Unique; sparse                                      |
 
-Select the database named in `DATABASE`, open each collection's Indexes tab, and create one index per row with the listed options. `participantKey` is sparse because group conversations omit it. Keep MongoDB's automatic `_id_` indexes. Clearing documents preserves indexes; dropping collections or the database requires recreating them.
+Group conversations omit `participantKey`. Keep MongoDB's automatic `_id_` indexes. Deleting documents preserves indexes; dropping collections requires recreating them.
 
 ## Development seed
 
@@ -45,21 +74,20 @@ Select the database named in `DATABASE`, open each collection's Indexes tab, and
 python scripts\seed.py
 ```
 
-The seed removes unique display-name indexes so names can repeat; usernames and emails remain unique. Names default to `Anonymous` and accept 3?20 letters with spaces between words.
+This deletes **all documents** in `users`, `posts`, `comments`, `messages`, `groups`, and `chatmessages` in the configured database, then creates current-schema dummy data. It also removes unique display-name indexes. It uses application validation and document builders; no legacy-record compatibility is required.
 
-This clears **all documents** from `users`, `posts`, `comments`, `messages`, `groups`, and `chatmessages`, then creates current-schema accounts, posts, reactions, comments, and direct/group conversations. It uses application validation, password hashing, document builders, and domain commands.
+Seed login usernames: `nikhil`, `ananya`, `rahul`. Password for all three: `SocialSphere123!`.
 
-Login usernames: `nikhil`, `ananya`, `rahul`. Password for all three: `SocialSphere123!`.
+## Implementation and verification
 
-## Implementation conventions
+- `app/api`: HTTP/WebSocket handlers; `app/domains`: domain commands, queries, and request schemas.
+- `app/core`: configuration, database lifecycle, security, validation, and UTC time helpers; `app/schemas`: serialization; `scripts`: seed tooling.
+- Reuse one async database client per process. Keep bcrypt and Cloudinary SDK work in the thread pool. Do not globally cache private account responses.
+- Feed queries use ID cursors and batch author lookup. Chat messages use timestamp-and-ID pagination. Comments and chat messages have separate collections.
+- Surface database failures and log failed media cleanup.
 
-- `app/api` contains thin HTTP/WebSocket handlers. `app/domains` owns users, posts, chat, groups, and media behavior, including domain request schemas. Import domains through their package boundaries.
-- `app/core` owns configuration, database lifecycle, security, validation, and time helpers. `app/schemas` contains serialization helpers; `scripts` contains seed tooling.
-- Application lifespan opens and closes one async database client. Await aggregation before consuming its cursor and close cursors when finished. Use UTC dates consistently.
-- Keep blocking bcrypt and Cloudinary SDK work in the thread pool. Reuse authenticated documents within a request; do not globally cache private account data or personalized responses.
-- Comments and chat messages have separate collections. Message pagination uses timestamp-and-ID cursors to distinguish simultaneous messages. Search treats input as literal text.
-- Surface database failures as actionable errors and log media cleanup failures. Startup requires a working database connection.
+After dependency changes, reinstall requirements and restart. Check Python compilation from this directory:
 
-Authentication uses an HTTP-only JWT cookie. Configure permitted frontend origins explicitly for deployment. Realtime presence and connections are in memory, so the current WebSocket implementation is intended for a single API instance.
-
-References: [FastAPI async](https://fastapi.tiangolo.com/async/), [lifespan](https://fastapi.tiangolo.com/advanced/events/), and [PyMongo indexes](https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/).
+```powershell
+python -m compileall app scripts
+```

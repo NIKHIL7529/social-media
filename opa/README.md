@@ -1,6 +1,6 @@
 # SocialSphere OPA Gatekeeper Policies
 
-This directory is the production OPA/Gatekeeper policy source for Kubernetes admission control. `opa-practice/` is only for local learning and quick OPA experiments.
+Optional OPA/Gatekeeper admission policies for the [Kubernetes examples](../k8s/README.md). Gatekeeper must already be installed in the target cluster. These policies are not used by the Vercel/Render deployment.
 
 ## Structure
 
@@ -29,6 +29,6 @@ kubectl apply -f opa\templates
 kubectl apply -f opa\constraints
 ```
 
-Update `allowedImagePrefixes` in `constraints/registry-constraint.yaml` before deploying to production. Replace `registry.example.com/` with your real registry prefix.
+Update `allowedImagePrefixes` in `constraints/registry-constraint.yaml` before applying the constraints. Replace `registry.example.com/` with your real registry prefix. Run the commands above from the repository root, applying templates before constraints.
 
 These policies intentionally target Pods, Deployments, DaemonSets, StatefulSets, Jobs, and CronJobs so the same baseline applies to app workloads and operational jobs.

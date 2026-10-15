@@ -1,97 +1,29 @@
 # SocialSphere
 
-SocialSphere is a full-stack social media application built on a production-oriented Next.js and FastAPI foundation. The application code lives in `apps/`.
+A social media application for sharing photo posts, finding people, and messaging.
 
-## Current Stack
-
-| Layer | Technology |
-| --- | --- |
-| Web | Next.js 16, React 19, TypeScript, Tailwind CSS, TanStack Query |
-| API | Python 3.13, FastAPI, Uvicorn, Pydantic |
-| Realtime | Authenticated native WebSockets |
-| Database | MongoDB |
-| Media | Cloudinary |
-| Auth | JWT in httpOnly cookies |
+The frontend is deployed on Vercel and the API on Render, with MongoDB for data and Cloudinary for images. Docker and Kubernetes are not required for this deployment.
 
 ## Features
 
-- Auth, signup, logout, protected sessions, edit profile, and separate password change.
-- Cursor-paginated feed with Instagram-style infinite loading.
-- Cloudinary image upload and optimized Next image rendering.
-- Likes, saved posts, persisted comments, post deletion, and post liker lists.
-- User search, public profiles, followers/following views, and follow/unfollow.
-- Direct chats, group chats, optional group names, group rename, unread counts, read marks, typing, presence, and resilient WebSocket reconnects.
-- Responsive layouts for feed, profile, search, settings, upload, and chat.
-- Seed script for repeatable local dummy data.
+- Account registration, login, profile editing, and password changes.
+- A paginated feed, likes, saved posts, comments, sharing, and post deletion.
+- User search, public profiles, and follower/following lists.
+- Direct and group messaging with presence, typing indicators, and unread counts.
+- Responsive layouts and system, light, and dark appearance settings.
 
-## Project Structure
+## Documentation
 
-```text
-apps/
-  api/      FastAPI backend
-  web/      Next.js frontend
-  README.md
-  docker-compose.yml
-```
+Each README owns the details for its directory:
 
-## Local Development
+| Location                               | Contents                                                                                 |
+| -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| [Frontend](apps/web/README.md)         | Web setup, Vercel configuration, rendering, and UI conventions                           |
+| [API](apps/api/README.md)              | Backend setup, Render configuration, database indexes, seed accounts, and authentication |
+| [Kubernetes](k8s/README.md)            | Optional cluster manifests and deployment limitations                                    |
+| [Gatekeeper](opa/README.md)            | Optional cluster admission policies                                                      |
+| [OPA practice](opa-practice/README.md) | Standalone local policy exercises                                                        |
 
-### API
-
-```bash
-cd apps/api
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn app.main:app --reload --port 8000
-```
-
-### Web
-
-```bash
-cd apps/web
-npm install
-copy .env.example .env.local
-npm run dev
-```
-
-The web app runs at `http://localhost:3000` and expects the API at `http://localhost:8000`.
-
-## Seed Data
-
-```bash
-cd apps/api
-.venv\Scripts\activate
-python scripts/seed.py
-```
-
-Seeded accounts use the password `password123`.
-
-## Docker
-
-From the repository root:
-
-```bash
-docker compose up --build
-```
-
-You can also run the compose file from `apps/`:
-
-```bash
-cd apps
-docker compose up --build
-```
-
-## Verification
-
-```bash
-cd apps/api
-python -m compileall app scripts
-
-cd ../web
-npm run typecheck
-npm run build
-```
+For local development, follow the API setup first, then the frontend setup. Application source lives in `apps/api` and `apps/web`; the remaining infrastructure files are separate deployment examples.
 
 Developed by [Nikhil Gupta](https://github.com/Nikhil7529).

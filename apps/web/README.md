@@ -1,21 +1,26 @@
 # SocialSphere web
 
-Next.js App Router frontend using React, Tailwind CSS, and TanStack Query. Follow the [shared development conventions](../README.md).
+Next.js 16 App Router frontend with React 19, TypeScript, Tailwind CSS, TanStack Query, Lucide icons, and react-hot-toast. Dependency versions and commands are defined in `package.json`.
 
-## Setup and validation
+## Local setup
 
-Use Node.js 24.18.0 or newer and npm 11 or newer. Run commands from `apps/web`. Create `.env.local`:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-```
+Use Node.js 24.18.0 or newer and npm 11 or newer. Run from `apps/web`:
 
 ```powershell
+Copy-Item .env.example .env.local
 npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`; the API must allow this origin. Validate and run a production build with:
+Set `NEXT_PUBLIC_API_URL` in `.env.local` to the API's absolute HTTP(S) origin, such as `http://localhost:8000`. Do not include an API path, credentials, or query parameters. Open `http://localhost:3000`.
+
+## Vercel deployment
+
+Set the project root to `apps/web` and configure `NEXT_PUBLIC_API_URL` with the Render API origin. The value is used by Next.js rewrites, server requests, and the browser's WebSocket URL. Redeploy after changing it; do not introduce a second API-origin variable.
+
+Browser HTTP calls use same-origin `/api` paths rewritten to FastAPI. The browser connects directly to the configured API for chat WebSockets; authentication details belong to the [API README](../api/README.md#authentication-and-realtime).
+
+## Validation and production preview
 
 ```powershell
 npm run lint
@@ -24,34 +29,28 @@ npm run build
 npm run start
 ```
 
-Local builds use `next build` and `next start`. Docker sets `NEXT_BUILD_TARGET=standalone`, copies the generated server, public assets, and static chunks, and runs `node server.js`.
+`start` serves the production build. The optional container build uses `NEXT_BUILD_TARGET=standalone`; this is not needed on Vercel.
 
-Browser HTTP requests use same-origin `/api` paths, rewritten to FastAPI. The existing `NEXT_PUBLIC_API_URL` setting supplies the API origin for rewrites, server prefetches, and the direct chat WebSocket. Keep its existing Render URL in Vercel and redeploy after code changes. Cookie authentication stays on the web application's hostname.
+## Code organization and data flow
 
-Live chat connects directly to Render's `/ws/chat` endpoint using a 60-second, purpose-limited ticket obtained through the authenticated HTTP proxy. The main session cookie stays HTTP-only. Deploy the API and web changes together. On Render, set `FRONTEND_URL` to the Vercel site and use `ENVIRONMENT=production`. No Docker setup is required for this deployment.
+- `src/app`: route entry points, metadata, layouts, and loading/error boundaries.
+- `src/features`: domain screens, hooks, and API services.
+- `src/components`: reusable UI; `src/lib`: shared infrastructure; `src/types`: shared types.
+- Use server components for route composition and focused client components for state, forms, browser APIs, and subscriptions. Use `next/link` for links and `next/navigation` for programmatic transitions.
+- The social layout prefetches the account; the posts page prefetches the first feed page. A request-scoped query client and hydration boundaries transfer data to the browser without sharing private caches across users.
+- Signup renders per request so its birth-date picker receives the current cutoff. Login is static. Form validation is shared where applicable; the API enforces account rules independently.
+- HTTP requests use `no-store`; TanStack Query provides a 30-second default freshness window and deduplicates queries. Forward cancellation signals through services. Validation/authentication failures are not retried automatically.
+- Comments and liker dialogs load on demand. The desktop activity rail reuses account data. Keep errors visible, with recovery actions, and use component-shaped skeletons.
+- Cloudinary's custom image loader requests resized images. The first feed image loads eagerly; subsequent images load lazily.
 
-## Rendering and data
+## Shared UI
 
-- `src/app` owns server entry points, metadata, layouts, and loading/error boundaries. Await dynamic route parameters and pass plain values into interactive features.
-- `src/features` owns domain UI, query hooks, and services; `src/components` owns reusable presentation, `src/lib` shared infrastructure, and `src/types` shared types.
-- Keep browser APIs, forms, state, and event handlers in focused client components. Persistent social and chat layouts preserve navigation and the chat connection across child routes.
-- Use `next/link` for navigation and `next/navigation` for transitions following authentication, mutations, or resolved lookups. Post authors link to user IDs; name lookup supports follower/following lists.
-- The social server layout prefetches the current account using its token cookie; the posts page prefetches the first feed page. TanStack Query's `HydrationBoundary` transfers those snapshots into the browser cache. Query configuration is shared, and the server query client is scoped to one request through React `cache`. Auth pages remain statically rendered.
-- API transport shares parsing and error handling between server and browser requests. Requests use `no-store`; TanStack Query owns freshness and deduplication. Never share personalized responses across server requests. Failed prefetches remain eligible for browser fetching and the existing visible error/retry UI.
-- Pass cancellation signals through services to `apiFetch` and `jsonPost`. Do not automatically retry validation or authentication failures. Comments, liker lists, and group-member queries load when their controls open. The desktop activity panel uses cached account data.
-- Match skeletons to page components. Keep errors visible alongside cached content and provide recovery actions. Lazy-load optional dialogs and comments.
-- Use memoization when reference stability matters to an effect or subscription. Import local components directly.
+Colors, typography, surfaces, focus states, and the 4px corner radius live in `src/app/globals.css` and `tailwind.config.ts`. Plus Jakarta Sans is self-hosted with `next/font/local`; its license sits beside the font asset.
 
-## UI conventions
+Light appearance uses white/lavender surfaces. Dark appearance uses charcoal surfaces and violet-to-pink action gradients. Branding includes violet, pink, and orange; cyan provides secondary highlights. System appearance follows the device. Toasts use the same theme tokens. Keep the logo square and avatars circular.
 
-Shared colors, typography, focus styles, and theme surfaces live in the global stylesheet and Tailwind configuration. The font is self-hosted through `next/font/local`, with its license beside the asset. System appearance follows the operating system; explicit light/dark choices override it.
+Desktop navigation lives in the sidebar; smaller screens use a header and bottom tabs. Appearance and logout controls belong to Settings. The desktop activity rail stays centered and has no internal scrolling.
 
-Desktop branding and navigation live in the sidebar; smaller screens use the header and bottom tabs. Appearance and logout controls live in Settings. Keep the desktop activity panel centered and visible without internal scrolling.
+Use `PostList` for single-column posts. Image proportions and available viewport height determine post width, shared by headers, actions, and comments. Preserve proportions; expanded content may grow vertically.
 
-Feeds, saved posts, and profile posts use `PostList` in one column. Image ratio and available viewport determine post width; headers, actions, and comments share that width. Preserve image proportions without cropping or fixed post widths. The first image loads eagerly; subsequent images load lazily. Expanded content can grow vertically.
-
-Use the shared cosmic palette: violet/pink/orange gradients for branding, deeper contrast-safe gradients for primary actions, and cyan highlights. Light mode uses lavender and white surfaces; dark mode uses an OLED-black canvas with violet surfaces. Reserve translucent blur for sticky navigation and overlays, with glossy authentication forms. The auth backdrop and orbit illustration are CSS/SVG-based. Keep feeds and auth fields in one column, and respect reduced-motion preferences.
-
-Cold development compilation differs from production navigation performance; assess warm navigation and production behavior separately. Do not bypass lint or type checking to pass a build.
-
-References: [server/client components](https://nextjs.org/docs/app/getting-started/server-and-client-components), [navigation](https://nextjs.org/docs/app/getting-started/linking-and-navigating), and [images](https://nextjs.org/docs/app/api-reference/components/image).
+Authentication uses a CSS/SVG backdrop and glossy forms with single-column fields. Fit controls to the available screen without hiding content. The signup photo picker is circular and scales down on short screens. Respect reduced-motion preferences.

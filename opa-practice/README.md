@@ -2,9 +2,9 @@
 
 `policy.rego` is a lightweight local practice policy for Kubernetes workloads. It accepts raw Kubernetes workload JSON, Kubernetes admission review shape, or Gatekeeper review shape.
 
-Production Gatekeeper policy lives in `opa/`. Keep this folder for local learning, quick experiments, and fixture-based checks only.
+This folder is for local learning and does not configure cluster admission. For cluster policies, see the [Gatekeeper README](../opa/README.md).
 
-Run local checks:
+With the OPA CLI installed, run from the repository root:
 
 ```powershell
 opa check opa-practice\policy.rego
@@ -16,5 +16,3 @@ Expected behavior:
 
 - `good-deployment.json` returns an empty set.
 - `bad-deployment.json` returns violations for `latest`, missing probes, missing resources, privileged mode, host networking, hostPath, and missing hardening fields.
-
-Do not treat this folder as the source of truth for cluster admission policy.
